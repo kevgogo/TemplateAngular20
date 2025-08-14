@@ -1,0 +1,49 @@
+/* shell.component.scss */
+$navbar-h: 56px;
+$headbar-h: 56px;
+$breadcrumbs-h: 40px;
+$sidebar-w: 260px;
+$sidebar-w-collapsed: 72px;
+
+:host {
+  display: block;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: 1fr;
+  min-height: 100dvh;
+  padding-top: $navbar-h; /* compensa navbar fixed */
+}
+
+.sidebar {
+  position: sticky;
+  top: $navbar-h;
+  height: calc(100dvh - $navbar-h);
+  width: $sidebar-w;
+  &.collapsed {
+    width: $sidebar-w-collapsed;
+  }
+}
+
+.main {
+  display: grid;
+  grid-template-rows: $breadcrumbs-h $headbar-h 1fr;
+}
+
+.sticky {
+  position: sticky;
+  top: $navbar-h;
+  z-index: 1000;
+}
+app-headbar.sticky {
+  top: calc(#{$navbar-h} + #{$breadcrumbs-h});
+  z-index: 1000;
+}
+
+.content {
+  padding: 1rem;
+  min-height: calc(100dvh - $navbar-h - $breadcrumbs-h - $headbar-h);
+  background: #f3f3f3;
+}

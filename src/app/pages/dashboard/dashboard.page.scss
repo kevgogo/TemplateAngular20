@@ -1,0 +1,36 @@
+:host {
+  display: block;
+}
+
+/* 1) Evita que la .row “se salga” de app-content */
+.row {
+  margin-left: 0; /* neutraliza los -márgenes de Bootstrap */
+  margin-right: 0;
+  /* Si quieres, fija el gutter para que sea predecible */
+  --bs-gutter-x: 1rem;
+}
+
+/* 2) Los flex-items deben poder encoger (clave en Bootstrap + cards) */
+.row > [class^="col-"],
+.row > [class*=" col-"],
+.card {
+  min-width: 0;
+}
+
+/* 3) Los widgets de DevExtreme 100% del contenedor */
+.dx-widget,
+.dx-data-grid,
+.dx-chart {
+  width: 100% !important;
+  max-width: 100%;
+}
+
+/* 4) Si la tabla necesita más ancho, que scrollee dentro de la card, no la página */
+.card-body {
+  overflow-x: auto;
+}
+
+/* (opcional) alto del chart para que no “empuje” */
+.dx-chart {
+  height: 340px;
+}

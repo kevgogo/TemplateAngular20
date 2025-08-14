@@ -1,0 +1,12 @@
+<div class="card">
+  <div class="card-header">Basic Elements</div>
+  <div class="card-body">
+    <dx-form [formData]="model">
+      <dxi-item dataField="name" editorType="dxTextBox" [label]="{ text: 'Name' }"></dxi-item>
+      <dxi-item dataField="email" editorType="dxTextBox" [label]="{ text: 'Email' }"></dxi-item>
+      <dxi-item dataField="newsletter" editorType="dxCheckBox" [label]="{ text: 'Subscribe' }"></dxi-item>
+    </dx-form>
+
+    <button class="btn btn-primary mt-3" tooltip="Saves the form">Save</button>
+  </div>
+</div>

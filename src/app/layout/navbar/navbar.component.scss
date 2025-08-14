@@ -1,0 +1,31 @@
+nav {
+  background: var(--app-primary);
+
+  div:first-child {
+    min-height: 38px;
+  }
+}
+
+/* Grilla exacta para los swatches */
+.skin-grid {
+  --sw: 44px; /* tamaño del swatch (coincide con .skin-swatch) */
+  --gap: 0.2rem; /* pon 0 si no quieres ningún espacio entre celdas */
+  display: grid;
+  grid-template-columns: repeat(4, var(--sw));
+  gap: var(--gap);
+  width: fit-content; /* el menú se ajusta al contenido */
+}
+
+/* (opcional) si quieres la grilla centrada dentro del dropdown: */
+/* .skin-grid{ justify-content: center; } */
+
+/* Tus estilos existentes pueden quedarse igual */
+.skin-swatch {
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 0.4rem;
+  background: var(--swatch-bg, #ccc);
+  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.08);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}

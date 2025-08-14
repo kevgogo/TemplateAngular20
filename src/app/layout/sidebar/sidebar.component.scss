@@ -1,0 +1,9 @@
+:host {
+  width: 260px;
+  transition: width 0.2s ease;
+  will-change: width;
+}
+
+:host(.is-collapsed) {
+  width: 72px; // ajusta a tu diseño
+}

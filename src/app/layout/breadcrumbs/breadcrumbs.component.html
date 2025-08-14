@@ -1,0 +1,27 @@
+<!-- breadcrumbs.component.html -->
+<div
+  class="border-bottom bg-body-tertiary px-3 d-flex align-items-center"
+  style="height: 40px"
+>
+  <nav aria-label="breadcrumb" class="small mb-0">
+    <ol class="breadcrumb mb-0">
+      <li
+        class="breadcrumb-item"
+        *ngFor="let c of crumbs(); let i = index; let last = last"
+        [class.active]="last"
+        [attr.aria-current]="last ? 'page' : null"
+      >
+        <ng-container *ngIf="!last; else lastTpl">
+          <a [routerLink]="c.url">
+            <i *ngIf="i === 0" class="bi bi-house-door me-1 opacity-75"></i
+            >{{ c.label }}
+          </a>
+        </ng-container>
+        <ng-template #lastTpl>
+          <i *ngIf="i === 0" class="bi bi-house-door me-1 opacity-75"></i
+          >{{ c.label }}
+        </ng-template>
+      </li>
+    </ol>
+  </nav>
+</div>

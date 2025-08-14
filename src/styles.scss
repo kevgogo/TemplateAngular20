@@ -1,0 +1,59 @@
+/* Import CSS plano (no Sass) */
+@import url("./assets/css/themes.css");
+
+/* Alturas de bloques (ajústalas a tu UI real) */
+:root {
+  --nav-h: 56px; /* alto del navbar */
+  --bc-h: 36px; /* alto de breadcrumbs */
+  --ph-h: 66px; /* alto del page header/headbar */
+  --z-header: 1030; /* capa del navbar fixed-top (>= dropdowns de Bootstrap) */
+}
+
+/* Offsets dinámicos (se activan con clases en <body>) */
+body {
+  --offset-top: 0px;
+  --offset-bc: 0px;
+}
+body.fixed-nav {
+  --offset-top: var(--nav-h);
+}
+body.fixed-nav.fixed-breadcrumbs {
+  --offset-bc: var(--bc-h);
+}
+
+/* Empujar el contenido cuando el navbar es fijo */
+.layout .main {
+  padding-top: var(--offset-top);
+}
+
+/* Breadcrumbs sticky debajo del navbar (si fijo) */
+.breadcrumbs.sticky {
+  position: sticky;
+  top: var(--offset-top);
+  z-index: calc(var(--z-header) - 1);
+  /* Opcional: fondo para que no se mezcle con contenido */
+  /* background: var(--bs-body-bg); */
+}
+
+/* Headbar sticky: debajo de (navbar + breadcrumbs si fijas) */
+.app-header.sticky {
+  position: sticky;
+  top: calc(var(--offset-top) + var(--offset-bc));
+  z-index: calc(var(--z-header) - 2);
+}
+
+/* MUY IMPORTANTE: sticky no funciona si algún padre tiene overflow distinto a visible o transform */
+.layout,
+.main {
+  overflow: visible; /* evita romper sticky */
+}
+
+/* Asegura que el navbar fijo quede por encima de todo lo que deba */
+.navbar.fixed-top {
+  z-index: var(--z-header);
+}
+
+/* Si decides usar la clase global en <body> para colapsar la sidebar */
+body.sidebar-collapsed .sidebar {
+  width: 72px; /* mismo valor que en el sidebar.component.scss si usas las dos cosas */
+}

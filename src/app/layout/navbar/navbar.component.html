@@ -1,0 +1,139 @@
+<nav class="navbar navbar-expand navbar-dark" [class.fixed-top]="navFixed()">
+  <div class="container-fluid">
+    <div class="d-flex align-items-center">
+      <a class="navbar-brand d-flex align-items-center" href="#">
+        <img
+          src="../../../assets/picasso/logo-picasso.png"
+          alt="Logo"
+          width="30"
+          class="d-inline-block align-text-top me-2"
+        />
+        Plantilla Angular 20
+      </a>
+
+      <button
+        type="button"
+        class="btn p-0 border-0 bg-transparent shadow-none d-inline-flex align-items-center justify-content-center text-white"
+        aria-label="Alternar sidebar"
+        title="Alternar sidebar"
+      >
+        <i class="bi bi-list fs-4"></i>
+      </button>
+    </div>
+
+    <div class="d-flex align-items-center ms-auto gap-2">
+      <div
+        class="dropdown"
+        dropdown
+        container="body"
+        placement="bottom right"
+        [autoClose]="true"
+      >
+        <button
+          class="btn p-0 border-0 bg-transparent shadow-none d-inline-flex align-items-center justify-content-center text-white"
+          type="button"
+          aria-label="Menú de usuario"
+          dropdownToggle
+        >
+          <i class="bi bi-person-circle fs-4"></i>
+        </button>
+
+        <div
+          *dropdownMenu
+          class="dropdown-menu dropdown-menu-end p-3 skin-menu"
+        >
+          <h6 class="dropdown-header mb-2">
+            <span class="d-block text-wrap" title="kegomez@sunshinebouquet.com">
+              kegomez@sunshinebouquet.com
+            </span>
+          </h6>
+
+          <hr class="dropdown-divider mt-0 mb-2" />
+
+          <div class="skin-grid mx-auto">
+            @for (skin of SKINS; track $index) {
+            <button
+              type="button"
+              class="skin-swatch btn p-0 position-relative"
+              (click)="theme.setSkin(skin.name)"
+              [class.active]="theme.skin() === skin.name"
+              [style.--swatch-bg]="skin.hex"
+              title="{{ skin.label }}"
+            >
+              @if (theme.skin() === skin.name) {
+              <i
+                class="bi bi-check-lg position-absolute top-50 start-50 translate-middle"
+              ></i>
+              }
+            </button>
+            }
+          </div>
+
+          <hr class="dropdown-divider" />
+
+          <h6 class="dropdown-item text-center fw-bold mb-0">
+            <a class="" href="#">Menú Principal</a>
+          </h6>
+        </div>
+      </div>
+
+      <!-- Dropdown engranaje con 4 switches -->
+      <div
+        class="dropdown"
+        dropdown
+        container="body"
+        placement="bottom right"
+        [insideClick]="true"
+      >
+        <button
+          class="btn p-0 border-0 bg-transparent shadow-none d-inline-flex align-items-center justify-content-center text-white"
+          type="button"
+          aria-label="Ajustes"
+          dropdownToggle
+        >
+          <i class="bi bi-gear fs-4"></i>
+        </button>
+        <div
+          *dropdownMenu
+          class="dropdown-menu dropdown-menu-end p-3"
+          style="min-width: 260px"
+        >
+          <div class="form-check">
+            <input
+              id="fxNav"
+              class="form-check-input"
+              type="checkbox"
+              [checked]="navFixed()"
+              (change)="onToggleNavFixed()"
+            />
+            <label class="form-check-label" for="fxNav">Navbar fija</label>
+          </div>
+          <div class="form-check">
+            <input
+              id="fxBc"
+              class="form-check-input"
+              type="checkbox"
+              [checked]="breadcrumbsFixed()"
+              (change)="onToggleBreadcrumbsFixed()"
+            />
+            <label class="form-check-label" for="fxBc">Breadcrumbs fijas</label>
+          </div>
+          <div class="form-check">
+            <input
+              id="fxPh"
+              class="form-check-input"
+              type="checkbox"
+              [checked]="headbarFixed()"
+              (change)="onToggleHeadbarFixed()"
+            />
+            <label class="form-check-label" for="fxPh">Page header fija</label>
+          </div>
+          <hr class="dropdown-divider" />
+          <button class="btn btn-sm w-100" (click)="onToggleSidebar()">
+            {{ sidebarCollapsed() ? "Expandir sidebar" : "Colapsar sidebar" }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
