@@ -16,6 +16,7 @@
         class="btn p-0 border-0 bg-transparent shadow-none d-inline-flex align-items-center justify-content-center text-white"
         aria-label="Alternar sidebar"
         title="Alternar sidebar"
+        (click)="onToggleSidebar()"
       >
         <i class="bi bi-list fs-4"></i>
       </button>
@@ -128,10 +129,6 @@
             />
             <label class="form-check-label" for="fxPh">Page header fija</label>
           </div>
-          <hr class="dropdown-divider" />
-          <button class="btn btn-sm w-100" (click)="onToggleSidebar()">
-            {{ sidebarCollapsed() ? "Expandir sidebar" : "Colapsar sidebar" }}
-          </button>
         </div>
       </div>
     </div>

@@ -5,7 +5,7 @@ import {
   computed,
   inject,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgLocaleLocalization } from '@angular/common';
 import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
 import { LayoutService } from '@core/services/layout.service'; // ajusta alias/ruta si hace falta
 import {
@@ -48,9 +48,14 @@ export class NavbarComponent {
     this.layout.toggleFixed('nav');
   }
   onToggleBreadcrumbsFixed() {
+    !this.isNavFixed() ? this.onToggleNavFixed() : null;
+
     this.layout.toggleFixed('breadcrumbs');
   }
   onToggleHeadbarFixed() {
+    !this.isNavFixed() ? this.layout.toggleFixed('nav') : null;
+    !this.isBreadcrumbsFixed() ? this.layout.toggleFixed('breadcrumbs') : null;
+
     this.layout.toggleFixed('headbar');
   }
 }
