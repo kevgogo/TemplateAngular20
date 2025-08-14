@@ -9,41 +9,50 @@ $sidebar-w-collapsed: 72px;
   display: block;
 }
 
+/* Grid general del layout; ¡sin padding-top aquí! */
 .layout {
   display: grid;
   grid-template-columns: auto 1fr;
   grid-template-rows: 1fr;
   min-height: 100dvh;
-  padding-top: $navbar-h; /* compensa navbar fixed */
 }
 
+/* Sidebar pegajosa que respeta el offset real de la navbar cuando sea fija */
 .sidebar {
   position: sticky;
-  top: $navbar-h;
-  height: calc(100dvh - $navbar-h);
+  top: var(--offset-top);
+  height: calc(100dvh - var(--offset-top));
   width: $sidebar-w;
+
   &.collapsed {
     width: $sidebar-w-collapsed;
   }
 }
 
+/* La columna principal mantiene las filas: breadcrumbs, headbar y contenido */
 .main {
   display: grid;
   grid-template-rows: $breadcrumbs-h $headbar-h 1fr;
 }
 
+/* Si usas la clase .sticky en tus componentes, que tomen el offset dinámico */
 .sticky {
   position: sticky;
-  top: $navbar-h;
-  z-index: 1000;
-}
-app-headbar.sticky {
-  top: calc(#{$navbar-h} + #{$breadcrumbs-h});
+  top: var(--offset-top);
   z-index: 1000;
 }
 
+/* El headbar “sticky” debe ir debajo de los breadcrumbs si estos están presentes */
+app-headbar.sticky {
+  top: calc(var(--offset-top) + #{$breadcrumbs-h});
+  z-index: 1000;
+}
+
+/* Área de contenido */
 .content {
   padding: 1rem;
-  min-height: calc(100dvh - $navbar-h - $breadcrumbs-h - $headbar-h);
+  min-height: calc(
+    100dvh - var(--offset-top) - #{$breadcrumbs-h} - #{$headbar-h}
+  );
   background: #f3f3f3;
 }

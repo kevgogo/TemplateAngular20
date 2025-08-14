@@ -28,13 +28,13 @@ export class NavbarComponent {
   SKINS: SkinOption[] = SKIN_OPTIONS;
 
   // Lecturas (métodos o computed)
-  navFixed() {
+  isNavFixed() {
     return this.layout.isFixed('nav');
   }
-  breadcrumbsFixed() {
+  isBreadcrumbsFixed() {
     return this.layout.isFixed('breadcrumbs');
   }
-  headbarFixed() {
+  isHeadbarFixed() {
     return this.layout.isFixed('headbar');
   }
 

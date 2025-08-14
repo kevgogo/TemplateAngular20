@@ -1,59 +1,104 @@
-/* Import CSS plano (no Sass) */
+/* Si tienes tu paleta/temas propios, mantenla aquí */
 @import url("./assets/css/themes.css");
 
-/* Alturas de bloques (ajústalas a tu UI real) */
+/* ---------- Variables globales ---------- */
 :root {
-  --nav-h: 56px; /* alto del navbar */
-  --bc-h: 36px; /* alto de breadcrumbs */
-  --ph-h: 66px; /* alto del page header/headbar */
-  --z-header: 1030; /* capa del navbar fixed-top (>= dropdowns de Bootstrap) */
+  /* Alturas (ajusta a tu UI real) */
+  --nav-h: 56px; /* altura navbar */
+  --bc-h: 40px; /* altura breadcrumbs */
+  --ph-h: 56px; /* altura page header / headbar */
+
+  /* Capas (z-index) */
+  --z-navbar: 1030; /* por encima de dropdowns (Bootstrap ~1000) */
+  --z-breadcrumbs: 1020;
+  --z-headbar: 1015;
+
+  /* Radio/sombras opcionales si quieres consistencia */
+  --card-radius: 1rem;
 }
 
-/* Offsets dinámicos (se activan con clases en <body>) */
+/* Offset top por defecto (navbar NO fija) */
 body {
   --offset-top: 0px;
-  --offset-bc: 0px;
 }
-body.fixed-nav {
+
+/* Si activas navbar fija:
+   - Puedes poner la clase .nav-fixed al <body> desde tu servicio
+   - O detectamos si el <nav> realmente tiene .fixed-top */
+body.nav-fixed,
+body:has(.navbar.fixed-top) {
   --offset-top: var(--nav-h);
 }
-body.fixed-nav.fixed-breadcrumbs {
-  --offset-bc: var(--bc-h);
-}
 
-/* Empujar el contenido cuando el navbar es fijo */
-.layout .main {
-  padding-top: var(--offset-top);
-}
-
-/* Breadcrumbs sticky debajo del navbar (si fijo) */
-.breadcrumbs.sticky {
+/* ---------- Breadcrumbs “fijos” SOLO si el body lo pide ---------- */
+body.fixed-breadcrumbs app-breadcrumbs {
   position: sticky;
   top: var(--offset-top);
-  z-index: calc(var(--z-header) - 1);
-  /* Opcional: fondo para que no se mezcle con contenido */
-  /* background: var(--bs-body-bg); */
+  z-index: var(--z-breadcrumbs);
+  background: var(--bs-body-bg);
+  border-bottom: 1px solid var(--bs-border-color-translucent);
 }
 
-/* Headbar sticky: debajo de (navbar + breadcrumbs si fijas) */
-.app-header.sticky {
+/* Si los breadcrumbs están fijos, desplazamos el page header por debajo */
+body.fixed-breadcrumbs {
+  --ph-top: calc(var(--offset-top) + var(--bc-h));
+}
+
+/* ---------- Page header / Headbar “fijo” SOLO si el body lo pide ---------- */
+body.fixed-pageheader app-headbar,
+body.fixed-pageheader app-page-header,
+body.fixed-pageheader app-header-page {
   position: sticky;
-  top: calc(var(--offset-top) + var(--offset-bc));
-  z-index: calc(var(--z-header) - 2);
+  top: var(--ph-top, var(--offset-top));
+  z-index: var(--z-headbar);
+  background: var(--bs-body-bg);
+  border-bottom: 1px solid var(--bs-border-color-translucent);
 }
 
-/* MUY IMPORTANTE: sticky no funciona si algún padre tiene overflow distinto a visible o transform */
+/* ---------- Navbar Bootstrap cuando es fixed-top ---------- */
+.navbar.fixed-top {
+  z-index: var(--z-navbar);
+}
+
+/* ---------- Utilidades para que sticky funcione bien ---------- */
+/* Evitar que ancestros corten el sticky por overflow */
 .layout,
 .main {
-  overflow: visible; /* evita romper sticky */
+  overflow: visible;
 }
 
-/* Asegura que el navbar fijo quede por encima de todo lo que deba */
-.navbar.fixed-top {
-  z-index: var(--z-header);
-}
-
-/* Si decides usar la clase global en <body> para colapsar la sidebar */
+/* (Opcional) Si colapsas la sidebar con una clase global */
 body.sidebar-collapsed .sidebar {
-  width: 72px; /* mismo valor que en el sidebar.component.scss si usas las dos cosas */
+  width: 72px; /* ajusta según tu app */
 }
+
+/* (Opcional) Estética general coherente con Bootstrap */
+.card {
+  border-radius: var(--card-radius);
+}
+.btn {
+  border-radius: 0.625rem;
+}
+.table thead th {
+  vertical-align: bottom;
+}
+
+/* ---------- Fixes comunes ---------- */
+/* Cuando hay navbar fija y usas anclas internas, compensa el scroll */
+:target {
+  scroll-margin-top: calc(var(--offset-top) + 16px);
+}
+
+/* Evita que un modal/drawer quede debajo de la navbar sticky si personalizas z-index */
+.modal,
+.offcanvas {
+  /* z-index: 1050; */
+}
+
+/* ---------- Paleta (ejemplo de mapeo a Bootstrap variables) ----------
+   Si tu themes.css define variables personalizadas, puedes mapearlas a Bootstrap así:
+:root {
+  --bs-primary: var(--colibri-primary, #1ca5b8);
+  --bs-info:    var(--colibri-info, #2dc3e8);
+}
+--------------------------------------------------------------------- */
