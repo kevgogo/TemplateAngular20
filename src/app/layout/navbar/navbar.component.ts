@@ -14,7 +14,7 @@ import {
   ThemeService,
 } from '@core/services/theme.service';
 
-type FixedPart = 'nav' | 'breadcrumbs' | 'headbar';
+type FixedPart = 'nav' | 'breadcrumbs' | 'headbar' | 'sidebar';
 
 @Component({
   selector: 'app-navbar',
@@ -36,15 +36,13 @@ export class NavbarComponent {
   public theme = inject(ThemeService);
   SKINS: SkinOption[] = SKIN_OPTIONS;
 
-  /** Cambia el estado sólo si hace falta */
-  private ensureFixed(part: FixedPart, on: boolean) {
-    if (part === 'nav' && this.isNavFixed() !== on)
-      this.layout.toggleFixed('nav');
-    if (part === 'breadcrumbs' && this.isBreadcrumbsFixed() !== on)
-      this.layout.toggleFixed('breadcrumbs');
-    if (part === 'headbar' && this.isHeadbarFixed() !== on)
-      this.layout.toggleFixed('headbar');
-  }
+  // Orden de dependencia
+  private readonly ORDER: FixedPart[] = [
+    'nav',
+    'breadcrumbs',
+    'headbar',
+    'sidebar',
+  ];
 
   // ===== Lecturas =====
   isNavFixed() {
@@ -58,11 +56,47 @@ export class NavbarComponent {
   }
   isSidebarFixed() {
     return this.layout.isSidebarFixed();
-  } // <- FALTABA
+  }
 
   sidebarCollapsed = computed(() => this.layout.isSidebarCollapsed());
 
-  // ===== Botones sidebar =====
+  // ===== Setters asegurando estado deseado =====
+  private setPart(part: FixedPart, on: boolean) {
+    switch (part) {
+      case 'nav':
+        if (this.isNavFixed() !== on) this.layout.toggleFixed('nav');
+        break;
+      case 'breadcrumbs':
+        if (this.isBreadcrumbsFixed() !== on)
+          this.layout.toggleFixed('breadcrumbs');
+        break;
+      case 'headbar':
+        if (this.isHeadbarFixed() !== on) this.layout.toggleFixed('headbar');
+        break;
+      case 'sidebar':
+        if (this.isSidebarFixed() !== on) this.layout.toggleSidebarFixed(on);
+        break;
+    }
+  }
+
+  /** Al encender X, enciende todos sus predecesores (incluyéndolo). */
+  private enforceTurnOn(target: FixedPart) {
+    for (const part of this.ORDER) {
+      this.setPart(part, true);
+      if (part === target) break;
+    }
+  }
+
+  /** Al apagar X, apaga X y todos sus sucesores. */
+  private enforceTurnOff(target: FixedPart) {
+    let hit = false;
+    for (const part of this.ORDER) {
+      if (part === target) hit = true;
+      if (hit) this.setPart(part, false);
+    }
+  }
+
+  // ===== Botones sidebar (mostrar/ocultar y colapso visual) =====
   onToggleSidebar() {
     this.toggleSidebar.emit();
   }
@@ -70,44 +104,30 @@ export class NavbarComponent {
     this.toggleSidebarHidden.emit();
   }
 
-  // ===== Toggles fijos =====
-  /** NAVBAR FIJA */
+  // ===== Toggles fijos con reglas de orden =====
+  /** 1) NAVBAR */
   onToggleNavFixed() {
     const next = !this.isNavFixed();
-    this.ensureFixed('nav', next);
-    if (!next) {
-      this.ensureFixed('breadcrumbs', false);
-      this.ensureFixed('headbar', false);
-    }
+    next ? this.enforceTurnOn('nav') : this.enforceTurnOff('nav'); // apagar navbar apaga todo
   }
 
-  /** BREADCRUMBS FIJAS */
+  /** 2) BREADCRUMBS */
   onToggleBreadcrumbsFixed() {
     const next = !this.isBreadcrumbsFixed();
-    if (next) this.ensureFixed('nav', true); // breadcrumbs on => nav on
-    this.ensureFixed('breadcrumbs', next);
-    if (!next) this.ensureFixed('headbar', false); // breadcrumbs off => headbar off
+    next
+      ? this.enforceTurnOn('breadcrumbs')
+      : this.enforceTurnOff('breadcrumbs');
   }
 
-  /** PAGE HEADER FIJA */
+  /** 3) PAGE HEADER (headbar) */
   onToggleHeadbarFixed() {
     const next = !this.isHeadbarFixed();
-    if (next) {
-      this.ensureFixed('nav', true);
-      this.ensureFixed('breadcrumbs', true);
-    }
-    this.ensureFixed('headbar', next);
+    next ? this.enforceTurnOn('headbar') : this.enforceTurnOff('headbar');
   }
 
-  /** SIDEBAR FIJA (solo afecta al sidebar) */
+  /** 4) SIDEBAR */
   onToggleSidebarFixed() {
     const next = !this.isSidebarFixed();
-    if (next) {
-      // Al fijar el sidebar, garantizamos la jerarquía fija para que los offsets funcionen bien
-      this.ensureFixed('nav', true);
-      this.ensureFixed('breadcrumbs', true);
-      this.ensureFixed('headbar', true);
-    }
-    this.layout.toggleSidebarFixed(next);
+    next ? this.enforceTurnOn('sidebar') : this.enforceTurnOff('sidebar');
   }
 }
