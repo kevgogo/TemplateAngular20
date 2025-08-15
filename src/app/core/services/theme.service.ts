@@ -30,18 +30,18 @@ export interface ThemeState {
 
 /** Opciones de skin para tu selector en UI */
 export const SKIN_OPTIONS: SkinOption[] = [
-  { name: 'colibri', hex: '#3ec1d3', label: 'Colibri' },
-  { name: 'azure', hex: '#2196f3', label: 'Azure' },
-  { name: 'blue', hex: '#007bff', label: 'Blue' },
-  { name: 'darkblue', hex: '#0d47a1', label: 'Dark Blue' },
-  { name: 'deepblue', hex: '#1e3a8a', label: 'Deep Blue' },
-  { name: 'green', hex: '#2ecc71', label: 'Green' },
-  { name: 'teal', hex: '#20c997', label: 'Teal' },
-  { name: 'orange', hex: '#fd7e14', label: 'Orange' },
-  { name: 'pink', hex: '#e83e8c', label: 'Pink' },
-  { name: 'purple', hex: '#6f42c1', label: 'Purple' },
-  { name: 'gray', hex: '#6c757d', label: 'Gray' },
-  { name: 'darkred', hex: '#8b0000', label: 'Dark Red' },
+  { name: 'colibri', hex: '#03b3b2', label: 'Colibri' }, // colibri.less
+  { name: 'darkblue', hex: '#0072c6', label: 'Dark Blue' }, // darkblue.less
+  { name: 'darkred', hex: '#ac193d', label: 'Dark Red' }, // darkred.less
+  { name: 'deepblue', hex: '#001940', label: 'Deep Blue' }, // deepblue.less
+  { name: 'gray', hex: '#585858', label: 'Gray' }, // gray.less
+  { name: 'green', hex: '#53a93f', label: 'Green' }, // green.less
+  { name: 'orange', hex: '#ff8f32', label: 'Orange' }, // orange.less
+  { name: 'pink', hex: '#cc324b', label: 'Pink' }, // pink.less
+  { name: 'purple', hex: '#8c0095', label: 'Purple' }, // purple.less
+  { name: 'azure', hex: '#2dc3e8', label: 'Azure' }, // azure.less
+  { name: 'black', hex: '#474544', label: 'Black' }, // black.less
+  { name: 'blue', hex: '#5db2ff', label: 'Blue' }, // Blue.less
 ];
 
 const STORAGE_KEY = 'ui.theme.v1';
