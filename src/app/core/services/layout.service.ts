@@ -2,7 +2,7 @@
 import { Injectable, effect, inject, signal } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
 
-type Area = 'nav' | 'breadcrumbs' | 'headbar';
+type Area = 'nav' | 'breadcrumbs' | 'headbar' | 'sidebar';
 
 type LayoutState = {
   navFixed: boolean;
