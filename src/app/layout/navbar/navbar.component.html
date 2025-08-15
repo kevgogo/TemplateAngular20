@@ -85,6 +85,7 @@
         container="body"
         placement="bottom right"
         [insideClick]="true"
+        #gearDrop="bs-dropdown"
       >
         <button
           class="btn p-0 border-0 bg-transparent shadow-none d-inline-flex align-items-center justify-content-center text-white"
@@ -105,7 +106,7 @@
               class="form-check-input"
               type="checkbox"
               [checked]="isNavFixed()"
-              (change)="onToggleNavFixed()"
+              (change)="onToggleNavFixed(); gearDrop.hide()"
             />
             <label class="form-check-label" for="fxNav">Navbar fija</label>
           </div>
@@ -115,7 +116,7 @@
               class="form-check-input"
               type="checkbox"
               [checked]="isBreadcrumbsFixed()"
-              (change)="onToggleBreadcrumbsFixed()"
+              (change)="onToggleBreadcrumbsFixed(); gearDrop.hide()"
             />
             <label class="form-check-label" for="fxBc">Breadcrumbs fijas</label>
           </div>
@@ -125,7 +126,7 @@
               class="form-check-input"
               type="checkbox"
               [checked]="isHeadbarFixed()"
-              (change)="onToggleHeadbarFixed()"
+              (change)="onToggleHeadbarFixed(); gearDrop.hide()"
             />
             <label class="form-check-label" for="fxPh">Page header fija</label>
           </div>

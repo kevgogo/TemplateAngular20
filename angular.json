@@ -6,7 +6,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "template-plantilla-colibri-app-20": {
+    "plantilla-colibri-app-20": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -41,6 +41,7 @@
           },
           "configurations": {
             "production": {
+              "baseHref": "/plantilla-colibri-app-20/",
               "budgets": [
                 {
                   "type": "initial",
@@ -56,6 +57,7 @@
               "outputHashing": "all"
             },
             "development": {
+              "baseHref": "/plantilla-colibri-app-20/",
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true
@@ -67,10 +69,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "template-plantilla-colibri-app-20:build:production"
+              "buildTarget": "plantilla-colibri-app-20:build:production"
             },
             "development": {
-              "buildTarget": "template-plantilla-colibri-app-20:build:development"
+              "buildTarget": "plantilla-colibri-app-20:build:development"
             }
           },
           "defaultConfiguration": "development"

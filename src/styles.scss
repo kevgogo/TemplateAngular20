@@ -51,10 +51,15 @@ body.fixed-pageheader app-header-page {
   position: sticky;
   top: var(--ph-top, var(--offset-top));
   z-index: var(--z-headbar);
-  background: var(--bs-body-bg);
-  border-bottom: 1px solid var(--bs-border-color-translucent);
-}
 
+  background: var(--app-header-bg, var(--app-primary));
+  color: var(--app-header-color, #fff);
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--app-header-bg, var(--app-primary)), #000 15%);
+}
+body.fixed-pageheader section.content {
+  margin-top: var(--ph-h, 56px);
+}
 /* ---------- Navbar Bootstrap cuando es fixed-top ---------- */
 .navbar.fixed-top {
   z-index: var(--z-navbar);
@@ -90,10 +95,10 @@ body.sidebar-collapsed .sidebar {
 }
 
 /* Evita que un modal/drawer quede debajo de la navbar sticky si personalizas z-index */
-.modal,
-.offcanvas {
-  /* z-index: 1050; */
-}
+// .modal,
+// .offcanvas {
+//   /* z-index: 1050; */
+// }
 
 /* ---------- Paleta (ejemplo de mapeo a Bootstrap variables) ----------
    Si tu themes.css define variables personalizadas, puedes mapearlas a Bootstrap así:

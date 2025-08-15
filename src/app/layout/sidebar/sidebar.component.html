@@ -2,17 +2,19 @@
 <aside class="h-100 border-end bg-body">
   <ul class="list-unstyled m-0 py-2">
     @for (it of items; track $index) {
-    <a
-      [routerLink]="it.link"
-      routerLinkActive="active"
-      [routerLinkActiveOptions]="{ exact: true }"
-      class="d-flex align-items-center gap-2 px-3 py-2 text-decoration-none"
-    >
-      <i class="bi" [ngClass]="it.icon"></i>
-      @if(!collapsed) {
-      <span class="text-truncate">{{ it.label }}</span>
-      }
-    </a>
+    <li>
+      <a
+        [routerLink]="it.link"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        class="d-flex align-items-center gap-2 px-3 py-2 text-decoration-none"
+      >
+        <i class="bi" [ngClass]="it.icon"></i>
+        @if(!collapsed) {
+        <span class="text-truncate">{{ it.label }}</span>
+        }
+      </a>
+    </li>
     }
   </ul>
 </aside>

@@ -1,11 +1,17 @@
-<!-- shell.component.html -->
-<app-navbar (toggleSidebar)="onToggleSidebar()"></app-navbar>
-
-<div class="layout">
-  <app-sidebar class="sidebar" [collapsed]="collapsed()"></app-sidebar>
+<app-navbar (toggleSidebar)="onToggleSidebar()" />
+<div class="layout" [class.sidebar-hidden]="sidebarHidden()">
+  <app-sidebar
+    class="sidebar"
+    [collapsed]="collapsed()"
+    [style.display]="sidebarHidden() ? 'none' : null"
+  />
   <main class="main">
-    <app-breadcrumbs class=""></app-breadcrumbs>
-    <app-headbar class="app-header"></app-headbar>
+    <app-breadcrumbs class="app-breadcrumbs" />
+    <app-headbar
+      class="app-header"
+      [sidebarHidden]="sidebarHidden()"
+      (toggleSidebarHidden)="onToggleSidebarHidden()"
+    />
     <section class="content">
       <router-outlet />
     </section>

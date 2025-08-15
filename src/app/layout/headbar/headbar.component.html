@@ -1,3 +1,56 @@
-<div class="d-flex align-items-center px-3" style="height: 56px">
-  <h5 class="mb-0 fw-semibold"><ng-content></ng-content></h5>
+<!-- Alto consistente con tu layout (56px) -->
+<div class="hb d-flex align-items-center px-3 gap-3">
+  <!-- Izquierda: texto/título -->
+  <h5 class="hb-title mb-0 fw-semibold text-truncate">{{ title }}</h5>
+
+  <!-- Derecha: acciones -->
+  <div class="ms-auto hb-actions d-inline-flex align-items-center gap-2">
+    <!-- Fullscreen -->
+    <button
+      type="button"
+      class="btn p-0 border-0 bg-transparent shadow-none d-inline-flex align-items-center justify-content-center text-white"
+      (click)="onFullscreenToggle()"
+      [attr.aria-pressed]="isFullscreen"
+      [attr.aria-label]="
+        isFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa'
+      "
+      [title]="
+        isFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa'
+      "
+    >
+      <i
+        class="bi fs-4"
+        [ngClass]="isFullscreen ? 'bi-fullscreen-exit' : 'bi-arrows-fullscreen'"
+      ></i>
+    </button>
+
+    <!-- Refresh -->
+    <button
+      type="button"
+      class="btn p-0 border-0 bg-transparent shadow-none d-inline-flex align-items-center justify-content-center text-white"
+      (click)="onRefresh()"
+      aria-label="Refrescar"
+      title="Refrescar"
+    >
+      <i class="bi bi-arrow-repeat fs-4"></i>
+    </button>
+
+    <!-- Ocultar/Mostrar sidebar -->
+    <button
+      type="button"
+      class="btn p-0 border-0 bg-transparent shadow-none d-inline-flex align-items-center justify-content-center text-white"
+      (click)="onToggleSidebarHiddenClick()"
+      [attr.aria-pressed]="sidebarHidden"
+      [attr.aria-label]="sidebarHidden ? 'Mostrar sidebar' : 'Ocultar sidebar'"
+      [title]="sidebarHidden ? 'Mostrar sidebar' : 'Ocultar sidebar'"
+    >
+      <i
+        class="bi fs-4"
+        [ngClass]="
+          sidebarHidden ? 'bi-chevron-bar-right' : 'bi-chevron-bar-left'
+        "
+      >
+      </i>
+    </button>
+  </div>
 </div>

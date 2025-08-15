@@ -1,0 +1,9 @@
+.hb {
+  height: 56px; // consistente con $headbar-h de tu shell
+}
+.hb-title {
+  line-height: 1;
+}
+.hb-actions .btn i {
+  font-size: 1.1rem; // botones discretos
+}

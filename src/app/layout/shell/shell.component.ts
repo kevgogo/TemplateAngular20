@@ -1,5 +1,5 @@
 // src/app/layout/shell/shell.component.ts
-import { Component, inject, computed } from '@angular/core';
+import { Component, inject, computed, signal } from '@angular/core';
 import { LayoutService } from '@core/services/layout.service';
 import { SHARED_IMPORTS } from '@shared/app-shared-imports';
 
@@ -14,8 +14,13 @@ export class ShellComponent {
   private layout = inject(LayoutService);
 
   collapsed = computed(() => this.layout.isSidebarCollapsed());
+  sidebarHidden = signal(false);
 
   onToggleSidebar() {
     this.layout.toggleSidebarCollapsed();
+  }
+
+  onToggleSidebarHidden() {
+    this.sidebarHidden.update((v) => !v);
   }
 }
