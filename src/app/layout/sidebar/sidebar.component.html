@@ -1,42 +1,59 @@
-<!-- Sidebar -->
-<aside class="h-100 border-end bg-body">
-  <ul class="list-unstyled m-0 py-2">
+<aside
+  class="sidebar"
+  [class.collapsed]="collapsedResolved"
+  role="navigation"
+  aria-label="Sidebar"
+  id="appSidebar"
+>
+  <ul class="root list-unstyled m-0">
     @for (it of items; track $index) {
     <li
-      class="nav-item"
-      [class.has-children]="it.children?.length"
-      (mouseenter)="onEnter($index, !!it.children?.length)"
-      (mouseleave)="onLeave($index)"
-      dropdown
-      [isOpen]="collapsed && hoverIndex === $index"
-      [isDisabled]="!collapsed"
-      placement="right"
-      container="body"
-      [autoClose]="false"
+      class="item"
+      [class.has-children]="hasChildren(it)"
+      [class.open]="
+        !collapsedResolved && hasChildren(it) && isOpen(nodeId(null, $index))
+      "
     >
-      <!-- Ítem raíz -->
       <a
-        class="nav-link d-flex align-items-center gap-2 px-3 py-2 text-decoration-none"
-        [routerLink]="it.link"
-        (click)="onItemClick($event, it, nodeId(null, $index))"
-        [attr.dropdownToggle]="collapsed && it.children?.length ? '' : null"
+        class="link d-flex align-items-center gap-2 px-3 py-2 text-decoration-none"
+        [routerLink]="hasChildren(it) ? [] : it.link || []"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        (click)="onRootClick($event, it, $index)"
+        [attr.aria-haspopup]="hasChildren(it) ? 'true' : null"
+        [attr.aria-expanded]="
+          !collapsedResolved && hasChildren(it)
+            ? isOpen(nodeId(null, $index))
+            : null
+        "
+        [attr.title]="collapsedResolved ? it.label : null"
+        role="menuitem"
       >
         <i class="bi" [ngClass]="it.icon"></i>
 
-        @if (!collapsed) {
-        <span class="text-truncate flex-grow-1">{{ it.label }}</span>
-        @if (it.children?.length) {
+        @if (!collapsedResolved) {
+        <span
+          class="label text-truncate flex-grow-1 hide-when-sidebar-collapsed"
+        >
+          {{ it.label }}
+        </span>
+
+        @if (hasChildren(it)) {
         <i
           class="bi ms-auto"
           [ngClass]="
-            isOpen(nodeId(null, $index)) ? 'bi-chevron-up' : 'bi-chevron-down'
+            isOpen(nodeId(null, $index))
+              ? 'bi-chevron-down'
+              : 'bi-chevron-right'
           "
-        ></i>
+        >
+        </i>
         } }
       </a>
 
-      <!-- ===== EXPANDIDO (inline) ===== -->
-      @if (!collapsed && it.children?.length) {
+      <!-- ===== EXPANDIDO: submenú inline SOLO si está abierto ===== -->
+      @if (!collapsedResolved && hasChildren(it) && isOpen(nodeId(null,
+      $index))) {
       <ng-template
         [ngTemplateOutlet]="inlineTpl"
         [ngTemplateOutletContext]="{
@@ -47,54 +64,51 @@
       >
       </ng-template>
       }
-
-      <!-- ===== COLAPSADO (flyout) ===== -->
-      @if (collapsed && it.children?.length) {
-      <ul *dropdownMenu class="dropdown-menu shadow-sm">
-        <li class="dropdown-header fw-semibold">{{ it.label }}</li>
-        <ng-template
-          [ngTemplateOutlet]="flyoutNodesTpl"
-          [ngTemplateOutletContext]="{ nodes: it.children }"
-        >
-        </ng-template>
-      </ul>
-      }
     </li>
     }
   </ul>
 
-  <!-- =============================== -->
-  <!--   TEMPLATE: Inline (expandido)  -->
-  <!-- =============================== -->
+  <!-- =================== Template: Inline (expandido) =================== -->
   <ng-template
     #inlineTpl
     let-nodes="nodes"
     let-depth="depth"
     let-parentId="parentId"
   >
-    <ul class="submenu list-unstyled" [class]="'depth-' + depth + ' show'">
+    <ul class="submenu" [class]="'depth-' + depth">
       @for (n of nodes; track $index) {
-      <li class="subitem" [class.has-children]="n.children?.length">
+      <li
+        class="subitem"
+        [class.has-children]="hasChildren(n)"
+        [class.open]="hasChildren(n) && isOpen(nodeId(parentId, $index))"
+      >
         <a
-          class="sub-link d-flex align-items-center px-3 py-2 text-decoration-none"
-          [routerLink]="n.link"
-          (click)="onItemClick($event, n, nodeId(parentId, $index))"
+          class="sub-link d-flex align-items-center gap-2 px-3 py-2 text-decoration-none"
+          [routerLink]="hasChildren(n) ? [] : n.link || []"
           routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          (click)="onItemClick($event, n, nodeId(parentId, $index))"
+          role="menuitem"
         >
-          <span class="text-truncate">{{ n.label }}</span>
-          @if (n.children?.length) {
+          <i class="bi" [ngClass]="n.icon"></i>
+
+          <span class="text-truncate" [attr.title]="n.label">{{
+            n.label
+          }}</span>
+          @if (hasChildren(n)) {
           <i
             class="bi ms-auto"
             [ngClass]="
               isOpen(nodeId(parentId, $index))
-                ? 'bi-chevron-up'
-                : 'bi-chevron-down'
+                ? 'bi-chevron-down'
+                : 'bi-chevron-right'
             "
-          ></i>
+          >
+          </i>
           }
         </a>
 
-        @if (n.children?.length && isOpen(nodeId(parentId, $index))) {
+        @if (hasChildren(n) && isOpen(nodeId(parentId, $index))) {
         <ng-template
           [ngTemplateOutlet]="inlineTpl"
           [ngTemplateOutletContext]="{
@@ -110,38 +124,61 @@
     </ul>
   </ng-template>
 
-  <!-- =============================================== -->
-  <!--   TEMPLATE: Flyout anidado (colapsado, ngx-bs)  -->
-  <!--   Siguiendo la guía oficial de nested dropdowns  -->
-  <!-- =============================================== -->
-  <ng-template #flyoutNodesTpl let-nodes="nodes">
-    @for (n of nodes; track n.label) { @if (!n.children?.length) {
-    <li>
-      <a class="dropdown-item" [routerLink]="n.link">{{ n.label }}</a>
-    </li>
+  <!-- =================== Panel ÚNICO (colapsado) =================== -->
+  @if (collapsedResolved && panelOpenRootIndex !== null) {
+  <div
+    class="flypanel-backdrop"
+    (click)="closePanel()"
+    aria-hidden="true"
+  ></div>
 
-    } @else {
-    <!-- Submenú anidado dentro del dropdown -->
-    <li dropdown placement="right-top" container="body" [autoClose]="true">
-      <a
-        href="#"
-        class="dropdown-item dropdown-toggle"
-        dropdownToggle
-        (click)="$event.preventDefault()"
+  <div class="flypanel" [ngStyle]="panelStyle" role="menu" aria-label="Submenú">
+    <div class="flypanel-header d-flex align-items-center px-3 py-2">
+      @if (canGoBack) {
+      <button
+        type="button"
+        class="btn btn-sm btn-link px-1 me-2"
+        (click)="panelBack()"
+        aria-label="Atrás"
       >
-        {{ n.label }}
-      </a>
+        <i class="bi bi-chevron-left"></i>
+      </button>
+      } @else {
+      <i class="bi bi-list-ul me-2 opacity-75"></i>
+      }
+      <div class="title text-truncate fw-semibold flex-grow-1">
+        {{ panelTitle }}
+      </div>
+      <button
+        type="button"
+        class="btn btn-sm btn-link px-1"
+        (click)="closePanel()"
+        aria-label="Cerrar"
+      >
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
 
-      <ul *dropdownMenu class="dropdown-menu">
-        <ng-template
-          [ngTemplateOutlet]="flyoutNodesTpl"
-          [ngTemplateOutletContext]="{ nodes: n.children }"
+    <ul class="panel-list list-unstyled m-0">
+      @for (n of panelNodes; track $index) {
+      <li class="panel-item" [class.has-children]="hasChildren(n)">
+        <a
+          class="dropdown-like d-flex align-items-center gap-2 px-3 py-2 text-decoration-none"
+          [routerLink]="hasChildren(n) ? [] : n.link || []"
+          (click)="onPanelItemClick($event, n)"
+          role="menuitem"
         >
-        </ng-template>
-      </ul>
-    </li>
+          <i class="bi" [ngClass]="n.icon"></i>
 
-    <li><hr class="dropdown-divider" /></li>
-    } }
-  </ng-template>
+          <span class="text-truncate" [attr.title]="n.label">{{
+            n.label
+          }}</span>
+          @if (hasChildren(n)) {
+          <i class="bi bi-chevron-right ms-auto opacity-75"></i> }
+        </a>
+      </li>
+      }
+    </ul>
+  </div>
+  }
 </aside>

@@ -1,280 +1,195 @@
+import {
+  ChangeDetectionStrategy,
+  Component,
+  Input,
+  inject,
+  HostListener,
+  ElementRef,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Component, HostBinding, Input } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
-import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
+import { RouterModule } from '@angular/router';
+import { LayoutService } from '@core/services/layout.service';
+import { MENU_DATA } from '@shared/mock/menu';
 
-export type NavItem = {
-  icon?: string;
+export interface MenuNode {
   label: string;
-  link?: string;
-  children?: NavItem[];
-};
+  link?: string | any[] | null;
+  icon?: string;
+  /** Puede venir vacío: [] -> se normaliza a undefined */
+  children?: MenuNode[] | null;
+}
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive, BsDropdownModule],
+  imports: [CommonModule, RouterModule],
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SidebarComponent {
-  @Input() collapsed = false;
+  /** Override opcional. Si no se provee, se usa el estado del LayoutService */
+  @Input() collapsed: boolean | null = null;
 
-  // Ejemplo basado en tu captura. Cambia rutas/etiquetas según tu app.
-  items: NavItem[] = [
-    { icon: 'bi-house', label: 'Inicio', link: '/' },
+  /** Menú (normalizado internamente) */
+  @Input() set items(value: MenuNode[]) {
+    this._items = this.normalize(value ?? []);
+  }
+  get items(): MenuNode[] {
+    return this._items;
+  }
+  private _items: MenuNode[] = MENU_DATA;
 
-    {
-      icon: 'bi-grid',
-      label: 'Módulos',
-      link: '/modules',
-      children: [
-        {
-          icon: 'bi-basket',
-          label: 'Ventas',
-          link: '/modules/sales',
-          children: [
-            {
-              icon: 'bi-bag-plus',
-              label: 'Pedidos',
-              link: '/modules/sales/orders',
-              children: [
-                {
-                  icon: 'bi-plus-circle',
-                  label: 'Nuevo',
-                  link: '/modules/sales/orders/new',
-                },
-                {
-                  icon: 'bi-search',
-                  label: 'Buscar',
-                  link: '/modules/sales/orders/search',
-                },
-                {
-                  icon: 'bi-diagram-3',
-                  label: 'Flujos',
-                  link: '/modules/sales/orders/flows',
-                  children: [
-                    {
-                      icon: 'bi-gear',
-                      label: 'Aprobaciones',
-                      link: '/modules/sales/orders/flows/approvals',
-                      children: [
-                        {
-                          icon: 'bi-sliders',
-                          label: 'Reglas avanzadas',
-                          link: '/modules/sales/orders/flows/approvals/advanced-rules',
-                        },
-                      ],
-                    },
-                  ],
-                },
-              ],
-            },
-            {
-              icon: 'bi-people',
-              label: 'Clientes',
-              link: '/modules/sales/customers',
-            },
-            {
-              icon: 'bi-receipt',
-              label: 'Facturación',
-              link: '/modules/sales/invoicing',
-            },
-          ],
-        },
+  private layout = inject(LayoutService);
+  private host = inject(ElementRef<HTMLElement>);
 
-        {
-          icon: 'bi-truck',
-          label: 'Logística',
-          link: '/modules/logistics',
-          children: [
-            {
-              icon: 'bi-box-seam',
-              label: 'Inventario',
-              link: '/modules/logistics/inventory',
-              children: [
-                {
-                  icon: 'bi-arrow-left-right',
-                  label: 'Movimientos',
-                  link: '/modules/logistics/inventory/movements',
-                },
-                {
-                  icon: 'bi-upc-scan',
-                  label: 'Lotes',
-                  link: '/modules/logistics/inventory/batches',
-                  children: [
-                    {
-                      icon: 'bi-qr-code',
-                      label: 'Series',
-                      link: '/modules/logistics/inventory/batches/series',
-                    },
-                  ],
-                },
-              ],
-            },
-            {
-              icon: 'bi-pin-map',
-              label: 'Rutas',
-              link: '/modules/logistics/routes',
-            },
-            {
-              icon: 'bi-clipboard2-check',
-              label: 'Despachos',
-              link: '/modules/logistics/shipments',
-            },
-          ],
-        },
-
-        {
-          icon: 'bi-graph-up',
-          label: 'Analítica',
-          link: '/modules/analytics',
-          children: [
-            {
-              icon: 'bi-speedometer',
-              label: 'Dashboards',
-              link: '/modules/analytics/dashboards',
-            },
-            {
-              icon: 'bi-kanban',
-              label: 'KPIs',
-              link: '/modules/analytics/kpis',
-              children: [
-                {
-                  icon: 'bi-calendar-week',
-                  label: 'Semanal',
-                  link: '/modules/analytics/kpis/weekly',
-                },
-                {
-                  icon: 'bi-calendar3',
-                  label: 'Mensual',
-                  link: '/modules/analytics/kpis/monthly',
-                  children: [
-                    {
-                      icon: 'bi-trophy',
-                      label: 'Top 10',
-                      link: '/modules/analytics/kpis/monthly/top10',
-                    },
-                  ],
-                },
-              ],
-            },
-            {
-              icon: 'bi-file-earmark-bar-graph',
-              label: 'Reportes',
-              link: '/modules/analytics/reports',
-            },
-          ],
-        },
-      ],
-    },
-
-    {
-      icon: 'bi-sliders2-vertical',
-      label: 'Configuración',
-      link: '/settings',
-      children: [
-        {
-          icon: 'bi-people',
-          label: 'Usuarios',
-          link: '/settings/users',
-          children: [
-            {
-              icon: 'bi-person-gear',
-              label: 'Roles',
-              link: '/settings/users/roles',
-              children: [
-                {
-                  icon: 'bi-shield-lock',
-                  label: 'Permisos',
-                  link: '/settings/users/roles/permissions',
-                  children: [
-                    {
-                      icon: 'bi-terminal',
-                      label: 'Condiciones',
-                      link: '/settings/users/roles/permissions/conditions',
-                    },
-                  ],
-                },
-              ],
-            },
-            {
-              icon: 'bi-person-check',
-              label: 'Perfiles',
-              link: '/settings/users/profiles',
-            },
-          ],
-        },
-        { icon: 'bi-palette', label: 'Temas', link: '/settings/themes' },
-        {
-          icon: 'bi-plug',
-          label: 'Integraciones',
-          link: '/settings/integrations',
-          children: [
-            {
-              icon: 'bi-cloud',
-              label: 'Almacenamiento',
-              link: '/settings/integrations/storage',
-            },
-            {
-              icon: 'bi-credit-card',
-              label: 'Pagos',
-              link: '/settings/integrations/payments',
-            },
-          ],
-        },
-      ],
-    },
-
-    {
-      icon: 'bi-info-circle',
-      label: 'Ayuda',
-      link: '/help',
-      children: [
-        { icon: 'bi-book', label: 'Documentación', link: '/help/docs' },
-        { icon: 'bi-life-preserver', label: 'Soporte', link: '/help/support' },
-        { icon: 'bi-bug', label: 'Reportar un problema', link: '/help/report' },
-      ],
-    },
-
-    {
-      icon: 'bi-box-arrow-up-right',
-      label: 'Web corporativa',
-      link: 'https://empresa.com',
-    },
-  ];
-  @HostBinding('class.is-collapsed') get hostCollapsed() {
-    return this.collapsed;
+  /** Estado real resuelto (Input ?? servicio) */
+  get collapsedResolved(): boolean {
+    return this.collapsed ?? this.layout.isSidebarCollapsed();
   }
 
-  /** ids jerárquicos para controlar aperturas */
-  private open = new Set<string>();
-  nodeId(parentId: string | null, idx: number) {
-    return parentId ? `${parentId}.${idx}` : `${idx}`;
-  }
-  isOpen(id: string) {
-    return this.open.has(id);
-  }
-  toggle(id: string) {
-    if (this.collapsed) return; // solo inline cuando expandido
-    this.open.has(id) ? this.open.delete(id) : this.open.add(id);
+  /* ------------------ Normalización + helper ------------------ */
+
+  /** Convierte children: [] en undefined y normaliza recursivamente */
+  private normalize(nodes: MenuNode[]): MenuNode[] {
+    return (nodes ?? []).map((n) => {
+      const copy: MenuNode = { ...n };
+      const kids = Array.isArray(n.children) ? n.children.filter(Boolean) : [];
+      copy.children = kids.length ? this.normalize(kids) : undefined;
+      return copy;
+    });
   }
 
-  /** evitar navegación cuando el item tiene hijos (primer nivel y anidados) */
-  onItemClick(ev: MouseEvent, node: NavItem, id: string) {
-    if (node.children?.length) {
+  /** Verdadero si el nodo tiene hijos NO vacíos */
+  hasChildren = (n?: MenuNode | null): boolean =>
+    !!n && Array.isArray(n.children) && n.children.length > 0;
+
+  /* ------------------ Expandido (inline) ------------------ */
+
+  private openSet = new Set<string>();
+  nodeId(parentId: string | null, index: number): string {
+    return parentId ? `${parentId}.${index}` : String(index);
+  }
+  isOpen(id: string): boolean {
+    return this.openSet.has(id);
+  }
+  toggle(id: string): void {
+    if (this.openSet.has(id)) this.openSet.delete(id);
+    else this.openSet.add(id);
+  }
+
+  /** Click en item raíz (comporta distinto según modo) */
+  onRootClick(ev: MouseEvent, node: MenuNode, rootIndex: number): void {
+    if (this.hasChildren(node)) {
       ev.preventDefault();
-      ev.stopPropagation();
-      this.toggle(id);
+      if (this.collapsedResolved) {
+        // Colapsado: abrir/cerrar panel único
+        if (this.panelOpenRootIndex === rootIndex) this.closePanel();
+        else
+          this.openPanelForRoot(
+            ev.currentTarget as HTMLElement,
+            node,
+            rootIndex
+          );
+      } else {
+        // Expandido: inline toggle
+        this.toggle(this.nodeId(null, rootIndex));
+      }
+      return;
+    }
+    // Sin hijos: deja navegar
+    if (this.collapsedResolved) this.closePanel();
+  }
+
+  /** Click en item no raíz (expandido, inline) */
+  onItemClick(ev: MouseEvent, node: MenuNode, id: string): void {
+    if (this.hasChildren(node)) {
+      ev.preventDefault();
+      if (!this.collapsedResolved) this.toggle(id);
     }
   }
 
-  /** flyout para colapsado (hover en primer nivel) */
-  hoverIndex: number | null = null;
-  onEnter(i: number, hasChildren: boolean) {
-    if (this.collapsed && hasChildren) this.hoverIndex = i;
+  /* ------------------ Colapsado: panel único con drilldown ------------------ */
+
+  panelOpenRootIndex: number | null = null;
+  panelStack: MenuNode[] = []; // ruta actual (root -> ... -> nodo actual)
+  panelStyle: Record<string, string> = {}; // posición del panel
+
+  get panelNodes(): MenuNode[] {
+    const current = this.panelStack[this.panelStack.length - 1];
+    return (current?.children ?? []) as MenuNode[];
   }
-  onLeave(i: number) {
-    if (this.hoverIndex === i) this.hoverIndex = null;
+  get canGoBack(): boolean {
+    return this.panelStack.length > 1;
+  }
+  get panelTitle(): string {
+    const current = this.panelStack[this.panelStack.length - 1];
+    return current?.label ?? '';
+  }
+
+  openPanelForRoot(
+    anchorEl: HTMLElement,
+    rootNode: MenuNode,
+    rootIndex: number
+  ): void {
+    this.panelOpenRootIndex = rootIndex;
+    this.panelStack = [rootNode];
+    this.repositionPanel(anchorEl);
+  }
+
+  onPanelItemClick(ev: MouseEvent, node: MenuNode): void {
+    if (this.hasChildren(node)) {
+      ev.preventDefault();
+      this.panelStack.push(node); // drill-down en el mismo panel
+    } else {
+      this.closePanel(); // navegará por routerLink y cerramos
+    }
+  }
+
+  panelBack(): void {
+    if (this.panelStack.length > 1) this.panelStack.pop();
+    else this.closePanel();
+  }
+
+  closePanel(): void {
+    this.panelOpenRootIndex = null;
+    this.panelStack = [];
+    this.panelStyle = {};
+  }
+
+  /** Posiciona el panel al lado del sidebar, alineado al item clickeado */
+  private repositionPanel(anchorEl: HTMLElement): void {
+    const li = (anchorEl.closest('li.item') as HTMLElement) ?? anchorEl;
+    const r = li.getBoundingClientRect();
+    const aside = this.host.nativeElement.querySelector(
+      'aside.sidebar'
+    ) as HTMLElement;
+    const a = aside.getBoundingClientRect();
+
+    const maxTop = Math.max(8, Math.min(r.top, window.innerHeight - 16 - 320));
+    this.panelStyle = {
+      position: 'fixed',
+      top: `${Math.round(maxTop)}px`,
+      left: `${Math.round(a.right)}px`,
+      minWidth: '260px',
+      maxHeight: 'calc(100vh - 24px)',
+      overflowY: 'auto',
+    };
+  }
+
+  /** Cerrar con ESC y reposicionar en resize */
+  @HostListener('window:keydown.escape')
+  onEsc() {
+    if (this.collapsedResolved) this.closePanel();
+  }
+
+  @HostListener('window:resize')
+  onResize() {
+    if (this.collapsedResolved && this.panelOpenRootIndex !== null) {
+      const items =
+        this.host.nativeElement.querySelectorAll('li.item > a.link');
+      const anchor = items.item(this.panelOpenRootIndex) as HTMLElement;
+      if (anchor) this.repositionPanel(anchor);
+    }
   }
 }

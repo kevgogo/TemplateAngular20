@@ -1,11 +1,6 @@
 <app-navbar (toggleSidebar)="onToggleSidebar()" />
 <div class="layout" [class.sidebar-hidden]="sidebarHidden()">
-  <!-- <app-sidebar
-    class="sidebar"
-    [collapsed]="collapsed()"
-    [style.display]="sidebarHidden() ? 'none' : null"
-  /> -->
-  <app-sidebar-legacy />
+  <app-sidebar class="sidebar" />
   <main class="main">
     <app-breadcrumbs class="app-breadcrumbs" />
     <app-headbar
