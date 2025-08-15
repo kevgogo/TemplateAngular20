@@ -19,7 +19,7 @@ $sidebar-w-collapsed: 72px;
 
 /* Sidebar pegajosa que respeta el offset real de la navbar cuando sea fija */
 .sidebar {
-  position: sticky;
+  position: relative;
   top: var(--offset-top);
   height: calc(100dvh - var(--offset-top));
   width: $sidebar-w;
