@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, HostBinding, Input } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
 
 export type NavItem = {
   icon?: string;
@@ -8,16 +9,18 @@ export type NavItem = {
   link?: string;
   children?: NavItem[];
 };
+
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive],
+  imports: [CommonModule, RouterLink, RouterLinkActive, BsDropdownModule],
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.scss'],
 })
 export class SidebarComponent {
-  @Input({ required: true }) collapsed = false;
+  @Input() collapsed = false;
 
+  // Ejemplo basado en tu captura. Cambia rutas/etiquetas según tu app.
   items: NavItem[] = [
     { icon: 'bi-house', label: 'Inicio', link: '/' },
 
@@ -240,9 +243,38 @@ export class SidebarComponent {
       link: 'https://empresa.com',
     },
   ];
-
-  @HostBinding('class.is-collapsed')
-  get isCollapsedClass() {
+  @HostBinding('class.is-collapsed') get hostCollapsed() {
     return this.collapsed;
+  }
+
+  /** ids jerárquicos para controlar aperturas */
+  private open = new Set<string>();
+  nodeId(parentId: string | null, idx: number) {
+    return parentId ? `${parentId}.${idx}` : `${idx}`;
+  }
+  isOpen(id: string) {
+    return this.open.has(id);
+  }
+  toggle(id: string) {
+    if (this.collapsed) return; // solo inline cuando expandido
+    this.open.has(id) ? this.open.delete(id) : this.open.add(id);
+  }
+
+  /** evitar navegación cuando el item tiene hijos (primer nivel y anidados) */
+  onItemClick(ev: MouseEvent, node: NavItem, id: string) {
+    if (node.children?.length) {
+      ev.preventDefault();
+      ev.stopPropagation();
+      this.toggle(id);
+    }
+  }
+
+  /** flyout para colapsado (hover en primer nivel) */
+  hoverIndex: number | null = null;
+  onEnter(i: number, hasChildren: boolean) {
+    if (this.collapsed && hasChildren) this.hoverIndex = i;
+  }
+  onLeave(i: number) {
+    if (this.hoverIndex === i) this.hoverIndex = null;
   }
 }

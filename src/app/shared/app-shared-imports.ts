@@ -1,7 +1,8 @@
 // src/app/shared/app-shared-imports.ts
 import { CommonModule } from '@angular/common';
-import { RouterLink, RouterOutlet } from '@angular/router';
+import { RouterLink, RouterOutlet, RouterLinkActive } from '@angular/router';
 
+import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
 // tus componentes standalone
 import { NavbarComponent } from '@layout/navbar/navbar.component';
 import { SidebarComponent } from '@layout/sidebar/sidebar.component';
@@ -12,8 +13,10 @@ export const SHARED_IMPORTS = [
   CommonModule,
   RouterLink,
   RouterOutlet,
+  RouterLinkActive,
   NavbarComponent,
   SidebarComponent,
   BreadcrumbsComponent,
   HeadbarComponent,
+  BsDropdownModule,
 ];

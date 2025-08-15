@@ -3,7 +3,65 @@
   transition: width 0.2s ease;
   will-change: width;
 }
-
 :host(.is-collapsed) {
-  width: 72px; // ajusta a tu diseño
+  width: 72px;
+}
+
+.root > .nav-item {
+  position: relative;
+}
+
+.nav-link,
+.sub-link {
+  font-size: 0.95rem;
+  color: var(--bs-body-color);
+}
+.nav-link:hover,
+.sub-link:hover {
+  background: var(--bs-tertiary-bg);
+}
+
+.submenu {
+  display: block;
+  margin-left: 0.25rem;
+  padding-left: 0.75rem;
+}
+
+/* Líneas guía/indentado por nivel */
+.submenu[class*="depth-"] {
+  border-left: 1px dashed var(--bs-border-color);
+}
+.subitem {
+  position: relative;
+}
+.subitem .row-line::before {
+  content: "";
+  position: absolute;
+  left: calc((var(--depth, 1) - 1) * 12px);
+  top: 0;
+  bottom: 0;
+  width: 0;
+  border-left: 1px dashed var(--bs-border-color);
+  opacity: 0.6;
+}
+
+/* Estado activo básico */
+a.active,
+.dropdown-item.active {
+  background: var(--bs-tertiary-bg);
+  color: var(--bs-body-color);
+}
+
+/* Colapsado: centrar iconos y ocultar textos */
+:host(.is-collapsed) .nav-link {
+  justify-content: center;
+}
+:host(.is-collapsed) .nav-link span {
+  display: none;
+}
+
+/* Flyout */
+.dropdown-menu {
+  min-width: 260px;
+  margin-left: 0.25rem;
 }

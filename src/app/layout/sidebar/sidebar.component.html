@@ -1,20 +1,147 @@
-<!-- src/app/layout/sidebar/sidebar.component.html -->
+<!-- Sidebar -->
 <aside class="h-100 border-end bg-body">
   <ul class="list-unstyled m-0 py-2">
     @for (it of items; track $index) {
-    <li>
+    <li
+      class="nav-item"
+      [class.has-children]="it.children?.length"
+      (mouseenter)="onEnter($index, !!it.children?.length)"
+      (mouseleave)="onLeave($index)"
+      dropdown
+      [isOpen]="collapsed && hoverIndex === $index"
+      [isDisabled]="!collapsed"
+      placement="right"
+      container="body"
+      [autoClose]="false"
+    >
+      <!-- Ítem raíz -->
       <a
+        class="nav-link d-flex align-items-center gap-2 px-3 py-2 text-decoration-none"
         [routerLink]="it.link"
-        routerLinkActive="active"
-        [routerLinkActiveOptions]="{ exact: true }"
-        class="d-flex align-items-center gap-2 px-3 py-2 text-decoration-none"
+        (click)="onItemClick($event, it, nodeId(null, $index))"
+        [attr.dropdownToggle]="collapsed && it.children?.length ? '' : null"
       >
         <i class="bi" [ngClass]="it.icon"></i>
-        @if(!collapsed) {
-        <span class="text-truncate">{{ it.label }}</span>
-        }
+
+        @if (!collapsed) {
+        <span class="text-truncate flex-grow-1">{{ it.label }}</span>
+        @if (it.children?.length) {
+        <i
+          class="bi ms-auto"
+          [ngClass]="
+            isOpen(nodeId(null, $index)) ? 'bi-chevron-up' : 'bi-chevron-down'
+          "
+        ></i>
+        } }
       </a>
+
+      <!-- ===== EXPANDIDO (inline) ===== -->
+      @if (!collapsed && it.children?.length) {
+      <ng-template
+        [ngTemplateOutlet]="inlineTpl"
+        [ngTemplateOutletContext]="{
+          nodes: it.children,
+          depth: 1,
+          parentId: nodeId(null, $index)
+        }"
+      >
+      </ng-template>
+      }
+
+      <!-- ===== COLAPSADO (flyout) ===== -->
+      @if (collapsed && it.children?.length) {
+      <ul *dropdownMenu class="dropdown-menu shadow-sm">
+        <li class="dropdown-header fw-semibold">{{ it.label }}</li>
+        <ng-template
+          [ngTemplateOutlet]="flyoutNodesTpl"
+          [ngTemplateOutletContext]="{ nodes: it.children }"
+        >
+        </ng-template>
+      </ul>
+      }
     </li>
     }
   </ul>
+
+  <!-- =============================== -->
+  <!--   TEMPLATE: Inline (expandido)  -->
+  <!-- =============================== -->
+  <ng-template
+    #inlineTpl
+    let-nodes="nodes"
+    let-depth="depth"
+    let-parentId="parentId"
+  >
+    <ul class="submenu list-unstyled" [class]="'depth-' + depth + ' show'">
+      @for (n of nodes; track $index) {
+      <li class="subitem" [class.has-children]="n.children?.length">
+        <a
+          class="sub-link d-flex align-items-center px-3 py-2 text-decoration-none"
+          [routerLink]="n.link"
+          (click)="onItemClick($event, n, nodeId(parentId, $index))"
+          routerLinkActive="active"
+        >
+          <span class="text-truncate">{{ n.label }}</span>
+          @if (n.children?.length) {
+          <i
+            class="bi ms-auto"
+            [ngClass]="
+              isOpen(nodeId(parentId, $index))
+                ? 'bi-chevron-up'
+                : 'bi-chevron-down'
+            "
+          ></i>
+          }
+        </a>
+
+        @if (n.children?.length && isOpen(nodeId(parentId, $index))) {
+        <ng-template
+          [ngTemplateOutlet]="inlineTpl"
+          [ngTemplateOutletContext]="{
+            nodes: n.children,
+            depth: depth + 1,
+            parentId: nodeId(parentId, $index)
+          }"
+        >
+        </ng-template>
+        }
+      </li>
+      }
+    </ul>
+  </ng-template>
+
+  <!-- =============================================== -->
+  <!--   TEMPLATE: Flyout anidado (colapsado, ngx-bs)  -->
+  <!--   Siguiendo la guía oficial de nested dropdowns  -->
+  <!-- =============================================== -->
+  <ng-template #flyoutNodesTpl let-nodes="nodes">
+    @for (n of nodes; track n.label) { @if (!n.children?.length) {
+    <li>
+      <a class="dropdown-item" [routerLink]="n.link">{{ n.label }}</a>
+    </li>
+
+    } @else {
+    <!-- Submenú anidado dentro del dropdown -->
+    <li dropdown placement="right-top" container="body" [autoClose]="true">
+      <a
+        href="#"
+        class="dropdown-item dropdown-toggle"
+        dropdownToggle
+        (click)="$event.preventDefault()"
+      >
+        {{ n.label }}
+      </a>
+
+      <ul *dropdownMenu class="dropdown-menu">
+        <ng-template
+          [ngTemplateOutlet]="flyoutNodesTpl"
+          [ngTemplateOutletContext]="{ nodes: n.children }"
+        >
+        </ng-template>
+      </ul>
+    </li>
+
+    <li><hr class="dropdown-divider" /></li>
+    } }
+  </ng-template>
 </aside>
