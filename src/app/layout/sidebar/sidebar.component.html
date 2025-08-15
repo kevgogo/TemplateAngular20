@@ -14,6 +14,7 @@
         !collapsedResolved && hasChildren(it) && isOpen(nodeId(null, $index))
       "
     >
+      <!-- NIVEL 0 (raíz): cada <li.item> representa un ítem del menú principal -->
       <a
         class="link d-flex align-items-center gap-2 px-3 py-2 text-decoration-none"
         [routerLink]="hasChildren(it) ? [] : it.link || []"
@@ -54,6 +55,7 @@
       <!-- ===== EXPANDIDO: submenú inline SOLO si está abierto ===== -->
       @if (!collapsedResolved && hasChildren(it) && isOpen(nodeId(null,
       $index))) {
+      <!-- NIVEL 1: hijos directos del ítem raíz (se pasa depth: 1 al template) -->
       <ng-template
         [ngTemplateOutlet]="inlineTpl"
         [ngTemplateOutletContext]="{
@@ -109,6 +111,7 @@
         </a>
 
         @if (hasChildren(n) && isOpen(nodeId(parentId, $index))) {
+        <!-- NIVEL 2: nietos del ítem raíz (esta llamada recursiva usa depth + 1 => 2) -->
         <ng-template
           [ngTemplateOutlet]="inlineTpl"
           [ngTemplateOutletContext]="{
