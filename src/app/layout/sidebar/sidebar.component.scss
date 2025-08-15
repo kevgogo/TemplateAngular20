@@ -12,7 +12,6 @@ aside.sidebar {
   position: relative;
   width: $w-expanded;
   height: 100%;
-  border-right: 1px solid var(--bs-border-color, rgba(0, 0, 0, 0.1));
   background: var(--bs-body-bg, #fff);
   color: var(--bs-body-color, #212529);
   transition: width 0.2s ease;

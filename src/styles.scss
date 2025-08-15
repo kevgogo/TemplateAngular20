@@ -60,6 +60,12 @@ body.fixed-pageheader app-header-page {
 body.fixed-pageheader section.content {
   margin-top: var(--ph-h, 56px);
 }
+
+body.sidebar-fixed app-sidebar.sidebar {
+  position: sticky;
+  z-index: var(--z-headbar);
+}
+
 /* ---------- Navbar Bootstrap cuando es fixed-top ---------- */
 .navbar.fixed-top {
   z-index: var(--z-navbar);
