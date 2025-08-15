@@ -57,6 +57,9 @@ app-headbar.sticky {
   background: #f3f3f3;
 }
 
+.layout.sidebar-hidden app-sidebar-legacy {
+  display: none;
+}
 /* Cuando el sidebar esté oculto, que el main ocupe todo */
 .layout.sidebar-hidden {
   grid-template-columns: 1fr; // sin columna de sidebar

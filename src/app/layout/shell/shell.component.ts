@@ -23,4 +23,13 @@ export class ShellComponent {
   onToggleSidebarHidden() {
     this.sidebarHidden.update((v) => !v);
   }
+
+  // Conecta con tu LayoutService o flags existentes:
+  get isCompact() {
+    return this.layout.isSidebarCollapsed?.() ?? false;
+  }
+  get isFixed() {
+    // return this.layout.isFixed() ?? false;
+    return false;
+  }
 }

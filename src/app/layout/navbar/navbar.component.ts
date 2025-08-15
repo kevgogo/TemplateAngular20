@@ -26,6 +26,9 @@ type FixedPart = 'nav' | 'breadcrumbs' | 'headbar';
 export class NavbarComponent {
   @Output() toggleSidebar = new EventEmitter<void>(); // Para colapsar/expandir el sidebar
   @Output() toggleSidebarHidden = new EventEmitter<void>(); // Para ocultar el sidebar
+  isSidebarCollapsed = JSON.parse(
+    localStorage.getItem('sidebarCollapsed') ?? 'false'
+  );
 
   private layout = inject(LayoutService);
   public theme = inject(ThemeService);

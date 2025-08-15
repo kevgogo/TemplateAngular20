@@ -130,6 +130,16 @@
             />
             <label class="form-check-label" for="fxPh">Page header fija</label>
           </div>
+          <div class="form-check">
+            <input
+              id="fxSb"
+              class="form-check-input"
+              type="checkbox"
+              [checked]="isHeadbarFixed()"
+              (change)="onToggleHeadbarFixed(); gearDrop.hide()"
+            />
+            <label class="form-check-label" for="fxSb">Sidebar fija</label>
+          </div>
         </div>
       </div>
     </div>

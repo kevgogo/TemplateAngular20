@@ -8,6 +8,7 @@ import { NavbarComponent } from '@layout/navbar/navbar.component';
 import { SidebarComponent } from '@layout/sidebar/sidebar.component';
 import { BreadcrumbsComponent } from '@layout/breadcrumbs/breadcrumbs.component';
 import { HeadbarComponent } from '@layout/headbar/headbar.component';
+import { SidebarLegacyComponent } from '@layout/sidebar-legacy/sidebar-legacy.component';
 
 export const SHARED_IMPORTS = [
   CommonModule,
@@ -16,6 +17,7 @@ export const SHARED_IMPORTS = [
   RouterLinkActive,
   NavbarComponent,
   SidebarComponent,
+  SidebarLegacyComponent,
   BreadcrumbsComponent,
   HeadbarComponent,
   BsDropdownModule,
