@@ -307,3 +307,22 @@ $rail-color: var(--bs-border-color, rgba(0, 0, 0, 0.15));
 :host-context(.sidebar-collapsed) .hide-when-sidebar-collapsed {
   display: none !important;
 }
+
+/* Sidebar fija: mantener el listado debajo de la navbar/breadcrumbs/pageheader fijos */
+:host-context(.sidebar-fixed) aside > ul {
+  position: sticky !important;
+  top: var(--offset-top) !important; /* p.ej. 56px cuando la navbar es fija */
+  margin-top: var(--offset-top) !important;
+}
+
+/* Si también fijas los breadcrumbs */
+:host-context(.sidebar-fixed.fixed-breadcrumbs) aside > ul {
+  top: calc(var(--offset-top) + var(--bc-h)) !important;
+  margin-top: calc(var(--offset-top) + var(--bc-h)) !important;
+}
+
+/* Si además fijas el page header (headbar) */
+:host-context(.sidebar-fixed.fixed-breadcrumbs.fixed-pageheader) aside > ul {
+  top: calc(var(--offset-top)) !important;
+  margin-top: calc(var(--offset-top)) !important;
+}

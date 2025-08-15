@@ -5,14 +5,14 @@ import {
   computed,
   inject,
 } from '@angular/core';
-import { CommonModule, NgLocaleLocalization } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
-import { LayoutService } from '@core/services/layout.service'; // ajusta alias/ruta si hace falta
+import { LayoutService } from '@core/services/layout.service';
 import {
   SkinOption,
   SKIN_OPTIONS,
   ThemeService,
-} from '@core/services/theme.service'; // ajusta alias/ruta si hace falta
+} from '@core/services/theme.service';
 
 type FixedPart = 'nav' | 'breadcrumbs' | 'headbar';
 
@@ -24,8 +24,10 @@ type FixedPart = 'nav' | 'breadcrumbs' | 'headbar';
   styleUrls: ['./navbar.component.scss'],
 })
 export class NavbarComponent {
-  @Output() toggleSidebar = new EventEmitter<void>(); // Para colapsar/expandir el sidebar
-  @Output() toggleSidebarHidden = new EventEmitter<void>(); // Para ocultar el sidebar
+  @Output() toggleSidebar = new EventEmitter<void>(); // colapsar/expandir
+  @Output() toggleSidebarHidden = new EventEmitter<void>(); // ocultar/mostrar
+
+  // (lo de localStorage lo dejo intacto como lo tenías)
   isSidebarCollapsed = JSON.parse(
     localStorage.getItem('sidebarCollapsed') ?? 'false'
   );
@@ -44,7 +46,7 @@ export class NavbarComponent {
       this.layout.toggleFixed('headbar');
   }
 
-  // Lecturas (métodos o computed)
+  // ===== Lecturas =====
   isNavFixed() {
     return this.layout.isFixed('nav');
   }
@@ -54,62 +56,58 @@ export class NavbarComponent {
   isHeadbarFixed() {
     return this.layout.isFixed('headbar');
   }
+  isSidebarFixed() {
+    return this.layout.isSidebarFixed();
+  } // <- FALTABA
 
   sidebarCollapsed = computed(() => this.layout.isSidebarCollapsed());
 
-  /**
-   * Oculta el sidebar (colapsado y oculto).
-   * - Si está colapsado, lo expande.
-   */
+  // ===== Botones sidebar =====
   onToggleSidebar() {
     this.toggleSidebar.emit();
   }
-  /**
-   * Mostrar / Ocultar el sidebar
-   */
   onToggleSidebarHiddenClick() {
     this.toggleSidebarHidden.emit();
   }
 
-  /** NAVBAR FIJA
-   *  - Si se apaga, apaga también Breadcrumbs y Page header.
-   *  - Si se enciende, sólo enciende Nav.
-   */
+  // ===== Toggles fijos =====
+  /** NAVBAR FIJA */
   onToggleNavFixed() {
     const next = !this.isNavFixed();
     this.ensureFixed('nav', next);
-
     if (!next) {
-      // al apagar nav, apaga los otros 2
       this.ensureFixed('breadcrumbs', false);
       this.ensureFixed('headbar', false);
     }
   }
 
-  /** BREADCRUMBS FIJAS
-   *  - Si se enciende, asegura Nav encendido.
-   *  - Si se apaga, apaga Page header.
-   */
+  /** BREADCRUMBS FIJAS */
   onToggleBreadcrumbsFixed() {
     const next = !this.isBreadcrumbsFixed();
-
     if (next) this.ensureFixed('nav', true); // breadcrumbs on => nav on
     this.ensureFixed('breadcrumbs', next);
-
     if (!next) this.ensureFixed('headbar', false); // breadcrumbs off => headbar off
   }
 
-  /** PAGE HEADER FIJA
-   *  - Si se enciende, deja encendidos Nav y Breadcrumbs.
-   *  - Si se apaga, sólo se apaga ella.
-   */
+  /** PAGE HEADER FIJA */
   onToggleHeadbarFixed() {
     const next = !this.isHeadbarFixed();
-
     if (next) {
       this.ensureFixed('nav', true);
       this.ensureFixed('breadcrumbs', true);
     }
     this.ensureFixed('headbar', next);
+  }
+
+  /** SIDEBAR FIJA (solo afecta al sidebar) */
+  onToggleSidebarFixed() {
+    const next = !this.isSidebarFixed();
+    if (next) {
+      // Al fijar el sidebar, garantizamos la jerarquía fija para que los offsets funcionen bien
+      this.ensureFixed('nav', true);
+      this.ensureFixed('breadcrumbs', true);
+      this.ensureFixed('headbar', true);
+    }
+    this.layout.toggleSidebarFixed(next);
   }
 }
