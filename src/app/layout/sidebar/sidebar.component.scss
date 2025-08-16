@@ -1,6 +1,6 @@
 /* ======== Variables ======== */
 $w-expanded: 224px;
-$w-collapsed: 64px;
+$w-collapsed: 72px;
 $rail-color: var(--bs-border-color, rgba(0, 0, 0, 0.15));
 
 aside.sidebar {
@@ -262,7 +262,7 @@ aside.sidebar {
   }
 
   .root > .item a {
-    height: 40px;
+    height: 50px; // igual al 50px del shell
   }
 
   /* Espaciado entre items del nivel 0 */
@@ -327,4 +327,21 @@ aside.sidebar {
 /* Ocultar cuando layout colapsa por servicio externo */
 :host-context(.sidebar-collapsed) .hide-when-sidebar-collapsed {
   display: none !important;
+}
+
+.search-container {
+  height: 50px;
+}
+
+.sidebar .item.meta .link {
+  pointer-events: none;
+  cursor: default;
+}
+.sidebar .item.meta .link:hover {
+  background: inherit;
+}
+.sidebar .search-term {
+  background: var(--bs-warning-bg-subtle, #fff3cd);
+  padding: 0.05rem 0.25rem;
+  border-radius: 0.2rem;
 }

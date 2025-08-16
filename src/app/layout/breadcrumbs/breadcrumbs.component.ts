@@ -7,6 +7,7 @@ import {
   ActivatedRouteSnapshot,
 } from '@angular/router';
 import { filter } from 'rxjs/operators';
+import { SHARED_IMPORTS } from '@shared/app-shared-imports';
 
 type BreadcrumbValue = string | ((route: ActivatedRouteSnapshot) => string);
 
@@ -18,8 +19,9 @@ export interface Crumb {
 @Component({
   selector: 'app-breadcrumbs',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [SHARED_IMPORTS],
   templateUrl: './breadcrumbs.component.html',
+  styleUrl: './breadcrumbs.component.scss',
 })
 export class BreadcrumbsComponent {
   private router = inject(Router);

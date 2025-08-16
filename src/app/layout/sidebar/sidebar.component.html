@@ -1,18 +1,80 @@
 <aside
   class="sidebar"
   [class.collapsed]="collapsedResolved"
+  [class.searching]="isSearching()"
   role="navigation"
   aria-label="Sidebar"
   id="appSidebar"
 >
+  <!-- Campo de búsqueda (solo visible cuando no está colapsado) -->
+  @if (!collapsedResolved) {
+  <div class="search-container border-bottom">
+    <div
+      class="input-group input-group-sm search-like-row gap-2 px-3 py-2 align-items-center"
+    >
+      <span class="input-group-text bg-transparent border-0 p-0 me-2">
+        <i class="bi bi-search opacity-75"></i>
+      </span>
+
+      <input
+        type="text"
+        class="form-control form-control-sm border-0 bg-transparent shadow-none p-0"
+        placeholder="Buscar en el menú..."
+        [value]="searchTerm()"
+        (input)="onSearchChange($any($event).target.value)"
+        aria-label="Buscar en el menú"
+      />
+
+      @if (isSearching()) {
+      <button
+        type="button"
+        class="btn btn-sm btn-link text-muted p-0 ms-2"
+        (click)="clearSearch()"
+        aria-label="Limpiar búsqueda"
+        title="Limpiar búsqueda"
+      >
+        <i class="bi bi-x-lg"></i>
+      </button>
+      }
+    </div>
+
+    <!-- @if (isSearching()) {
+    <div class="search-results-info mt-1 text-muted small">
+      {{ items.length }} resultado{{
+        items.length !== 1 ? "s" : ""
+      }}
+      encontrado{{ items.length !== 1 ? "s" : "" }}
+    </div>
+    } -->
+  </div>
+  }
+
+  <!-- Lista principal del menú -->
+  @if (items.length > 0) {
   <ul class="root list-unstyled m-0">
-    @for (it of items; track $index) {
+    <!-- Meta de resultados como item de nivel 0 -->
+    @if (isSearching() && !collapsedResolved) {
+    <li class="item meta" role="status" aria-live="polite">
+      <div
+        class="link d-flex align-items-center gap-2 px-3 py-2 text-decoration-none"
+      >
+        <span class="label text-truncate flex-grow-1">
+          {{ items.length }} resultado{{
+            items.length !== 1 ? "s" : ""
+          }}
+          encontrado{{ items.length !== 1 ? "s" : "" }} para
+          <mark class="search-term">{{ searchTerm() }}</mark>
+        </span>
+      </div>
+    </li>
+    } @for (it of items; track $index) {
     <li
       class="item"
       [class.has-children]="hasChildren(it)"
       [class.open]="
         !collapsedResolved && hasChildren(it) && isOpen(nodeId(null, $index))
       "
+      [class.search-match]="isSearching()"
     >
       <!-- NIVEL 0 (raíz): cada <li.item> representa un ítem del menú principal -->
       <a
@@ -35,8 +97,12 @@
         @if (!collapsedResolved) {
         <span
           class="label text-truncate flex-grow-1 hide-when-sidebar-collapsed"
+          [innerHTML]="
+            isSearching()
+              ? highlightSearchTerm(it.label, searchTerm())
+              : it.label
+          "
         >
-          {{ it.label }}
         </span>
 
         @if (hasChildren(it)) {
@@ -69,6 +135,7 @@
     </li>
     }
   </ul>
+  }
 
   <!-- =================== Template: Inline (expandido) =================== -->
   <ng-template
@@ -83,6 +150,7 @@
         class="subitem"
         [class.has-children]="hasChildren(n)"
         [class.open]="hasChildren(n) && isOpen(nodeId(parentId, $index))"
+        [class.search-match]="isSearching()"
       >
         <a
           class="sub-link d-flex align-items-center gap-2 px-3 py-2 text-decoration-none"
@@ -94,9 +162,16 @@
         >
           <i class="bi" [ngClass]="n.icon"></i>
 
-          <span class="text-truncate" [attr.title]="n.label">{{
-            n.label
-          }}</span>
+          <span
+            class="text-truncate"
+            [attr.title]="n.label"
+            [innerHTML]="
+              isSearching()
+                ? highlightSearchTerm(n.label, searchTerm())
+                : n.label
+            "
+          ></span>
+
           @if (hasChildren(n)) {
           <i
             class="bi ms-auto"

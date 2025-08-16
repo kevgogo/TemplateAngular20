@@ -5,7 +5,7 @@
 :root {
   /* Alturas (ajusta a tu UI real) */
   --nav-h: 56px; /* altura navbar */
-  --bc-h: 40px; /* altura breadcrumbs */
+  --bc-h: 50px; /* altura breadcrumbs */
   --ph-h: 56px; /* altura page header / headbar */
 
   /* Capas (z-index) */
@@ -113,3 +113,7 @@ body.sidebar-collapsed .sidebar {
   --bs-info:    var(--colibri-info, #2dc3e8);
 }
 --------------------------------------------------------------------- */
+
+.app-header {
+  height: var(--ph-h);
+}
