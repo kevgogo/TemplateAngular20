@@ -9,7 +9,7 @@ import {
   computed,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { LayoutService } from '@core/services/layout.service';
 import { MENU_DATA } from '@shared/mock/menu';
@@ -37,32 +37,26 @@ export class SidebarComponent {
   /** Menú (normalizado internamente) */
   @Input() set items(value: MenuNode[]) {
     this._originalItems = this.normalize(value ?? []);
-    this.searchTerm.set(''); // Reset búsqueda cuando cambian los items
+    this.searchTerm.set(''); // reset búsqueda
+    this.resetListPreservingSelection(); // abre ancestros del activo
   }
   get items(): MenuNode[] {
     return this.filteredItems();
   }
-  private _originalItems: MenuNode[] = MENU_DATA;
+  private _originalItems: MenuNode[] = this.normalize(MENU_DATA);
 
   private layout = inject(LayoutService);
   private host = inject(ElementRef<HTMLElement>);
+  private router = inject(Router);
 
-  // Señales para la búsqueda
+  // ------------------ Búsqueda (signals) ------------------
   searchTerm = signal('');
   isSearching = computed(() => this.searchTerm().trim().length > 0);
-
-  /** Estado real resuelto (Input ?? servicio) */
-  get collapsedResolved(): boolean {
-    return this.collapsed ?? this.layout.isSidebarCollapsed();
-  }
-
-  /* ------------------ Búsqueda ------------------ */
 
   /** Items filtrados basados en el término de búsqueda */
   private filteredItems = computed(() => {
     const term = this.searchTerm().toLowerCase().trim();
     if (!term) return this._originalItems;
-
     return this.filterMenuItems(this._originalItems, term);
   });
 
@@ -71,18 +65,13 @@ export class SidebarComponent {
     const filtered: MenuNode[] = [];
 
     for (const item of items) {
-      // Verificar si el item actual coincide
       const matchesItem = item.label.toLowerCase().includes(searchTerm);
 
-      // Filtrar hijos recursivamente
       let filteredChildren: MenuNode[] | undefined;
       if (item.children) {
         filteredChildren = this.filterMenuItems(item.children, searchTerm);
       }
 
-      // Incluir el item si:
-      // 1. El item coincide con la búsqueda, O
-      // 2. Tiene hijos que coinciden con la búsqueda
       if (matchesItem || (filteredChildren && filteredChildren.length > 0)) {
         const filteredItem: MenuNode = {
           ...item,
@@ -95,25 +84,32 @@ export class SidebarComponent {
     return filtered;
   }
 
-  /** Maneja el cambio en el input de búsqueda */
+  /** Maneja el cambio en el input de búsqueda (desde el template) */
   onSearchChange(value: string): void {
     this.searchTerm.set(value);
 
+    if (!this.isSearching()) {
+      // si quedó vacío, resetea preservando selección
+      this.resetListPreservingSelection();
+      return;
+    }
+
     // Auto-expandir resultados cuando hay búsqueda activa
-    if (this.isSearching() && !this.collapsedResolved) {
+    if (!this.collapsedResolved) {
       this.expandAllForSearch();
     }
   }
 
-  /** Limpia la búsqueda */
+  /** Limpia la búsqueda (botón X o navegación) */
   clearSearch(): void {
     this.searchTerm.set('');
-    this.collapseAllAfterSearch();
+    this.resetListPreservingSelection();
   }
 
   /** Expande todos los nodos que tienen resultados de búsqueda */
   private expandAllForSearch(): void {
     this.openSet.clear();
+    this.forcedOpen.clear(); // cuando se busca, solo abrimos por resultados
     this.addOpenNodesRecursively(this.filteredItems(), null);
   }
 
@@ -131,27 +127,20 @@ export class SidebarComponent {
     });
   }
 
-  /** Colapsa todos los nodos después de limpiar la búsqueda */
-  private collapseAllAfterSearch(): void {
-    this.openSet.clear();
-  }
-
   /** Resalta el término de búsqueda en el texto */
   highlightSearchTerm(text: string, term: string): string {
-    if (!term.trim()) return text;
-
-    const regex = new RegExp(`(${this.escapeRegex(term)})`, 'gi');
+    const t = term.trim();
+    if (!t) return text;
+    const regex = new RegExp(`(${this.escapeRegex(t)})`, 'gi');
     return text.replace(regex, '<mark class="search-highlight">$1</mark>');
   }
 
   /** Escapa caracteres especiales para regex */
-  /** Colapsa todos los nodos después de limpiar la búsqueda */
-  private escapeRegex(string: string): string {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '');
+  private escapeRegex(str: string): string {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   }
 
-  /* ------------------ Normalización + helper ------------------ */
-
+  // ------------------ Normalización + helpers ------------------
   /** Convierte children: [] en undefined y normaliza recursivamente */
   private normalize(nodes: MenuNode[]): MenuNode[] {
     return (nodes ?? []).map((n) => {
@@ -166,15 +155,24 @@ export class SidebarComponent {
   hasChildren = (n?: MenuNode | null): boolean =>
     !!n && Array.isArray(n.children) && n.children.length > 0;
 
-  /* ------------------ Expandido (inline) ------------------ */
+  /** Estado real resuelto (Input ?? servicio) */
+  get collapsedResolved(): boolean {
+    return this.collapsed ?? this.layout.isSidebarCollapsed();
+  }
 
-  private openSet = new Set<string>();
+  // ------------------ Expandido (inline) ------------------
+  private openSet = new Set<string>(); // aperturas del usuario / búsqueda
+  private forcedOpen = new Set<string>(); // aperturas forzadas (ancestros del activo)
+
   nodeId(parentId: string | null, index: number): string {
     return parentId ? `${parentId}.${index}` : String(index);
   }
+
   isOpen(id: string): boolean {
-    return this.openSet.has(id);
+    // Unión: abiertas por usuario/búsqueda ∪ abiertas por ruta activa
+    return this.openSet.has(id) || this.forcedOpen.has(id);
   }
+
   toggle(id: string): void {
     if (this.openSet.has(id)) this.openSet.delete(id);
     else this.openSet.add(id);
@@ -203,9 +201,7 @@ export class SidebarComponent {
     if (this.collapsedResolved) this.closePanel();
 
     // Limpiar búsqueda al navegar
-    if (this.isSearching()) {
-      this.clearSearch();
-    }
+    if (this.isSearching()) this.clearSearch();
   }
 
   /** Click en item no raíz (expandido, inline) */
@@ -214,15 +210,11 @@ export class SidebarComponent {
       ev.preventDefault();
       if (!this.collapsedResolved) this.toggle(id);
     } else {
-      // Limpiar búsqueda al navegar
-      if (this.isSearching()) {
-        this.clearSearch();
-      }
+      if (this.isSearching()) this.clearSearch();
     }
   }
 
-  /* ------------------ Colapsado: panel único con drilldown ------------------ */
-
+  // ------------------ Colapsado: panel único con drilldown ------------------
   panelOpenRootIndex: number | null = null;
   panelStack: MenuNode[] = []; // ruta actual (root -> ... -> nodo actual)
   panelStyle: Record<string, string> = {}; // posición del panel
@@ -255,11 +247,7 @@ export class SidebarComponent {
       this.panelStack.push(node); // drill-down en el mismo panel
     } else {
       this.closePanel(); // navegará por routerLink y cerramos
-
-      // Limpiar búsqueda al navegar
-      if (this.isSearching()) {
-        this.clearSearch();
-      }
+      if (this.isSearching()) this.clearSearch();
     }
   }
 
@@ -309,5 +297,50 @@ export class SidebarComponent {
       const anchor = items.item(this.panelOpenRootIndex) as HTMLElement;
       if (anchor) this.repositionPanel(anchor);
     }
+  }
+
+  // ------------------ Reset + mantener selección ------------------
+  private resetListPreservingSelection() {
+    // Mostrar árbol original (al dejar el término vacío)
+    this.openSet.clear();
+    this.forcedOpen.clear();
+
+    const path = this.findActiveIndexPath(this._originalItems);
+    if (path) this.openIndexPath(path); // abre los ancestros
+  }
+
+  private openIndexPath(path: number[]) {
+    let pid: string | null = null;
+    for (const idx of path.slice(0, -1)) {
+      // solo ancestros
+      pid = this.nodeId(pid, idx);
+      this.forcedOpen.add(pid);
+    }
+  }
+
+  private findActiveIndexPath(
+    nodes: MenuNode[],
+    trail: number[] = []
+  ): number[] | null {
+    for (let i = 0; i < nodes.length; i++) {
+      const n = nodes[i];
+      const here = [...trail, i];
+
+      if (this.isItemActive(n)) return here;
+      if (n.children?.length) {
+        const found = this.findActiveIndexPath(n.children, here);
+        if (found) return found;
+      }
+    }
+    return null;
+  }
+
+  private isItemActive(n: MenuNode): boolean {
+    if (!n.link) return false;
+    const current = this.router.url.split('?')[0];
+    const toUrl = Array.isArray(n.link)
+      ? '/' + n.link.filter(Boolean).join('/')
+      : String(n.link);
+    return current === toUrl;
   }
 }

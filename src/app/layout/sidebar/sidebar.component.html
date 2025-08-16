@@ -37,15 +37,6 @@
       </button>
       }
     </div>
-
-    <!-- @if (isSearching()) {
-    <div class="search-results-info mt-1 text-muted small">
-      {{ items.length }} resultado{{
-        items.length !== 1 ? "s" : ""
-      }}
-      encontrado{{ items.length !== 1 ? "s" : "" }}
-    </div>
-    } -->
   </div>
   }
 
@@ -132,6 +123,24 @@
       >
       </ng-template>
       }
+    </li>
+    }
+  </ul>
+  } @else{
+  <ul class="root list-unstyled m-0">
+    @if (isSearching() && !collapsedResolved) {
+    <li class="item meta" role="status" aria-live="polite">
+      <div
+        class="link d-flex align-items-center gap-2 px-3 py-2 text-decoration-none"
+      >
+        <span class="label text-truncate flex-grow-1">
+          {{ items.length }} resultado{{
+            items.length !== 1 ? "s" : ""
+          }}
+          encontrado{{ items.length !== 1 ? "s" : "" }} para
+          <mark class="search-term">{{ searchTerm() }}</mark>
+        </span>
+      </div>
     </li>
     }
   </ul>
