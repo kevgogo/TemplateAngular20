@@ -21,12 +21,11 @@ export class CommonService {
 
   // helpers internos (pueden ir privados dentro de la clase)
   private resolveErrorTarget(code: number): string {
+    if (code === 401) return '/error/401'; // ⬅️ nuevo
     if (code === 403) return '/error/403';
     if (code === 404) return '/error/404';
-    // 0 (network), 503 y cualquier 5xx → 500
     if (code === 0 || code === 503 || (code >= 500 && code < 600))
       return '/error/500';
-    // fallback
     return '/error/500';
   }
 
@@ -70,9 +69,8 @@ export class CommonService {
     error: string;
     message: string;
   }) {
-    // 401 → a login con returnUrl (ajústalo si prefieres usar una página de error)
-    const returnUrl = this.router.url || '/';
-    return this.router.navigate(['/login'], { queryParams: { returnUrl } });
+    const state = this.buildErrorState({ ...data, code: 401 });
+    return this.router.navigateByUrl('/error/401', { state });
   }
 
   redirectToNotFound(data: { code: string; error: string; message: string }) {

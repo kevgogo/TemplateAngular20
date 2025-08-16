@@ -40,6 +40,15 @@ export const routes: Routes = [
 
       // Errores (ahora desde shared/pages/errors)
       {
+        path: 'error/401',
+        title: 'No autorizado',
+        data: { breadcrumb: '401' },
+        loadComponent: () =>
+          import('@shared/pages/errors/unauthorized.page').then(
+            (m) => m.UnauthorizedPage
+          ),
+      },
+      {
         path: 'error/403',
         title: 'Acceso denegado',
         data: { breadcrumb: '403' },

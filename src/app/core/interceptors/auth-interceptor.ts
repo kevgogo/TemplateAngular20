@@ -44,7 +44,6 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
           message: 'Servicio no disponible',
         });
       } else if (is5xx && err.status !== 503) {
-        // ⬅️ Nuevo: 500..599 (excepto 503) → /error/500
         common.redirecToError({
           code: String(err.status || '500'),
           error: 'Error del servidor',
