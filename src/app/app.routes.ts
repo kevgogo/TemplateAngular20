@@ -20,6 +20,24 @@ export const routes: Routes = [
             (m) => m.DashboardPage
           ),
       },
+      {
+        path: 'BasicElements',
+        title: 'Elementos Basicos',
+        data: { breadcrumb: 'Elementos Basicos' },
+        loadComponent: () =>
+          import('@pages/elements/basic-elements.page').then(
+            (m) => m.BasicElementsPage
+          ),
+      },
+      {
+        path: 'BasicElements',
+        title: 'Elementos Basicos',
+        data: { breadcrumb: 'Elementos Basicos' },
+        loadComponent: () =>
+          import('@pages/elements/basic-elements.page').then(
+            (m) => m.BasicElementsPage
+          ),
+      },
     ],
   },
 ];

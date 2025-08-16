@@ -1,0 +1,40 @@
+{
+  "APP": {
+    "TITLE": "Sunshine Colibrí",
+    "LOCALE": "en_US"
+  },
+  "NAV": {
+    "HOME": "Home",
+    "MODULES": "Modules"
+  },
+  "AUTH": {
+    "LOGIN_TITLE": "Sign in",
+    "WELCOME": "Welcome, {{name}}",
+    "INVALID_TOKEN": "Invalid token",
+    "EXPIRED_CREDENTIALS": "Credentials expired, please sign in again"
+  },
+  "ERRORS": {
+    "401": { "TITLE": "Unauthorized", "MESSAGE": "You don’t have access." },
+    "404": {
+      "TITLE": "Not found",
+      "MESSAGE": "The requested resource does not exist."
+    },
+    "503": { "TITLE": "Service unavailable", "MESSAGE": "Try again later." }
+  },
+  "COMMON": {
+    "CONFIRM": "Confirm",
+    "CANCEL": "Cancel",
+    "SAVE": "Save",
+    "SEARCH": "Search",
+    "LOADING": "Loading…"
+  },
+  "MENU": {
+    "DASHBOARD": "Dashboard",
+    "SYSTEM": "System",
+    "FARMS": "Farms"
+  },
+  "TOAST": {
+    "SAVED": "Saved successfully",
+    "ERROR": "An unexpected error occurred"
+  }
+}

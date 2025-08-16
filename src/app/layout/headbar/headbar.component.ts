@@ -6,6 +6,7 @@ import {
   Output,
   OnInit,
   OnDestroy,
+  ChangeDetectionStrategy,
   inject,
 } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
@@ -17,6 +18,7 @@ import { APP_NAME_TOKEN } from '@core/tokens/app-tokens';
   imports: [CommonModule],
   templateUrl: './headbar.component.html',
   styleUrls: ['./headbar.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HeadbarComponent implements OnInit, OnDestroy {
   // Título por defecto desde token (puedes sobrescribirlo con [title])

@@ -3,6 +3,7 @@ import {
   EventEmitter,
   Output,
   computed,
+  ChangeDetectionStrategy,
   inject,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -22,6 +23,7 @@ type FixedPart = 'nav' | 'breadcrumbs' | 'headbar' | 'sidebar';
   imports: [CommonModule, BsDropdownModule],
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NavbarComponent {
   @Output() toggleSidebar = new EventEmitter<void>(); // colapsar/expandir

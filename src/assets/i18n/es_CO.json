@@ -1,0 +1,46 @@
+{
+  "APP": {
+    "TITLE": "Sunshine Colibrí",
+    "LOCALE": "es_CO"
+  },
+  "NAV": {
+    "HOME": "Inicio",
+    "MODULES": "Módulos"
+  },
+  "AUTH": {
+    "LOGIN_TITLE": "Iniciar sesión",
+    "WELCOME": "Bienvenido, {{name}}",
+    "INVALID_TOKEN": "Token no válido",
+    "EXPIRED_CREDENTIALS": "Credenciales vencidas, vuelva a iniciar sesión"
+  },
+  "ERRORS": {
+    "401": {
+      "TITLE": "No autorizado",
+      "MESSAGE": "No tiene permisos para acceder."
+    },
+    "404": {
+      "TITLE": "No encontrado",
+      "MESSAGE": "El recurso solicitado no existe."
+    },
+    "503": {
+      "TITLE": "Servicio no disponible",
+      "MESSAGE": "Inténtalo de nuevo más tarde."
+    }
+  },
+  "COMMON": {
+    "CONFIRM": "Confirmar",
+    "CANCEL": "Cancelar",
+    "SAVE": "Guardar",
+    "SEARCH": "Buscar",
+    "LOADING": "Cargando…"
+  },
+  "MENU": {
+    "DASHBOARD": "Tablero",
+    "SYSTEM": "Sistema",
+    "FARMS": "Fincas"
+  },
+  "TOAST": {
+    "SAVED": "Guardado correctamente",
+    "ERROR": "Ocurrió un error inesperado"
+  }
+}

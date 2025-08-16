@@ -11,6 +11,9 @@ import { TooltipModule } from 'ngx-bootstrap/tooltip';
 import { PopoverModule } from 'ngx-bootstrap/popover';
 import { ToastrModule } from 'ngx-toastr';
 
+import { provideTranslateService } from '@ngx-translate/core';
+import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
+
 export function provideThirdParty(): EnvironmentProviders {
   return makeEnvironmentProviders([
     importProvidersFrom(
@@ -24,5 +27,16 @@ export function provideThirdParty(): EnvironmentProviders {
         timeOut: 2500,
       })
     ),
+    provideTranslateService({
+      fallbackLang: 'es_AR',
+      // Loader HTTP (prefijo/sufijo según tu estructura)
+      loader: provideTranslateHttpLoader({
+        prefix: './assets/i18n/',
+        suffix: '.json',
+        // Opcionales:
+        // enforceLoading: true,  // cache-busting
+        // useHttpBackend: true,  // evita interceptores
+      }),
+    }),
   ]);
 }

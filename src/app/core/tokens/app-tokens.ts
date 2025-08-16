@@ -1,4 +1,5 @@
 import { InjectionToken } from '@angular/core';
+import { environment } from '@environments/environment';
 
 export const APP_NAME_TOKEN = new InjectionToken<string>('APP_NAME', {
   providedIn: 'root',
@@ -39,4 +40,9 @@ export const APP_AUTHOR_TOKEN = new InjectionToken<string>('APP_AUTHOR', {
   factory: () => {
     return 'Sunshine Bouquet Ⓒ'; // Autor de la aplicación
   },
+});
+
+export const API_BASE_URL = new InjectionToken<string>('API_BASE_URL', {
+  providedIn: 'root',
+  factory: () => environment.urlApiBase, // p.ej. https://api.miapp.com
 });

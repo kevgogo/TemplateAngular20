@@ -6,7 +6,7 @@
   /* Alturas (ajusta a tu UI real) */
   --nav-h: 56px; /* altura navbar */
   --bc-h: 50px; /* altura breadcrumbs */
-  --ph-h: 56px; /* altura page header / headbar */
+  --ph-h: 50px; /* altura page header / headbar */
 
   /* Capas (z-index) */
   --z-navbar: 1030; /* por encima de dropdowns (Bootstrap ~1000) */
@@ -116,4 +116,27 @@ body.sidebar-collapsed .sidebar {
 
 .app-header {
   height: var(--ph-h);
+}
+
+/* Solo nav fijo */
+body.fixed-nav {
+  --offset-top: var(--nav-h);
+}
+
+/* Nav + breadcrumbs */
+body.fixed-nav.fixed-breadcrumbs {
+  --offset-top: calc(var(--nav-h) + var(--bc-h));
+}
+
+/* Nav + breadcrumbs + headbar */
+body.fixed-nav.fixed-breadcrumbs.fixed-pageheader {
+  --offset-top: calc(var(--nav-h) + var(--bc-h) + var(--ph-h));
+}
+
+/* Ya no sumes breadcrumbs a mano: usa siempre la misma var */
+.sticky,
+app-breadcrumbs,
+app-headbar,
+app-navbar {
+  top: var(--offset-top);
 }

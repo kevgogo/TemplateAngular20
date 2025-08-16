@@ -20,6 +20,7 @@
       "@layout/*": ["app/layout/*"],
       "@assets/*": ["assets/*"],
       "@pages/*": ["app/pages/*"],
+      "@environments/*": ["environments/*"],
       "@shared/*": ["app/shared/*"]
     }
   },
