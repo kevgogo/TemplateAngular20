@@ -7,7 +7,7 @@ export const routes: Routes = [
     path: 'login',
     // Si el componente tiene export default:
     loadComponent: () =>
-      import('./core/secure/auth/auth-callback.component').then((m) => m.default),
+      import('./core/auth/auth-callback.component').then((m) => m.default),
   },
   {
     path: '',
