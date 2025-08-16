@@ -1,0 +1,69 @@
+/* === COVER a pantalla completa ===
+   Usa tus variables primero y cae a Bootstrap si no existen */
+.auth-cover {
+  position: fixed;
+  inset: 0; /* top/right/bottom/left: 0 */
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  padding: clamp(1rem, 2vw, 2rem);
+
+  /* FONDO DEL TEMA (no blanco fijo) */
+  background: linear-gradient(
+    90deg,
+    var(--app-header-bg, var(--app-primary)) 0%,
+    color-mix(
+        in srgb,
+        var(--app-header-bg, var(--app-primary)),
+        transparent 25%
+      )
+      50%,
+    var(--app-header-bg, var(--app-primary)) 100%
+  );
+  color: var(--app-body-color, var(--bs-body-color)) !important;
+}
+
+/* === CARD === */
+.card-hero {
+  width: min(100vw, 24rem);
+  background-color: var(--bs-body-bg);
+  border-color: var(--bs-border-color);
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 10px 30px 0
+      color-mix(in srgb, var(--bs-body-color), transparent 92%),
+    0 4px 12px 0 color-mix(in srgb, var(--bs-body-color), transparent 90%);
+}
+
+/* Barra superior con color de tu skin (usa tu var y cae a --app-primary) */
+.card-accent {
+  height: 6px;
+}
+
+/* Imagen grande y responsiva (sin recortar dentro de la card) */
+.hero-img {
+  width: clamp(180px, 60vw, 360px);
+  height: auto;
+  display: block;
+  margin-inline: auto;
+  image-rendering: -webkit-optimize-contrast;
+}
+
+/* (Opcional) animación sutil */
+@media (prefers-reduced-motion: no-preference) {
+  .hero-img {
+    animation: floatY 2.2s ease-in-out infinite alternate;
+  }
+}
+@keyframes floatY {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-6px);
+  }
+}
+
+.card-media {
+  padding-right: 5px;
+}

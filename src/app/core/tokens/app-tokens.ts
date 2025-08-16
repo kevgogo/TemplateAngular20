@@ -46,3 +46,18 @@ export const API_BASE_URL = new InjectionToken<string>('API_BASE_URL', {
   providedIn: 'root',
   factory: () => environment.urlApiBase, // p.ej. https://api.miapp.com
 });
+
+export const APP_LAND_ID = new InjectionToken<string>('APP_LAND_ID', {
+  providedIn: 'root',
+  factory: () => environment.land_id,
+});
+
+export const APP_MODULE_ID = new InjectionToken<string>('APP_MODULE_ID', {
+  providedIn: 'root',
+  factory: () => environment.module_id,
+});
+
+export const APP_URL_COLIBRI = new InjectionToken<string>('APP_URL_COLIBRI', {
+  providedIn: 'root',
+  factory: () => environment.urlColibri,
+});

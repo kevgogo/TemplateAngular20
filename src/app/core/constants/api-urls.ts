@@ -3,22 +3,26 @@ import { inject } from '@angular/core';
 import { API_BASE_URL } from '@core/tokens/app-tokens';
 import { API_PATHS } from './api-paths';
 
+const join = (base: string, path: string) =>
+  `${base.replace(/\/+$/, '')}${path.startsWith('/') ? path : '/' + path}`;
+
 export function API_URLS(BASE = inject(API_BASE_URL)) {
+  const B = BASE || '';
   return {
     SECURITY: {
-      LOGIN: BASE + API_PATHS.SECURITY.LOGIN,
-      MENU: BASE + API_PATHS.SECURITY.MENU,
-      PERMISSION: BASE + API_PATHS.SECURITY.PERMISSION,
+      LOGIN: join(B, API_PATHS.SECURITY.LOGIN),
+      MENU: join(B, API_PATHS.SECURITY.MENU),
+      PERMISSION: join(B, API_PATHS.SECURITY.PERMISSION),
     },
     FARM: {
-      GET: BASE + API_PATHS.FARM.GET,
+      GET: join(B, API_PATHS.FARM.GET),
     },
     SYSTEM: {
-      GET: BASE + API_PATHS.SYSTEM.GET,
-      SAVE: BASE + API_PATHS.SYSTEM.SAVE,
-      DELETE: BASE + API_PATHS.SYSTEM.DELETE,
-      CANCEL: BASE + API_PATHS.SYSTEM.CANCEL,
-      GET_ACTIVE: BASE + API_PATHS.SYSTEM.GET_ACTIVE,
+      GET: join(B, API_PATHS.SYSTEM.GET),
+      SAVE: join(B, API_PATHS.SYSTEM.SAVE),
+      DELETE: join(B, API_PATHS.SYSTEM.DELETE),
+      CANCEL: join(B, API_PATHS.SYSTEM.CANCEL),
+      GET_ACTIVE: join(B, API_PATHS.SYSTEM.GET_ACTIVE),
     },
   } as const;
 }

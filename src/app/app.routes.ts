@@ -4,40 +4,42 @@ import { ShellComponent } from '@layout/shell/shell.component';
 
 export const routes: Routes = [
   {
+    path: 'login',
+    // Si el componente tiene export default:
+    loadComponent: () =>
+      import('./core/secure/auth/auth-callback.component').then((m) => m.default),
+  },
+  {
     path: '',
     component: ShellComponent,
-    // opcional: evita que el shell aparezca como tramo del breadcrumb
     data: { breadcrumbSkip: true },
     children: [
-      { path: '', pathMatch: 'full', redirectTo: 'Dashboard' },
+      { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
 
       {
-        path: 'Dashboard',
+        path: 'dashboard',
         title: 'Dashboard',
-        data: { breadcrumb: 'Dashboard' }, // <- etiqueta del breadcrumb
+        data: { breadcrumb: 'Dashboard' },
         loadComponent: () =>
           import('@pages/dashboard/dashboard.page').then(
             (m) => m.DashboardPage
           ),
       },
       {
-        path: 'BasicElements',
-        title: 'Elementos Basicos',
-        data: { breadcrumb: 'Elementos Basicos' },
+        path: 'elements',
+        title: 'Elementos Básicos',
+        data: { breadcrumb: 'Elementos Básicos' },
         loadComponent: () =>
           import('@pages/elements/basic-elements.page').then(
             (m) => m.BasicElementsPage
           ),
       },
-      {
-        path: 'BasicElements',
-        title: 'Elementos Basicos',
-        data: { breadcrumb: 'Elementos Basicos' },
-        loadComponent: () =>
-          import('@pages/elements/basic-elements.page').then(
-            (m) => m.BasicElementsPage
-          ),
-      },
+
+      // (opcional) 404 dentro del shell
+      { path: '**', redirectTo: 'dashboard' },
     ],
   },
+
+  // (opcional) 404 global
+  { path: '**', redirectTo: '' },
 ];
