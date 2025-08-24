@@ -1,0 +1,30 @@
+services:
+  app-dev:
+    build:
+      context: ..
+      dockerfile: deploy/dockerfile
+      args:
+        BUILD_CONFIGURATION: development
+        NGINX_CONF: nginx.dev.conf
+    ports: ["8081:80"]
+    profiles: ["dev"]
+
+  app-qa:
+    build:
+      context: ..
+      dockerfile: deploy/dockerfile
+      args:
+        BUILD_CONFIGURATION: qa
+        NGINX_CONF: nginx.qa.conf
+    ports: ["8082:80"]
+    profiles: ["qa"]
+
+  app-prod:
+    build:
+      context: ..
+      dockerfile: deploy/dockerfile
+      args:
+        BUILD_CONFIGURATION: production
+        NGINX_CONF: nginx.prod.conf
+    ports: ["8083:80"]
+    profiles: ["prod"]

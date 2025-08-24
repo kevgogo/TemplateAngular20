@@ -40,8 +40,39 @@
             ]
           },
           "configurations": {
+            "local": {
+              "baseHref": "/",
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            },
+            "development": {
+              "baseHref": "/plantilla-colibri-app-20",
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.dev.ts"
+                }
+              ]
+            },
+            "qa": {
+              "baseHref": "/plantilla-colibri-app-20",
+              "optimization": true,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.qa.ts"
+                }
+              ],
+              "outputHashing": "all"
+            },
             "production": {
-              "baseHref": "/plantilla-colibri-app-20/",
+              "baseHref": "/plantilla-colibri-app-20",
               "budgets": [
                 {
                   "type": "initial",
@@ -54,13 +85,13 @@
                   "maximumError": "8kB"
                 }
               ],
-              "outputHashing": "all"
-            },
-            "development": {
-              "baseHref": "/plantilla-colibri-app-20/",
-              "optimization": false,
-              "extractLicenses": false,
-              "sourceMap": true
+              "outputHashing": "all",
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.prod.ts"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"
@@ -68,14 +99,20 @@
         "serve": {
           "builder": "@angular/build:dev-server",
           "configurations": {
-            "production": {
-              "buildTarget": "plantilla-colibri-app-20:build:production"
+            "local": {
+              "buildTarget": "plantilla-colibri-app-20:build:local"
             },
             "development": {
               "buildTarget": "plantilla-colibri-app-20:build:development"
+            },
+            "qa": {
+              "buildTarget": "plantilla-colibri-app-20:build:qa"
+            },
+            "production": {
+              "buildTarget": "plantilla-colibri-app-20:build:production"
             }
           },
-          "defaultConfiguration": "development"
+          "defaultConfiguration": "local"
         },
         "extract-i18n": {
           "builder": "@angular/build:extract-i18n"
