@@ -61,3 +61,32 @@ export const APP_URL_COLIBRI = new InjectionToken<string>('APP_URL_COLIBRI', {
   providedIn: 'root',
   factory: () => environment.urlColibri,
 });
+
+export const GRAPHQL_BASE_URL = new InjectionToken<string>('GRAPHQL_BASE_URL', {
+  providedIn: 'root',
+  factory: () => environment.urlApiGraphQL,
+});
+
+export const GRAPHQL_AUTH_BASE_URL = new InjectionToken<string>(
+  'GRAPHQL_AUTH_BASE_URL',
+  {
+    providedIn: 'root',
+    factory: () => environment.urlAuthApiGraphQL,
+  }
+);
+
+export const GRAPHQL_USER_TOKEN = new InjectionToken<string>(
+  'GRAPHQL_USER_TOKEN',
+  {
+    providedIn: 'root',
+    factory: () => environment.user_graphql_api,
+  }
+);
+
+export const GRAPHQL_PASSWORD_TOKEN = new InjectionToken<string>(
+  'GRAPHQL_PASSWORD_TOKEN',
+  {
+    providedIn: 'root',
+    factory: () => environment.password_graphql_api,
+  }
+);

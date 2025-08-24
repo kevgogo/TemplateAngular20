@@ -5,6 +5,7 @@ import { AuthService } from '@core/services/auth.service';
 import { SettingsService } from '@core/services/settings.service';
 import { MenuService } from '@core/services/menu.service';
 import { CommonService } from '@core/services/common.service';
+import { GraphQLAuthService } from '@core/graphql/graphql-auth.service';
 
 type UiTheme = { theme?: string; skin?: string };
 
@@ -22,6 +23,7 @@ export default class AuthCallbackComponent implements OnDestroy {
   private menu = inject(MenuService);
   private common = inject(CommonService);
   private router = inject(Router);
+  private gqlAuth = inject(GraphQLAuthService);
   private doc = inject(DOCUMENT);
 
   private onStorage = (e: StorageEvent) => {
@@ -53,6 +55,9 @@ export default class AuthCallbackComponent implements OnDestroy {
           this.setting.setUserSetting('token', x.messageResult);
           this.menu.getMenu();
           this.menu.getPermission();
+
+          // Cargamos el Token de GraphQL
+          this.prefetchGraphQLToken();
           this.router.navigate(['']); // dashboard
         } else {
           this.common.redirecToError({
@@ -87,5 +92,13 @@ export default class AuthCallbackComponent implements OnDestroy {
     } catch {
       /* no-op */
     }
+  }
+
+  // helper:
+  private prefetchGraphQLToken(): void {
+    if (this.setting.getUserSetting('tokenGraphQL')) return;
+    this.gqlAuth
+      .getGraphQLToken()
+      .subscribe({ next: () => {}, error: () => {} });
   }
 }

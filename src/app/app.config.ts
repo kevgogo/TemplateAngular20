@@ -1,4 +1,3 @@
-// src/app/app.config.ts
 import {
   ApplicationConfig,
   provideAppInitializer,
@@ -17,8 +16,9 @@ import { routes } from './app.routes';
 import { provideThirdParty } from '@shared/app-third-party.providers';
 
 import { authInterceptor } from '@core/interceptors/auth-interceptor';
-import { API_BASE_URL } from '@core/tokens/app-tokens';
-import { APP_BASE_HREF_TOKEN } from '@core/tokens/app-tokens';
+import { graphqlInterceptor } from '@core/interceptors/graphql-interceptor';
+
+import { API_BASE_URL, APP_BASE_HREF_TOKEN } from '@core/tokens/app-tokens';
 import { environment } from '@environments/environment';
 
 // (Opcional) si vas a hacer health-check async
@@ -35,7 +35,10 @@ export const appConfig: ApplicationConfig = {
       })
     ),
 
-    provideHttpClient(withFetch(), withInterceptors([authInterceptor])),
+    provideHttpClient(
+      withFetch(),
+      withInterceptors([authInterceptor, graphqlInterceptor])
+    ),
 
     provideAnimations(),
     provideThirdParty(),

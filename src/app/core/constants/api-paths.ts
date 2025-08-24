@@ -14,4 +14,9 @@ export const API_PATHS = {
     CANCEL: '/System/cancel-system',
     GET_ACTIVE: '/System/get-system-active',
   },
+
+  GRAPHQL: {
+    ENDPOINT: '/graphql/', // ← deja el slash final
+    TOKEN: '/api/auth/token',
+  },
 } as const;
