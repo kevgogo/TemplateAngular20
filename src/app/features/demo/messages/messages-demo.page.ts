@@ -15,10 +15,10 @@ export class MessagesDemoPage {
 
   showMessage(type: 'success' | 'info' | 'warning' | 'error') {
     this.confirm.message({
-      title: 'Mensaje de ejemplo',
-      message: `Este es un mensaje de tipo: ${type.toUpperCase()}`,
+      title: `Mensaje ${type.toUpperCase()}`,
+      message: `Este es un mensaje de tipo ${type}.`,
       type_message: type,
-      closeButtonText: 'Cerrar',
+      okText: 'Cerrar', // ⬅️ antes: closeButtonText
     });
   }
 
@@ -26,8 +26,8 @@ export class MessagesDemoPage {
     this.confirm.confirm({
       title: '¿Confirmar acción?',
       message: 'Esta acción no se puede deshacer.',
-      okButtonText: 'Sí, continuar',
-      cancelButtonText: 'No, cancelar',
+      okText: 'Sí, continuar', // ⬅️ antes: okButtonText
+      cancelText: 'No, cancelar', // ⬅️ antes: cancelButtonText
       onYes: () => this.showMessage('success'),
       onNo: () => this.showMessage('warning'),
     });
