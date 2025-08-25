@@ -1,35 +1,29 @@
-# Renderizado por envsubst usando variables:
-#  SERVER_NAME           (default: localhost)
-#  ROOT_DIR              (default: /usr/share/nginx/html/browser)
-#  BASE_PATH             ("" => root "/" | "/subruta" => sirve en subruta)
-#  ASSET_EXPIRES         (-1 | 1h | 7d)
-#  ASSET_CACHE_CONTROL   (cabecera Cache-Control)
+# Variables esperadas:
+#  SERVER_NAME, ROOT_DIR, BASE_PATH, ASSET_EXPIRES, ASSET_CACHE_CONTROL
 
 server {
   listen 80;
-  server_name ${SERVER_NAME:-localhost};
+  server_name ${SERVER_NAME};
 
-  # raíz coherente (no usada por alias, pero útil p/diagnóstico)
-  root ${ROOT_DIR:-/usr/share/nginx/html/browser};
+  root ${ROOT_DIR};
   index index.html;
 
-  # Sirve la app bajo BASE_PATH; si BASE_PATH="", esto equivale a "/"
+  # Sirve la app bajo BASE_PATH (si BASE_PATH="", esto equivale a "/")
   location ^~ ${BASE_PATH}/ {
     alias ${ROOT_DIR}/;
-
-    # fallback de SPA
     try_files $uri $uri/ /index.html;
 
-    # assets con política de cache parametrizable
+    # Assets (cache parametrizable)
     location ~* \.(js|css|png|jpg|jpeg|gif|svg|ico|woff2?)$ {
-      expires ${ASSET_EXPIRES:-7d};
-      add_header Cache-Control "${ASSET_CACHE_CONTROL:-public, max-age=604800, immutable}";
+      expires ${ASSET_EXPIRES};
+      add_header Cache-Control "${ASSET_CACHE_CONTROL}";
       try_files $uri =404;
     }
   }
 
-  # Fallback genérico (por si piden fuera de BASE_PATH)
-  location / {
+  # Fallback SOLO para la raíz exacta "/"
+  # (evita duplicar un "location /" cuando BASE_PATH="")
+  location = / {
     try_files $uri $uri/ /index.html;
   }
 }

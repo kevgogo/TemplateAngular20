@@ -1,9 +1,11 @@
-name: templateangular20
+# TODO: ajustar nombre del contenedor, separado por guiones
+name: template-angular-20
 
 services:
   # LOCAL: sirve en "/"
   app-local:
-    profiles: ["local"]
+    container_name: local
+    hostname: local
     build:
       context: ..
       dockerfile: deploy/dockerfile
@@ -21,7 +23,8 @@ services:
 
   # DEV: subruta /plantilla-colibri-app-20
   app-dev:
-    profiles: ["dev"]
+    container_name: dev
+    hostname: dev
     build:
       context: ..
       dockerfile: deploy/dockerfile
@@ -39,7 +42,8 @@ services:
 
   # QA: subruta /plantilla-colibri-app-20
   app-qa:
-    profiles: ["qa"]
+    container_name: qa
+    hostname: qa
     build:
       context: ..
       dockerfile: deploy/dockerfile
@@ -57,6 +61,8 @@ services:
 
   # PROD: subruta /plantilla-colibri-app-20
   app-prod:
+    container_name: prod
+    hostname: prod
     build:
       context: ..
       dockerfile: deploy/dockerfile
