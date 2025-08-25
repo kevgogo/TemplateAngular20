@@ -78,6 +78,12 @@ export const routes: Routes = [
 
       // 404 para rutas desconocidas dentro del shell
       { path: '**', redirectTo: 'error/404' },
+
+      {
+        path: 'demo',
+        loadChildren: () =>
+          import('./features/demo/demo.routes').then((m) => m.DEMO_ROUTES),
+      },
     ],
   },
 

@@ -1,0 +1,103 @@
+<div class="container py-3">
+  <h2 class="h5 mb-3">Shared components + i18n</h2>
+
+  <!-- ========== I18N selector ========== -->
+  <section class="mb-4">
+    <h3 class="h6">i18n</h3>
+    <div class="row g-2 align-items-end">
+      <div class="col-12 col-md-4">
+        <label class="form-label">{{
+          "SETTINGS.LANGUAGE" | translate : {} || "Idioma"
+        }}</label>
+        <select
+          class="form-select"
+          [ngModel]="current()"
+          (ngModelChange)="onLangChange($event)"
+        >
+          <option *ngFor="let l of langs" [value]="l.code">{{ l.text }}</option>
+        </select>
+        <div class="form-text">
+          <code>{{ "APP.LOCALE" | translate }}</code>
+        </div>
+      </div>
+      <div class="col-12 col-md-8">
+        <div class="p-2 border rounded bg-body-tertiary">
+          <div><strong>APP.TITLE:</strong> {{ "APP.TITLE" | translate }}</div>
+          <div>
+            <strong>AUTH.WELCOME:</strong>
+            {{ "AUTH.WELCOME" | translate : { name: "Kevin" } }}
+          </div>
+          <div><strong>BTN.SAVE:</strong> {{ "BUTTONS.SAVE" | translate }}</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== Alert ========== -->
+  <section class="mb-4">
+    <h3 class="h6">Alert</h3>
+    <app-alert
+      [type]="'warning'"
+      [message]="'ALERTS.SAMPLE' | translate"
+      [closeable]="true"
+    >
+      {{ "ALERTS.CLOSABLE" | translate }}
+    </app-alert>
+  </section>
+
+  <!-- ========== Progressbar ========== -->
+  <section class="mb-4">
+    <h3 class="h6">Progressbar</h3>
+    <app-progressbar
+      [value]="percent"
+      [label]="'PROGRESS.GENERAL' | translate"
+    ></app-progressbar>
+    <div class="mt-2 d-flex gap-2">
+      <button
+        class="btn btn-outline-secondary btn-sm"
+        (click)="percent = Math.max(0, percent - 10)"
+      >
+        -10%
+      </button>
+      <button
+        class="btn btn-outline-secondary btn-sm"
+        (click)="percent = Math.min(100, percent + 10)"
+      >
+        +10%
+      </button>
+    </div>
+
+    <h4 class="h6 mt-3">{{ "PROGRESS.SEGMENTED" | translate }}</h4>
+    <app-progressbar
+      [segments]="segments"
+      [label]="'PROGRESS.SEGMENTS' | translate"
+    ></app-progressbar>
+  </section>
+
+  <!-- ========== Chrono con i18n (locale/tz) ========== -->
+  <section class="mb-4">
+    <h3 class="h6">Chrono</h3>
+    <div class="d-flex align-items-center gap-3 flex-wrap">
+      <div>
+        <app-chrono
+          [mode]="'clock'"
+          [labelMode]="'clockPattern'"
+          [localeTag]="chronoLocale()"
+          [tz]="chronoTz()"
+        ></app-chrono>
+      </div>
+      <div class="text-body-secondary small">
+        <div>
+          locale: <code>{{ chronoLocale() }}</code>
+        </div>
+        <div>
+          tz: <code>{{ chronoTz() }}</code>
+        </div>
+        <div>
+          date (fixed MM/DD/YYYY):
+          <strong>{{ now | date : "MM/dd/yyyy HH:mm:ss" }}</strong>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
