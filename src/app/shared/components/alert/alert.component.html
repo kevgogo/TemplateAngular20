@@ -1,0 +1,25 @@
+@if(isOpen){
+<div
+  class="alert"
+  [ngClass]="[
+    'alert-' + (type || 'warning'),
+    closeable ? 'alert-dismissible' : null
+  ]"
+  role="alert"
+  aria-live="assertive"
+  aria-atomic="true"
+>
+  <button
+    *ngIf="closeable"
+    type="button"
+    class="btn-close"
+    aria-label="Close"
+    (click)="_close()"
+  ></button>
+
+  <div>
+    <span>{{ message }}</span>
+    <ng-content></ng-content>
+  </div>
+</div>
+}

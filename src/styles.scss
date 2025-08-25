@@ -140,3 +140,22 @@ app-headbar,
 app-navbar {
   top: var(--offset-top);
 }
+
+.modal-message .modal-header,
+.modal-message .modal-body,
+.modal-message .modal-footer {
+  text-align: center;
+}
+
+.modal-message.modal-success .modal-header {
+  border-bottom: 3px solid #53a93f;
+}
+.modal-message.modal-warning .modal-header {
+  border-bottom: 3px solid #f4b400;
+}
+.modal-message.modal-danger .modal-header {
+  border-bottom: 3px solid #d73d32;
+}
+.modal-message.modal-info .modal-header {
+  border-bottom: 3px solid #2dc3e8;
+}

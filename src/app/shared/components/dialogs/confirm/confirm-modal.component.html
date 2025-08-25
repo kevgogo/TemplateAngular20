@@ -1,0 +1,16 @@
+<div class="modal-header">
+  <h5 class="modal-title">{{ options.title }}</h5>
+  <button
+    type="button"
+    class="btn-close"
+    (click)="no()"
+    aria-label="Close"
+  ></button>
+</div>
+<div class="modal-body">
+  <p class="mb-0">{{ options.message }}</p>
+</div>
+<div class="modal-footer">
+  <button class="btn btn-secondary" (click)="no()">Cancelar</button>
+  <button class="btn btn-primary" (click)="yes()">Aceptar</button>
+</div>

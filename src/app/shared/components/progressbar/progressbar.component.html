@@ -1,0 +1,39 @@
+<div class="progress" [ngStyle]="{ height: height || null }">
+  <!-- Modo apilado -->
+  <ng-container *ngIf="stacked?.length; else single">
+    <div
+      *ngFor="let s of stacked"
+      class="progress-bar"
+      [class.progress-bar-striped]="s.striped"
+      [class.progress-bar-animated]="s.animated"
+      [ngClass]="getTypeClass(s.type)"
+      [style.width.%]="segmentWidth(s)"
+      role="progressbar"
+      [attr.aria-label]="s.label || 'segment'"
+      [attr.aria-valuenow]="segmentWidth(s) | number : '1.0-0'"
+      aria-valuemin="0"
+      aria-valuemax="100"
+    >
+      <span class="progress-label" *ngIf="s.label">{{ s.label }}</span>
+    </div>
+  </ng-container>
+
+  <!-- Modo simple -->
+  <ng-template #single>
+    <div
+      class="progress-bar"
+      [ngClass]="getTypeClass(type)"
+      [class.progress-bar-striped]="striped"
+      [class.progress-bar-animated]="animated"
+      [style.width.%]="percent()"
+      role="progressbar"
+      [attr.aria-valuenow]="ariaValueNow()"
+      [attr.aria-valuemin]="min"
+      [attr.aria-valuemax]="max"
+    >
+      <span class="progress-label" *ngIf="showLabel">
+        {{ label ?? (percent() | number: '1.0-0') + '%' }}
+      </span>
+    </div>
+  </ng-template>
+</div>
