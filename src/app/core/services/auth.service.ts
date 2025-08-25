@@ -18,7 +18,8 @@ export class AuthService {
     });
     let params = new HttpParams();
     params = params.append('KeyLoggin', keyLogin);
-    return this.client.get(this._URLS.SECURITY.LOGIN, {
+    let url = this._URLS.SECURITY.LOGIN;
+    return this.client.get(url, {
       headers: headers,
       params: params,
     });
@@ -28,6 +29,7 @@ export class AuthService {
     const lang_id: string = environment.land_id;
     const module_id: string = environment.module_id;
     const user_audit: string = this.setting.getUserSetting('userId');
+    debugger;
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
       accept: 'application/json', //siempre que se retorne un string agregar esta linea please

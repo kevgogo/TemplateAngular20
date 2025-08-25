@@ -12,7 +12,7 @@ type ErrorState = {
 };
 
 @Component({
-  selector: 'app-not-found',
+  selector: 'app-server-error',
   standalone: true,
   imports: [CommonModule, RouterLink],
   template: `
@@ -24,29 +24,29 @@ type ErrorState = {
           <p class="text-body-secondary">{{ msg }}</p>
 
           <div class="d-flex gap-2 justify-content-center mt-3">
-            <a routerLink="/dashboard" class="btn btn-primary"
-              >Ir al dashboard</a
-            >
+            <a routerLink="/home" class="btn btn-primary">Ir al inicio</a>
             <button
               type="button"
               class="btn btn-outline-secondary"
-              (click)="historyBack()"
+              (click)="recargar()"
             >
-              Volver
+              Recargar
             </button>
           </div>
 
-          <div class="text-muted small mt-3" *ngIf="from">
+          @if(from){
+          <div class="text-muted small mt-3">
             <span
-              >Ruta solicitada: <code>{{ from }}</code></span
+              >Ocurrió mientras estabas en: <code>{{ from }}</code></span
             >
           </div>
+          }
         </div>
       </div>
     </div>
   `,
 })
-export class NotFoundPage {
+export class ServerErrorPage {
   private s: ErrorState;
   constructor(private common: CommonService) {
     this.s =
@@ -56,21 +56,19 @@ export class NotFoundPage {
   }
 
   get code() {
-    return this.s?.code ?? '404';
+    return this.s?.code ?? '500';
   }
   get title() {
-    return this.s?.error ?? 'Página no encontrada';
+    return this.s?.error ?? 'Error interno del servidor';
   }
   get msg() {
-    return (
-      this.s?.message ?? 'La ruta que intentaste abrir no existe o fue movida.'
-    );
+    return this.s?.message ?? 'Ocurrió un problema procesando tu solicitud.';
   }
   get from() {
     return this.s?.from ?? '';
   }
 
-  historyBack() {
-    history.length > 1 ? history.back() : location.assign('/');
+  recargar() {
+    location.reload();
   }
 }

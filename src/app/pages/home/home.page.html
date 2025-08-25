@@ -1,0 +1,62 @@
+<div class="container py-5">
+  <div class="p-5 mb-4 bg-body-secondary rounded-3 shadow-sm jumbotron">
+    <div class="container-fluid">
+      <div class="row align-items-center g-4">
+        <!-- Texto / relojes -->
+        <div class="col-12 col-lg-8">
+          <h1 class="display-4 fw-bold mb-2">{{ appName }}</h1>
+          <p class="fs-5 text-muted mb-4">{{ appDescription }}</p>
+
+          <div class="row g-4">
+            <!-- FECHA -->
+            <div class="col-12 col-md-6">
+              <div class="metric">
+                <div class="label fs-5 fw-bold">Fecha</div>
+                <div class="value text-capitalize fs-5">
+                  <app-chrono
+                    [mode]="'clock'"
+                    [labelMode]="'clockPattern'"
+                    [clockPattern]="'MM-DD-YYYY dddd'"
+                    [localeTag]="'es-CO'"
+                    [tz]="'America/Bogota'"
+                    [tick]="1000"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- HORA -->
+            <div class="col-12 col-md-6">
+              <div class="metric">
+                <div class="label fs-5 fw-bold">Hora</div>
+                <div class="value text-capitalize fs-5">
+                  <app-chrono
+                    [mode]="'clock'"
+                    [labelMode]="'clockPattern'"
+                    [clockPattern]="'h:mm:ss A'"
+                    [localeTag]="'es-CO'"
+                    [tz]="'America/Bogota'"
+                    [tick]="1000"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- <div class="small text-muted mt-4">
+            v{{ version }} · {{ author }} · base: {{ baseHref }}
+          </div> -->
+        </div>
+
+        <!-- Imagen a la derecha -->
+        <div class="col-12 col-lg-4 order-lg-last text-center text-lg-end">
+          <img
+            src="assets/picasso/logo-picasso.png"
+            alt="Logo de la aplicación"
+            class="img-fluid hero-image"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

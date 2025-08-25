@@ -6,6 +6,9 @@ import { SettingsService } from '@core/services/settings.service';
 import { MenuService } from '@core/services/menu.service';
 import { CommonService } from '@core/services/common.service';
 import { GraphQLAuthService } from '@core/graphql/graphql-auth.service';
+import { GraphQLClientService } from '@core/graphql/graphql-client.service';
+import { switchMap, take } from 'rxjs/operators';
+import { EMPTY } from 'rxjs';
 
 type UiTheme = { theme?: string; skin?: string };
 
@@ -24,6 +27,7 @@ export default class AuthCallbackComponent implements OnDestroy {
   private common = inject(CommonService);
   private router = inject(Router);
   private gqlAuth = inject(GraphQLAuthService);
+  private gql = inject(GraphQLClientService);
   private doc = inject(DOCUMENT);
 
   private onStorage = (e: StorageEvent) => {
@@ -53,7 +57,7 @@ export default class AuthCallbackComponent implements OnDestroy {
             this.setting.setUserSetting(k, user[k])
           );
           this.setting.setUserSetting('token', x.messageResult);
-          this.menu.getMenu();
+            this.menu.getMenu();
           this.menu.getPermission();
 
           // Cargamos el Token de GraphQL
@@ -97,8 +101,13 @@ export default class AuthCallbackComponent implements OnDestroy {
   // helper:
   private prefetchGraphQLToken(): void {
     if (this.setting.getUserSetting('tokenGraphQL')) return;
-    this.gqlAuth
-      .getGraphQLToken()
+
+    this.gql
+      .isAlive(1500)
+      .pipe(
+        take(1),
+        switchMap((ok) => (ok ? this.gqlAuth.getGraphQLToken() : EMPTY))
+      )
       .subscribe({ next: () => {}, error: () => {} });
   }
 }

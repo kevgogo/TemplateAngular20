@@ -159,3 +159,21 @@ app-navbar {
 .modal-message.modal-info .modal-header {
   border-bottom: 3px solid #2dc3e8;
 }
+
+/* Evitar que las barras “corten” overlays */
+.navbar,
+app-breadcrumbs,
+app-headbar,
+app-page-header,
+app-header-page {
+  overflow: visible; /* importante */
+}
+
+/* Asegurar que los dropdowns queden por encima de todo lo fijo */
+.navbar .dropdown-menu,
+app-breadcrumbs .dropdown-menu,
+app-headbar .dropdown-menu,
+app-page-header .dropdown-menu,
+app-header-page .dropdown-menu {
+  z-index: calc(var(--z-navbar) + 10);
+}

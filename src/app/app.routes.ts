@@ -8,15 +8,28 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./core/auth/auth-callback.component').then((m) => m.default),
   },
-
+  {
+    path: 'Login',
+    loadComponent: () =>
+      import('./core/auth/auth-callback.component').then((m) => m.default),
+  },
   {
     path: '',
     component: ShellComponent,
     data: { breadcrumbSkip: true },
     // canActivate: [accessControlGuard], // actívalo si quieres sesión para todo el shell
     children: [
-      { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
-
+      { path: '', pathMatch: 'full', redirectTo: 'home' }, // <— CAMBIO
+      {
+        path: 'home',
+        title: 'Inicio',
+        data: {
+          breadcrumb: 'Inicio',
+          hideHeadbarTitle: true,
+        },
+        loadComponent: () =>
+          import('@pages/home/home.page').then((m) => m.HomePage), // <— NUEVO
+      },
       {
         path: 'dashboard',
         title: 'Dashboard',
@@ -44,7 +57,7 @@ export const routes: Routes = [
         title: 'No autorizado',
         data: { breadcrumb: '401' },
         loadComponent: () =>
-          import('@shared/pages/errors/unauthorized.page').then(
+          import('@pages/errors/unauthorized.page').then(
             (m) => m.UnauthorizedPage
           ),
       },
@@ -53,7 +66,7 @@ export const routes: Routes = [
         title: 'Acceso denegado',
         data: { breadcrumb: '403' },
         loadComponent: () =>
-          import('@shared/pages/errors/forbidden.page').then(
+          import('@pages/errors/forbidden.page').then(
             (m) => m.ForbiddenPage
           ),
       },
@@ -62,7 +75,7 @@ export const routes: Routes = [
         title: 'Página no encontrada',
         data: { breadcrumb: '404' },
         loadComponent: () =>
-          import('@shared/pages/errors/not-found.page').then(
+          import('@pages/errors/not-found.page').then(
             (m) => m.NotFoundPage
           ),
       },
@@ -71,7 +84,7 @@ export const routes: Routes = [
         title: 'Error del servidor',
         data: { breadcrumb: '500' },
         loadComponent: () =>
-          import('@shared/pages/errors/server-error.page').then(
+          import('@pages/errors/server-error.page').then(
             (m) => m.ServerErrorPage
           ),
       },

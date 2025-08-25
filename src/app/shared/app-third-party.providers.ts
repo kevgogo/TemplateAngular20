@@ -4,10 +4,10 @@ import {
   importProvidersFrom,
   makeEnvironmentProviders,
 } from '@angular/core';
-import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
+import { BsDropdownConfig, BsDropdownModule } from 'ngx-bootstrap/dropdown';
 import { CollapseModule } from 'ngx-bootstrap/collapse';
-import { ModalModule } from 'ngx-bootstrap/modal';
-import { TooltipModule } from 'ngx-bootstrap/tooltip';
+import { ModalModule, ModalOptions } from 'ngx-bootstrap/modal';
+import { TooltipConfig, TooltipModule } from 'ngx-bootstrap/tooltip';
 import { PopoverModule } from 'ngx-bootstrap/popover';
 import { ToastrModule } from 'ngx-toastr';
 
@@ -27,6 +27,21 @@ export function provideThirdParty(): EnvironmentProviders {
         timeOut: 2500,
       })
     ),
+
+    {
+      provide: BsDropdownConfig,
+      useValue: { container: 'body', autoClose: true, isAnimated: true },
+    },
+    {
+      provide: TooltipConfig,
+      useValue: { container: 'body', adaptivePosition: true },
+    },
+    // Opcional: modal centrado por defecto
+    {
+      provide: ModalOptions,
+      useValue: { class: 'modal-dialog-centered', animated: true },
+    },
+
     provideTranslateService({
       fallbackLang: 'es_AR',
       // Loader HTTP (prefijo/sufijo según tu estructura)

@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { RouterLink, RouterOutlet, RouterLinkActive } from '@angular/router';
 
 import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
+import { ChronoComponent } from './components/chrono/chrono.component';
+export { ChronoComponent } from './components/chrono/chrono.component';
 // import { DialogsHostComponent } from './components/dialogs/dialogs-host.component';
 
 export const SHARED_IMPORTS = [
@@ -12,4 +14,5 @@ export const SHARED_IMPORTS = [
   RouterLinkActive,
   BsDropdownModule,
   // DialogsHostComponent,
+  ChronoComponent,
 ];

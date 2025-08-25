@@ -43,6 +43,7 @@ export class MenuService {
     submenu?: any;
   }> {
     const usr: User = this.settingServ.getUserSetting('');
+    debugger;
     if (usr != null)
       this.auth.getMenu().subscribe((result: any) => {
         if (result.typeResult == 1) {

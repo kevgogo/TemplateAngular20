@@ -24,7 +24,8 @@ type ErrorState = {
           <p class="text-body-secondary">{{ msg }}</p>
 
           <div class="d-flex gap-2 justify-content-center mt-3">
-            <a routerLink="/dashboard" class="btn btn-primary">Ir al inicio</a>
+            <a routerLink="/home" class="btn btn-primary">Ir al inicio</a>
+
             <button
               type="button"
               class="btn btn-outline-secondary"

@@ -1,7 +1,10 @@
 <!-- Alto consistente con tu layout (56px) -->
 <div class="hb d-flex align-items-center px-3 gap-3">
   <!-- Izquierda: texto/título -->
+
+  @if(!hideTitle){
   <h5 class="hb-title mb-0 fw-semibold text-truncate">{{ title }}</h5>
+  }
 
   <!-- Derecha: acciones -->
   <div class="ms-auto hb-actions d-inline-flex align-items-center gap-2">

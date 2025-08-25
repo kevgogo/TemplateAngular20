@@ -1,0 +1,25 @@
+.jumbotron {
+  border: 1px solid var(--bs-border-color);
+  background-image: radial-gradient(
+    1200px 600px at 10% 0%,
+    rgba(0, 0, 0, 0.03),
+    transparent
+  );
+}
+
+:root[data-bs-theme="dark"] .jumbotron {
+  background-image: radial-gradient(
+    1200px 600px at 10% 0%,
+    rgba(255, 255, 255, 0.04),
+    transparent
+  );
+}
+
+.hero-image {
+  max-width: 380px; /* ancho máximo de la imagen */
+  max-height: 260px; /* alto máximo para que no “pese” el layout */
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.08));
+}
