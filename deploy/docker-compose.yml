@@ -1,17 +1,25 @@
 name: templateangular20
 
 services:
+  # LOCAL: sirve en "/"
   app-local:
     profiles: ["local"]
     build:
       context: ..
       dockerfile: deploy/dockerfile
       args:
-        BUILD_CONFIGURATION: local # <- importante para baseHref="/"
-        NGINX_CONF: nginx.local.conf
+        BUILD_CONFIGURATION: local
+        BASE_HREF: "/" # Angular en raíz
+    environment:
+      SERVER_NAME: ${SERVER_NAME}
+      ROOT_DIR: ${ROOT_DIR}
+      BASE_PATH: "" # Nginx en raíz
+      ASSET_EXPIRES: -1
+      ASSET_CACHE_CONTROL: "no-store, no-cache, must-revalidate, proxy-revalidate"
     ports: ["8080:80"]
     restart: unless-stopped
 
+  # DEV: subruta /plantilla-colibri-app-20
   app-dev:
     profiles: ["dev"]
     build:
@@ -19,10 +27,17 @@ services:
       dockerfile: deploy/dockerfile
       args:
         BUILD_CONFIGURATION: development
-        NGINX_CONF: nginx.dev.conf
+        BASE_HREF: ${BASE_HREF} # Angular en subruta
+    environment:
+      SERVER_NAME: ${SERVER_NAME}
+      ROOT_DIR: ${ROOT_DIR}
+      BASE_PATH: ${BASE_PATH} # Nginx en subruta
+      ASSET_EXPIRES: -1
+      ASSET_CACHE_CONTROL: "no-store, no-cache, must-revalidate, proxy-revalidate"
     ports: ["8081:80"]
     restart: unless-stopped
 
+  # QA: subruta /plantilla-colibri-app-20
   app-qa:
     profiles: ["qa"]
     build:
@@ -30,16 +45,29 @@ services:
       dockerfile: deploy/dockerfile
       args:
         BUILD_CONFIGURATION: qa
-        NGINX_CONF: nginx.qa.conf
+        BASE_HREF: ${BASE_HREF}
+    environment:
+      SERVER_NAME: ${SERVER_NAME}
+      ROOT_DIR: ${ROOT_DIR}
+      BASE_PATH: ${BASE_PATH}
+      ASSET_EXPIRES: 1h
+      ASSET_CACHE_CONTROL: "public, max-age=3600, must-revalidate"
     ports: ["8082:80"]
     restart: unless-stopped
 
+  # PROD: subruta /plantilla-colibri-app-20
   app-prod:
     build:
       context: ..
       dockerfile: deploy/dockerfile
       args:
         BUILD_CONFIGURATION: production
-        NGINX_CONF: nginx.prod.conf
+        BASE_HREF: ${BASE_HREF}
+    environment:
+      SERVER_NAME: ${SERVER_NAME}
+      ROOT_DIR: ${ROOT_DIR}
+      BASE_PATH: ${BASE_PATH}
+      ASSET_EXPIRES: ${ASSET_EXPIRES}
+      ASSET_CACHE_CONTROL: ${ASSET_CACHE_CONTROL}
     ports: ["8083:80"]
     restart: unless-stopped

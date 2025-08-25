@@ -14,6 +14,13 @@ export const API_PATHS = {
     CANCEL: '/System/cancel-system',
     GET_ACTIVE: '/System/get-system-active',
   },
+  VEHICLES: {
+    GET: '/System/get-system',
+    SAVE: '/System/save-system',
+    DELETE: '/System/delete-system',
+    CANCEL: '/System/cancel-system',
+    GET_ACTIVE: '/System/get-system-active',
+  },
 
   GRAPHQL: {
     ENDPOINT: '/graphql/', // ← deja el slash final

@@ -25,7 +25,7 @@ export function API_URLS(
   const GA = GQL_AUTH_BASE || G;
 
   return {
-    // ======== TUS RUTAS EXISTENTES ========
+    // ======== TUS RUTAS EXISTENTES PARA REST ========
     SECURITY: {
       LOGIN: join(B, API_PATHS.SECURITY.LOGIN),
       MENU: join(B, API_PATHS.SECURITY.MENU),
@@ -40,6 +40,14 @@ export function API_URLS(
       DELETE: join(B, API_PATHS.SYSTEM.DELETE),
       CANCEL: join(B, API_PATHS.SYSTEM.CANCEL),
       GET_ACTIVE: join(B, API_PATHS.SYSTEM.GET_ACTIVE),
+    },
+
+    VEHICLES: {
+      GET: join(B, API_PATHS.VEHICLES.GET),
+      SAVE: join(B, API_PATHS.VEHICLES.SAVE),
+      DELETE: join(B, API_PATHS.VEHICLES.DELETE),
+      CANCEL: join(B, API_PATHS.VEHICLES.CANCEL),
+      GET_ACTIVE: join(B, API_PATHS.VEHICLES.GET_ACTIVE),
     },
 
     // ======== GRAPHQL ========
