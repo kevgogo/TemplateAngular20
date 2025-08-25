@@ -1,25 +1,17 @@
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, Input } from '@angular/core';
 import { BsModalRef } from 'ngx-bootstrap/modal';
-
-export interface ConfirmOptions {
-  title: string;
-  message: string;
-  type_message?: 'success' | 'info' | 'warning' | 'error';
-  icon?: string;
-}
-
+import { ConfirmOptions } from './confirm.service';
 @Component({
-  selector: 'confirm-modal-component',
-  standalone: true,
-  imports: [CommonModule],
+  selector: 'app-confirm-modal',
   templateUrl: './confirm-modal.component.html',
+  standalone: true,
 })
 export class ConfirmModalComponent {
-  // inyectadas vía initialState
-  options!: ConfirmOptions;
-  onYes!: () => void;
-  onNo!: () => void;
+  @Input() options!: ConfirmOptions;
+
+  // Callbacks inyectadas vía initialState desde el servicio
+  onYes?: () => void;
+  onNo?: () => void;
 
   constructor(public bsModalRef: BsModalRef) {}
 

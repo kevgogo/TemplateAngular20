@@ -1,42 +1,37 @@
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, Input } from '@angular/core';
 import { BsModalRef } from 'ngx-bootstrap/modal';
-import { ConfirmOptions } from '../confirm/confirm-modal.component';
+import { ConfirmOptions } from '../confirm/confirm.service'; // ajusta la ruta
+import { SHARED_IMPORTS } from '@shared/app-shared-imports';
 
 @Component({
-  selector: 'message-modal-component',
-  standalone: true,
-  imports: [CommonModule],
+  selector: 'app-message-modal',
   templateUrl: './message-modal.component.html',
+  standalone: true,
+  imports: [SHARED_IMPORTS],
 })
 export class MessageModalComponent {
-  options!: ConfirmOptions;
-
-  iconClass = 'bi bi-info-circle';
-  btnClass = 'btn btn-info';
+  @Input() options!: ConfirmOptions;
 
   constructor(public bsModalRef: BsModalRef) {}
 
-  ngOnInit(): void {
-    switch (this.options?.type_message) {
-      case 'warning':
-        this.iconClass = 'bi bi-exclamation-triangle';
-        this.btnClass = 'btn btn-warning';
-        break;
-      case 'success':
-        this.iconClass = 'bi bi-check-circle';
-        this.btnClass = 'btn btn-success';
-        break;
-      case 'error':
-        this.iconClass = 'bi bi-x-circle';
-        this.btnClass = 'btn btn-danger';
-        break;
-      default:
-        this.iconClass = 'bi bi-info-circle';
-        this.btnClass = 'btn btn-info';
-        break;
-    }
-    if (this.options?.icon) this.iconClass = this.options.icon;
+  get iconClass() {
+    const t = this.options?.type_message ?? 'info';
+    return {
+      success: 'bi bi-check-circle-fill text-success',
+      info: 'bi bi-info-circle-fill text-info',
+      warning: 'bi bi-exclamation-triangle-fill text-warning',
+      error: 'bi bi-x-circle-fill text-danger',
+    }[t];
+  }
+
+  get btnClass() {
+    const t = this.options?.type_message ?? 'info';
+    return {
+      success: 'btn btn-success',
+      info: 'btn btn-info',
+      warning: 'btn btn-warning',
+      error: 'btn btn-danger',
+    }[t];
   }
 
   close() {

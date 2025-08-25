@@ -1,14 +1,9 @@
-import { Directive, OnInit, TemplateRef, inject } from '@angular/core';
-import { ConfirmState } from '../confirm/confirm.state';
+import { Directive, TemplateRef } from '@angular/core';
+import { ConfirmState } from '../confirm/confirm.state'; // ajusta ruta
 
-@Directive({
-  selector: '[message]',
-  standalone: true,
-})
-export class MessageTemplateDirective implements OnInit {
-  private tpl = inject(TemplateRef<void>);
-  private state = inject(ConfirmState);
-  ngOnInit(): void {
-    this.state.templateMessage = this.tpl;
+@Directive({ selector: 'ng-template[message]' })
+export class MessageTemplateDirective {
+  constructor(tpl: TemplateRef<void>, state: ConfirmState) {
+    state.templateMessage = tpl;
   }
 }

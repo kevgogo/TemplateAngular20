@@ -1,13 +1,30 @@
 <div class="modal-header align-items-center">
   <i class="me-2" [ngClass]="iconClass" aria-hidden="true"></i>
-  <h5 class="modal-title">{{ options?.title }}</h5>
-  <button type="button" class="btn-close ms-auto" (click)="close()"></button>
+  <h5 class="modal-title">{{ options.title || "Mensaje" }}</h5>
+  <button
+    type="button"
+    class="btn-close ms-auto"
+    aria-label="Cerrar"
+    (click)="close()"
+  ></button>
 </div>
+
 <div class="modal-body">
-  <p class="mb-0">{{ options?.message }}</p>
+  @if (options.html) {
+  <div [innerHTML]="options.html"></div>
+  } @else {
+  <p class="mb-0">{{ options.message }}</p>
+  }
 </div>
+
 <div class="modal-footer">
-  <button type="button" class="btn" [ngClass]="btnClass" (click)="close()">
-    Aceptar
+  <button
+    type="button"
+    class="btn"
+    [ngClass]="btnClass"
+    (click)="close()"
+    aria-label="Aceptar"
+  >
+    {{ options.okText || "Aceptar" }}
   </button>
 </div>

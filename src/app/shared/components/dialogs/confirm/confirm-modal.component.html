@@ -1,16 +1,26 @@
 <div class="modal-header">
-  <h5 class="modal-title">{{ options.title }}</h5>
+  <h5 class="modal-title">{{ options.title || "Confirmación" }}</h5>
   <button
     type="button"
     class="btn-close"
+    aria-label="Cerrar"
     (click)="no()"
-    aria-label="Close"
   ></button>
 </div>
+
 <div class="modal-body">
+  @if (options.html) {
+  <div [innerHTML]="options.html"></div>
+  } @else {
   <p class="mb-0">{{ options.message }}</p>
+  }
 </div>
+
 <div class="modal-footer">
-  <button class="btn btn-secondary" (click)="no()">Cancelar</button>
-  <button class="btn btn-primary" (click)="yes()">Aceptar</button>
+  <button class="btn btn-secondary" (click)="no()" aria-label="Cancelar">
+    {{ options.cancelText || "Cancelar" }}
+  </button>
+  <button class="btn btn-primary" (click)="yes()" aria-label="Aceptar">
+    {{ options.okText || "Aceptar" }}
+  </button>
 </div>
