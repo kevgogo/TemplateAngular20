@@ -1,4 +1,10 @@
-import { ChangeDetectionStrategy, Component, Input, computed, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  Input,
+  computed,
+  signal,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 /**
@@ -23,7 +29,7 @@ export interface ProgressSegment {
 }
 
 @Component({
-  selector: 'progressbar',
+  selector: 'app-progressbar',
   standalone: true,
   imports: [CommonModule],
   templateUrl: './progressbar.component.html',
@@ -79,7 +85,10 @@ export class ProgressbarComponent {
   // Suma de segmentos (modo apilado)
   readonly totalStacked = computed(() => {
     const arr = this.stackedSig() ?? [];
-    return arr.reduce((acc, s) => acc + (Number.isFinite(s.value) ? s.value : 0), 0);
+    return arr.reduce(
+      (acc, s) => acc + (Number.isFinite(s.value) ? s.value : 0),
+      0
+    );
   });
 
   // Denominador para stacked (max si aplica, si no la suma)

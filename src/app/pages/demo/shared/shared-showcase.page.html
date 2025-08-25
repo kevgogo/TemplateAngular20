@@ -7,7 +7,7 @@
     <div class="row g-2 align-items-end">
       <div class="col-12 col-md-4">
         <label class="form-label">{{
-          "SETTINGS.LANGUAGE" | translate : {} || "Idioma"
+          "SETTINGS.LANGUAGE" | translate : {}
         }}</label>
         <select
           class="form-select"
@@ -45,13 +45,19 @@
     </app-alert>
   </section>
 
+  <!-- ========== Progressbar (USANDO TU COMPONENTE) ========== -->
   <!-- ========== Progressbar ========== -->
   <section class="mb-4">
     <h3 class="h6">Progressbar</h3>
-    <progressbar
+
+    <!-- Barra simple (tu componente) -->
+    <app-progressbar
       [value]="percent"
       [label]="'PROGRESS.GENERAL' | translate"
-    ></progressbar>
+      [showLabel]="true"
+      [max]="100"
+    ></app-progressbar>
+
     <div class="mt-2 d-flex gap-2">
       <button
         class="btn btn-outline-secondary btn-sm"
@@ -68,10 +74,14 @@
     </div>
 
     <h4 class="h6 mt-3">{{ "PROGRESS.SEGMENTED" | translate }}</h4>
-    <progressbar
-      [segments]="segments"
+
+    <!-- Barra apilada (usa [stacked], no [segments]) -->
+    <app-progressbar
+      [stacked]="segments"
       [label]="'PROGRESS.SEGMENTS' | translate"
-    ></progressbar>
+      [showLabel]="true"
+      [max]="100"
+    ></app-progressbar>
   </section>
 
   <!-- ========== Chrono con i18n (locale/tz) ========== -->

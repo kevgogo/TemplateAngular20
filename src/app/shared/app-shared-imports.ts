@@ -4,6 +4,8 @@ import { RouterLink, RouterOutlet, RouterLinkActive } from '@angular/router';
 
 import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
 import { ChronoComponent } from './components/chrono/chrono.component';
+import { AlertComponent } from './components/alert/alert.component';
+export { AlertComponent } from './components/alert/alert.component';
 export { ChronoComponent } from './components/chrono/chrono.component';
 // import { DialogsHostComponent } from './components/dialogs/dialogs-host.component';
 
@@ -15,4 +17,5 @@ export const SHARED_IMPORTS = [
   BsDropdownModule,
   // DialogsHostComponent,
   ChronoComponent,
+  AlertComponent,
 ];

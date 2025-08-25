@@ -1,4 +1,3 @@
-// src/app/features/demo/shared/shared-showcase.page.ts
 import {
   ChangeDetectionStrategy,
   Component,
@@ -31,6 +30,8 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SharedShowcasePage {
+  protected readonly Math = Math;
+
   // ===== Demo de componentes =====
   percent = 35;
   segments = [
@@ -74,6 +75,7 @@ export class SharedShowcasePage {
         return 'en-US';
     }
   }
+
   private mapChronoTz(code: string): string {
     switch (code) {
       case 'es_CO':

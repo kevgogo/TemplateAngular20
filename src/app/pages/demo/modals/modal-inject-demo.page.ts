@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BsModalService, ModalOptions } from 'ngx-bootstrap/modal';
 import { SHARED_IMPORTS } from '@shared/app-shared-imports';
+import { BsModalRef } from 'ngx-bootstrap/modal';
 
 @Component({
   selector: 'app-modal-inject-demo',
@@ -62,5 +63,5 @@ import { Input } from '@angular/core';
 })
 export class UserCardComponent {
   @Input() user?: { name: string; role: string; email: string };
-  constructor(public bsModalRef: any) {}
+  constructor(public bsModalRef: BsModalRef) {}
 }
