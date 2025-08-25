@@ -1,0 +1,43 @@
+<div class="container py-3">
+  <h2 class="h5 mb-3">PDF / Excel / ZIP</h2>
+
+  <div class="row g-4">
+    <div class="col-12 col-lg-4">
+      <h3 class="h6">PDF</h3>
+      <input
+        type="file"
+        accept="application/pdf"
+        (change)="onPdf($any($event.target).files[0])"
+      />
+      <div class="ratio ratio-4x3 mt-2 border rounded" *ngIf="pdfUrl">
+        <iframe [src]="pdfUrl" title="PDF" class="w-100 h-100"></iframe>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-4">
+      <h3 class="h6">Excel</h3>
+      <input
+        type="file"
+        accept=".xlsx,.xls"
+        (change)="onExcel($any($event.target).files[0])"
+      />
+      <pre
+        class="bg-body-tertiary p-2 mt-2 rounded small"
+        *ngIf="excelPreview()"
+        >{{ excelPreview() | json }}</pre
+      >
+    </div>
+
+    <div class="col-12 col-lg-4">
+      <h3 class="h6">ZIP</h3>
+      <input
+        type="file"
+        accept=".zip"
+        (change)="onZip($any($event.target).files[0])"
+      />
+      <ul class="mt-2 small" *ngIf="zipEntries()">
+        <li *ngFor="let n of zipEntries()">{{ n }}</li>
+      </ul>
+    </div>
+  </div>
+</div>
