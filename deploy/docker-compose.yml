@@ -1,3 +1,5 @@
+name: templateangular20
+
 services:
   app-dev:
     build:
