@@ -48,10 +48,10 @@
   <!-- ========== Progressbar ========== -->
   <section class="mb-4">
     <h3 class="h6">Progressbar</h3>
-    <app-progressbar
+    <progressbar
       [value]="percent"
       [label]="'PROGRESS.GENERAL' | translate"
-    ></app-progressbar>
+    ></progressbar>
     <div class="mt-2 d-flex gap-2">
       <button
         class="btn btn-outline-secondary btn-sm"
@@ -68,10 +68,10 @@
     </div>
 
     <h4 class="h6 mt-3">{{ "PROGRESS.SEGMENTED" | translate }}</h4>
-    <app-progressbar
+    <progressbar
       [segments]="segments"
       [label]="'PROGRESS.SEGMENTS' | translate"
-    ></app-progressbar>
+    ></progressbar>
   </section>
 
   <!-- ========== Chrono con i18n (locale/tz) ========== -->

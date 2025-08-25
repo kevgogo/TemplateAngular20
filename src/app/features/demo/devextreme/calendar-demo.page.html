@@ -1,0 +1,9 @@
+<div class="container py-3">
+  <h2 class="h5 mb-3">DevExtreme Calendar</h2>
+  <dx-calendar [(value)]="value" [min]="min" [max]="max" [showTodayButton]="true" [cellTemplate]="'cell'">
+    <div *dxTemplate="let data of 'cell'">
+      <span>{{ data.text }}</span>
+    </div>
+  </dx-calendar>
+  <p class="mt-3">Fecha seleccionada: <strong>{{ value | date:'MM/dd/yyyy' }}</strong></p>
+</div>

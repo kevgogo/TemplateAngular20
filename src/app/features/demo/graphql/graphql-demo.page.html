@@ -1,0 +1,61 @@
+<div class="container py-3">
+  <h2 class="h5 mb-3">GraphQL Demo</h2>
+
+  <div class="card mb-3">
+    <div class="card-body d-flex gap-2 align-items-end flex-wrap">
+      <div>
+        <label class="form-label">Usuario</label>
+        <input class="form-control" [(ngModel)]="username" />
+      </div>
+      <div>
+        <label class="form-label">Password</label>
+        <input class="form-control" type="password" [(ngModel)]="password" />
+      </div>
+      <button class="btn btn-primary" (click)="login()">Obtener token</button>
+      <span
+        class="badge"
+        [class.text-bg-secondary]="tokenStatus() === 'idle'"
+        [class.text-bg-success]="tokenStatus() === 'ok'"
+        [class.text-bg-danger]="tokenStatus() === 'error'"
+        [class.text-bg-warning]="tokenStatus() === 'loading'"
+      >
+        {{ tokenStatus() | uppercase }}
+      </span>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-12 col-lg-6">
+      <label class="form-label">Query</label>
+      <textarea
+        class="form-control font-monospace"
+        rows="12"
+        [(ngModel)]="query"
+      ></textarea>
+    </div>
+    <div class="col-12 col-lg-6">
+      <label class="form-label">Variables (JSON)</label>
+      <textarea
+        class="form-control font-monospace"
+        rows="12"
+        [(ngModel)]="variablesText"
+      ></textarea>
+    </div>
+  </div>
+
+  <div class="mt-3 d-flex gap-2">
+    <button class="btn btn-primary" (click)="run()">Ejecutar</button>
+  </div>
+
+  <div class="mt-3">
+    <app-alert
+      *ngIf="error()"
+      [type]="'danger'"
+      [message]="error()!"
+      [closeable]="true"
+    ></app-alert>
+    <pre class="bg-body-tertiary p-2 rounded" *ngIf="result()">{{
+      result() | json
+    }}</pre>
+  </div>
+</div>

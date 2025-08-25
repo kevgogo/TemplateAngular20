@@ -1,0 +1,27 @@
+<div class="container py-3">
+  <h2 class="h5 mb-3">Mensajes & Alertas</h2>
+  <div class="d-flex flex-wrap gap-2">
+    <button class="btn btn-success" (click)="showMessage('success')">
+      Success
+    </button>
+    <button class="btn btn-info" (click)="showMessage('info')">Info</button>
+    <button class="btn btn-warning" (click)="showMessage('warning')">
+      Warning
+    </button>
+    <button class="btn btn-danger" (click)="showMessage('error')">Error</button>
+    <button class="btn btn-outline-primary ms-auto" (click)="askConfirm()">
+      Confirmar
+    </button>
+  </div>
+
+  <div class="mt-4">
+    <app-alert
+      [type]="'info'"
+      [message]="'Componente <app-alert> funcionando'"
+      [closeable]="true"
+    >
+      <strong>Tip:</strong> puedes pasar HTML a través de
+      <code>&lt;ng-content&gt;</code>.
+    </app-alert>
+  </div>
+</div>
