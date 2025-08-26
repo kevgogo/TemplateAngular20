@@ -5,7 +5,10 @@ import {
   signal,
   ChangeDetectionStrategy,
 } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+
 import { LayoutService } from '@core/services/layout.service';
+import { MenuService } from '@core/services/menu.service';
 import { LAYOUT_IMPORTS } from '@layout/layout.imports';
 import { SHARED_IMPORTS } from '@shared/app-shared-imports';
 
@@ -19,6 +22,10 @@ import { SHARED_IMPORTS } from '@shared/app-shared-imports';
 })
 export class ShellComponent {
   private layout = inject(LayoutService);
+  private menu = inject(MenuService);
+
+  // Menú en el shape ACTUAL (text/submenu)
+  menuItems = toSignal(this.menu.getSidebarItems$(), { initialValue: [] });
 
   collapsed = computed(() => this.layout.isSidebarCollapsed());
   sidebarHidden = signal(false);

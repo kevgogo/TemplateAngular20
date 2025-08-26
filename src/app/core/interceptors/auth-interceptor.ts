@@ -77,7 +77,6 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
           message: 'Credenciales vencidas, vuelva a hacer login',
         });
       } else if (err.status === 503 || err.status === 0) {
-        debugger;
         if (!err.url) {
           common.redirecToError({
             code: '503',

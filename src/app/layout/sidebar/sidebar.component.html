@@ -67,7 +67,7 @@
       "
       [class.search-match]="isSearching()"
     >
-      <!-- NIVEL 0 (raíz): cada <li.item> representa un ítem del menú principal -->
+      <!-- NIVEL 0 (raíz) -->
       <a
         class="link d-flex align-items-center gap-2 px-3 py-2 text-decoration-none"
         [routerLink]="hasChildren(it) ? [] : it.link || []"
@@ -93,8 +93,7 @@
               ? highlightSearchTerm(it.label, searchTerm())
               : it.label
           "
-        >
-        </span>
+        ></span>
 
         @if (hasChildren(it)) {
         <i
@@ -104,15 +103,13 @@
               ? 'bi-chevron-down'
               : 'bi-chevron-right'
           "
-        >
-        </i>
+        ></i>
         } }
       </a>
 
-      <!-- ===== EXPANDIDO: submenú inline SOLO si está abierto ===== -->
+      <!-- EXPANDIDO: submenú inline SOLO si está abierto -->
       @if (!collapsedResolved && hasChildren(it) && isOpen(nodeId(null,
       $index))) {
-      <!-- NIVEL 1: hijos directos del ítem raíz (se pasa depth: 1 al template) -->
       <ng-template
         [ngTemplateOutlet]="inlineTpl"
         [ngTemplateOutletContext]="{
@@ -120,8 +117,7 @@
           depth: 1,
           parentId: nodeId(null, $index)
         }"
-      >
-      </ng-template>
+      ></ng-template>
       }
     </li>
     }
@@ -189,13 +185,12 @@
                 ? 'bi-chevron-down'
                 : 'bi-chevron-right'
             "
-          >
-          </i>
+          ></i>
           }
         </a>
 
         @if (hasChildren(n) && isOpen(nodeId(parentId, $index))) {
-        <!-- NIVEL 2: nietos del ítem raíz (esta llamada recursiva usa depth + 1 => 2) -->
+        <!-- Llamada recursiva -->
         <ng-template
           [ngTemplateOutlet]="inlineTpl"
           [ngTemplateOutletContext]="{
@@ -203,8 +198,7 @@
             depth: depth + 1,
             parentId: nodeId(parentId, $index)
           }"
-        >
-        </ng-template>
+        ></ng-template>
         }
       </li>
       }
@@ -261,7 +255,8 @@
             n.label
           }}</span>
           @if (hasChildren(n)) {
-          <i class="bi bi-chevron-right ms-auto opacity-75"></i> }
+          <i class="bi bi-chevron-right ms-auto opacity-75"></i>
+          }
         </a>
       </li>
       }

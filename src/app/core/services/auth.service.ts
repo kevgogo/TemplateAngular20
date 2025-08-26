@@ -29,7 +29,6 @@ export class AuthService {
     const lang_id: string = environment.land_id;
     const module_id: string = environment.module_id;
     const user_audit: string = this.setting.getUserSetting('userId');
-    debugger;
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
       accept: 'application/json', //siempre que se retorne un string agregar esta linea please

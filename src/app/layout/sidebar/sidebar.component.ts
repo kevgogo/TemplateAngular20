@@ -14,6 +14,15 @@ import { FormsModule } from '@angular/forms';
 import { LayoutService } from '@core/services/layout.service';
 import { MENU_DATA } from '@shared/mock/menu';
 
+/** === NUEVO: shape legacy (compatibilidad) === */
+export interface SidebarItem {
+  text: string;
+  link?: string | any[] | null;
+  icon?: string | null;
+  submenu?: SidebarItem[] | null;
+}
+
+/** Shape moderno esperado por el Sidebar */
 export interface MenuNode {
   label: string;
   link?: string | any[] | null;
@@ -21,6 +30,9 @@ export interface MenuNode {
   /** Puede venir vacío: [] -> se normaliza a undefined */
   children?: MenuNode[] | null;
 }
+
+/** Sidebar acepta ahora ambos shapes */
+type AnyItem = MenuNode | SidebarItem;
 
 @Component({
   selector: 'app-sidebar',
@@ -34,16 +46,21 @@ export class SidebarComponent {
   /** Override opcional. Si no se provee, se usa el estado del LayoutService */
   @Input() collapsed: boolean | null = null;
 
-  /** Menú (normalizado internamente) */
-  @Input() set items(value: MenuNode[]) {
-    this._originalItems = this.normalize(value ?? []);
+  /** Menú (acepta MenuNode[] o SidebarItem[] y lo normaliza a MenuNode[]) */
+  @Input() set items(value: AnyItem[]) {
+    const coerced = this.coerceToMenuNodes(value ?? []);
+    this._originalItems = this.normalize(coerced);
     this.searchTerm.set(''); // reset búsqueda
     this.resetListPreservingSelection(); // abre ancestros del activo
   }
   get items(): MenuNode[] {
     return this.filteredItems();
   }
-  private _originalItems: MenuNode[] = this.normalize(MENU_DATA);
+
+  /** Fallback local (mock) también convertido al vuelo */
+  private _originalItems: MenuNode[] = this.normalize(
+    this.coerceToMenuNodes(MENU_DATA as any)
+  );
 
   private layout = inject(LayoutService);
   private host = inject(ElementRef<HTMLElement>);
@@ -342,5 +359,35 @@ export class SidebarComponent {
       ? '/' + n.link.filter(Boolean).join('/')
       : String(n.link);
     return current === toUrl;
+  }
+
+  // ================== CONVERSIÓN SidebarItem -> MenuNode ==================
+
+  /** ¿Es SidebarItem (legacy)? */
+  private isSidebarItem(o: any): o is SidebarItem {
+    return !!o && 'text' in o && !('label' in o);
+  }
+
+  /** Convierte SidebarItem[] | MenuNode[] a MenuNode[] */
+  private coerceToMenuNodes(items: AnyItem[]): MenuNode[] {
+    const mapOne = (it: AnyItem): MenuNode => {
+      if (this.isSidebarItem(it)) {
+        const kids = (it.submenu ?? undefined) as AnyItem[] | undefined;
+        return {
+          label: it.text,
+          link: it.link,
+          icon: it.icon ?? undefined,
+          children: kids?.length ? kids.map(mapOne) : undefined,
+        };
+      }
+      // ya es MenuNode
+      return {
+        label: it.label,
+        link: it.link,
+        icon: it.icon,
+        children: it.children?.length ? it.children.map(mapOne) : undefined,
+      };
+    };
+    return (items ?? []).map(mapOne);
   }
 }

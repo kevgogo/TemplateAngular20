@@ -2,6 +2,7 @@
 <div class="layout" [class.sidebar-hidden]="sidebarHidden()">
   <app-sidebar
     class="sidebar"
+    [items]="menuItems()"
     [style.display]="sidebarHidden() ? 'none' : null"
   />
   <main class="main">
