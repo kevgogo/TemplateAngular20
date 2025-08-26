@@ -11,60 +11,16 @@ import {
 
 import { CommonService } from '@core/services/common.service';
 import { AuthService } from '@core/services/auth.service';
-
-/** Estructura mínima que usa el Sidebar/Shell (la misma que guardas en "menu_nodes") */
-export interface MenuNode {
-  label: string; // lo que ya consumías
-  text?: string; // compat para headers/grupos
-  title?: string; // compat adicional
-  link?: string;
-  icon?: string;
-  children?: MenuNode[]; // árbol estándar
-  submenu?: MenuNode[]; // alias por si tu template/normalize lo usa
-}
-
-/** DTO plano que viene del API (coincide con tu JSON) */
-interface RawMenuItem {
-  id: number;
-  fatherId: number | null;
-  moduleId: number | null;
-  name: string;
-  nameSpanish: string | null;
-  controller: string | null;
-  action: string | null;
-  description: string;
-  description2: string | null;
-  path: string;
-  icon: string;
-  order: number;
-  status: number;
-  menuName: string | null;
-  moduleName: string | null;
-  permission: string | null;
-}
-
-/** Nodo completo para árbol interno (no lo guardo, pero útil si lo necesitas) */
-interface SidebarTreeNode extends RawMenuItem {
-  key: number;
-  text: string;
-  link: string | null;
-  isLeaf: boolean;
-  children: SidebarTreeNode[];
-}
-
-/** Opciones para construir árbol */
-interface BuildTreeOptions {
-  baseHref?: string; // p.ej. '/plantilla-colibri-app-20'
-  filterStatus?: number | null; // 1 = activos, null = no filtra
-  allowedPermissions?: Set<string> | string[]; // si quieres filtrar por permiso
-}
-
-type MenuUsrItem = {
-  text: string;
-  link?: string;
-  icon?: string;
-  submenu?: MenuUsrItem[];
-};
+import { RawMenuItem, SidebarNode } from '@core/models/menu.types';
+import { buildSidebarTree, BuildTreeOptions } from '@core/utils/menu-tree.util';
+import {
+  toMenuNodes,
+  toMenuUsr,
+  persistMenusToSession,
+  MenuNodesItem,
+  MenuUsrItem,
+} from '@core/utils/menu-adapters.util';
+import { MenuNode } from '@shared/types/layout/menu-node.types';
 
 @Injectable({ providedIn: 'root' })
 export class MenuService {
@@ -78,12 +34,12 @@ export class MenuService {
   private readonly SESSION_PERMISSION_MENU = 'permission_menu';
 
   // Estado reactivo para el Shell
-  private _sidebarItems$ = new BehaviorSubject<MenuNode[]>(
+  private _sidebarItems$ = new BehaviorSubject<SidebarNode[]>(
     this.readMenuNodesFromSession()
   );
 
   /** Observable que consume el Shell (toSignal(...)) */
-  getSidebarItems$(): Observable<MenuNode[]> {
+  getSidebarItems$(): Observable<SidebarNode[]> {
     return this._sidebarItems$.asObservable();
   }
 
@@ -116,7 +72,7 @@ export class MenuService {
   // ------------------------------------------------------------
   loadAndBuildMenuTree$(
     opts: BuildTreeOptions = {}
-  ): Observable<SidebarTreeNode[]> {
+  ): Observable<SidebarNode[]> {
     return forkJoin({
       menu: this.getMenu(),
       perms: this.getPermission(),
@@ -147,12 +103,12 @@ export class MenuService {
   // ============================================================
   // Internos: lectura/escritura en session
   // ============================================================
-  private readMenuNodesFromSession(): MenuNode[] {
+  private readMenuNodesFromSession(): SidebarNode[] {
     try {
       // Si CommonService ya parsea, úsalo; si no, JSON.parse
       const value = this._common?.obtenerElementoSession
         ? (this._common.obtenerElementoSession(this.SESSION_MENU_NODES) as
-            | MenuNode[]
+            | SidebarNode[]
             | null)
         : JSON.parse(sessionStorage.getItem(this.SESSION_MENU_NODES) || '[]');
 
@@ -180,7 +136,7 @@ export class MenuService {
   private buildSidebarTree(
     items: RawMenuItem[],
     opts: BuildTreeOptions = {}
-  ): SidebarTreeNode[] {
+  ): SidebarNode[] {
     const baseHref = opts.baseHref ?? '';
     const filterStatus = opts.filterStatus ?? 1;
     const hasPerms =
@@ -200,9 +156,9 @@ export class MenuService {
       return statusOk && permOk;
     });
 
-    const map = new Map<number, SidebarTreeNode>();
+    const map = new Map<number, SidebarNode>();
     for (const it of filtered) {
-      const node: SidebarTreeNode = {
+      const node: SidebarNode = {
         ...it,
         key: it.id,
         text: (it.name ?? '').trim(),
@@ -213,7 +169,7 @@ export class MenuService {
       map.set(it.id, node);
     }
 
-    const roots: SidebarTreeNode[] = [];
+    const roots: SidebarNode[] = [];
     for (const node of map.values()) {
       if (node.fatherId != null && map.has(node.fatherId)) {
         map.get(node.fatherId)!.children.push(node);
@@ -222,7 +178,7 @@ export class MenuService {
       }
     }
 
-    const sortRec = (arr: SidebarTreeNode[]) => {
+    const sortRec = (arr: SidebarNode[]) => {
       arr.sort((a, b) => {
         const byOrder = (a.order ?? 0) - (b.order ?? 0);
         return byOrder !== 0 ? byOrder : a.text.localeCompare(b.text);
@@ -260,7 +216,7 @@ export class MenuService {
   // ============================================================
   // Internos: persistir en las dos formas que ya usas
   // ============================================================
-  private persistMenusToSession(tree: SidebarTreeNode[]) {
+  private persistMenusToSession(tree: SidebarNode[]) {
     const menuNodes = this.toMenuNodes(tree);
     const menuUsr = this.toMenuUsr(tree);
 
@@ -268,34 +224,46 @@ export class MenuService {
     this.writeSession(this.SESSION_MENU_USR, menuUsr);
   }
 
-  private toMenuNodes(nodes: SidebarTreeNode[], baseHref = ''): MenuNode[] {
+  private toMenuNodes(nodes: SidebarNode[], baseHref = ''): MenuNode[] {
+    // Devuelve string o undefined; solo asignamos si existe
     const ensureAbs = (s?: string | null): string | undefined => {
       if (!s) return undefined;
-      if (baseHref) return this.joinUrl(baseHref, s);
-      return s.startsWith('/') ? s : `/${s}`;
+      const t = String(s).trim();
+      if (!t) return undefined;
+      const full = baseHref ? this.joinUrl(baseHref, t) : t;
+      return full.startsWith('/') ? full : `/${full}`;
     };
 
-    const map: (n: SidebarTreeNode) => MenuNode = (n) => {
-      const lbl = (n.name ?? '').trim(); // 👈 SIEMPRE name
-      const item: MenuNode = {
-        label: lbl,
-        text: lbl, // compat headers
-        title: lbl, // compat headers
-        link: ensureAbs(n.link),
-        icon: this.mapIcon(n.icon),
-      };
-      const kids = (n.children ?? []).map(map);
-      if (kids.length) {
-        item.children = kids;
-        item.submenu = kids; // compat plantillas que leen 'submenu'
-      }
+    const map = (n: SidebarNode): MenuNode => {
+      // tolera name/text/label según la fuente
+      const lbl =
+        (n as any).name?.toString?.().trim?.() ??
+        (n as any).text?.toString?.().trim?.() ??
+        (n as any).label?.toString?.().trim?.() ??
+        '';
+
+      // 👇 ahora el item es MenuNode (que sí tiene 'label')
+      const item: MenuNode = { label: lbl };
+
+      const linkVal = ensureAbs((n as any).link ?? null);
+      if (linkVal !== undefined) item.link = linkVal;
+
+      const rawIcon: string | undefined = (n as any).icon;
+      const iconVal = this.mapIcon ? this.mapIcon(rawIcon) : rawIcon;
+      if (iconVal) item.icon = iconVal; // no asignar undefined a prop string
+
+      const kids = (n.children ?? []).map(map); // kids: MenuNode[]
+      if (kids.length) item.children = kids;
+
+      // ❌ No uses 'title' ni 'submenu' si tu MenuNode no las define
       return item;
     };
-    return nodes.map(map);
+
+    return (nodes ?? []).map(map);
   }
 
-  private toMenuUsr(nodes: SidebarTreeNode[]): MenuUsrItem[] {
-    const map: (n: SidebarTreeNode) => MenuUsrItem = (n) => ({
+  private toMenuUsr(nodes: SidebarNode[]): MenuUsrItem[] {
+    const map: (n: SidebarNode) => MenuUsrItem = (n) => ({
       text: (n.name ?? '').trim(), // 👈 SIEMPRE name
       link: n.link || undefined,
       icon: this.mapIcon(n.icon),

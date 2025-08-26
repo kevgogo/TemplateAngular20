@@ -2,36 +2,14 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { API_URLS } from '@core/constants/api-urls';
+import {
+  GraphQLResponse,
+  GqlOptions,
+  GqlVariables,
+} from '@core/models/graphql.types';
+
 import { Observable, of, throwError } from 'rxjs';
 import { catchError, map, timeout } from 'rxjs/operators';
-
-/** Tipos base para respuestas GraphQL */
-export interface GraphQLError {
-  message: string;
-  path?: (string | number)[];
-  extensions?: Record<string, unknown>;
-}
-
-export interface GraphQLResponse<T> {
-  data?: T;
-  errors?: GraphQLError[];
-}
-
-export type GqlVariables = Record<string, unknown> | undefined;
-
-export interface GqlOptions<V extends GqlVariables = GqlVariables> {
-  /** String del query/mutation GraphQL */
-  query: string;
-  /** Variables del query/mutation */
-  variables?: V;
-  /** operationName explícito si tu servidor lo requiere */
-  operationName?: string;
-  /** Contexto opcional para cabeceras o withCredentials */
-  context?: {
-    headers?: HttpHeaders | Record<string, string>;
-    withCredentials?: boolean;
-  };
-}
 
 @Injectable({ providedIn: 'root' })
 export class GraphQLClientService {

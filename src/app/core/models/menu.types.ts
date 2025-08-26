@@ -29,4 +29,6 @@ export interface SidebarNode extends RawMenuItem {
   link: string | null; // ruta calculada a partir de path | controller/action
   isLeaf: boolean; // sin hijos y con link
   children: SidebarNode[]; // árbol
+  title?: string;
+  submenu?: SidebarNode[];
 }

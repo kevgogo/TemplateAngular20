@@ -13,26 +13,11 @@ import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { LayoutService } from '@core/services/layout.service';
 import { MENU_DATA } from '@shared/mock/menu';
-
-/** === NUEVO: shape legacy (compatibilidad) === */
-export interface SidebarItem {
-  text: string;
-  link?: string | any[] | null;
-  icon?: string | null;
-  submenu?: SidebarItem[] | null;
-}
-
-/** Shape moderno esperado por el Sidebar */
-export interface MenuNode {
-  label: string;
-  link?: string | any[] | null;
-  icon?: string;
-  /** Puede venir vacío: [] -> se normaliza a undefined */
-  children?: MenuNode[] | null;
-}
-
-/** Sidebar acepta ahora ambos shapes */
-type AnyItem = MenuNode | SidebarItem;
+import {
+  AnyItem,
+  MenuNode,
+  SidebarItem,
+} from '@shared/types/layout/menu-node.types';
 
 @Component({
   selector: 'app-sidebar',
