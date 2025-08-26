@@ -32,3 +32,27 @@ export interface SidebarNode extends RawMenuItem {
   title?: string;
   submenu?: SidebarNode[];
 }
+/** ---------------- UI: tipos que consume el Sidebar ---------------- */
+
+// Links aceptados por Angular Router: string ('/ruta') o array (['/ruta', id])
+export type RouteLink = string | any[];
+
+/** Forma antigua usada por algunas plantillas */
+export interface SidebarItem {
+  text: string;
+  link?: RouteLink | null; // puede venir null en data vieja
+  icon?: string | null;
+  submenu?: SidebarItem[] | null;
+}
+
+/** Forma actual (la que debe usar tu Sidebar) */
+export interface MenuNode {
+  label: string;
+  link?: RouteLink; // si no hay, simplemente no se asigna
+  icon?: string;
+  children?: MenuNode[];
+}
+
+/** Compatibilidad: inputs que aceptan ambas formas */
+export type AnySidebarItem = MenuNode | SidebarItem;
+export type AnyItem = MenuNode | SidebarItem;

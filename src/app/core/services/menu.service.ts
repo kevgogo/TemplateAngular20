@@ -11,7 +11,12 @@ import {
 
 import { CommonService } from '@core/services/common.service';
 import { AuthService } from '@core/services/auth.service';
-import { RawMenuItem, SidebarNode } from '@core/models/menu.types';
+import {
+  RawMenuItem,
+  SidebarNode,
+  MenuNode,
+  RouteLink,
+} from '@core/models/menu.types';
 import { buildSidebarTree, BuildTreeOptions } from '@core/utils/menu-tree.util';
 import {
   toMenuNodes,
@@ -20,7 +25,6 @@ import {
   MenuNodesItem,
   MenuUsrItem,
 } from '@core/utils/menu-adapters.util';
-import { MenuNode } from '@shared/types/layout/menu-node.types';
 
 @Injectable({ providedIn: 'root' })
 export class MenuService {
@@ -225,7 +229,7 @@ export class MenuService {
   }
 
   private toMenuNodes(nodes: SidebarNode[], baseHref = ''): MenuNode[] {
-    // Devuelve string o undefined; solo asignamos si existe
+    // Normaliza strings a rutas absolutas; si no hay, NO asignamos la prop
     const ensureAbs = (s?: string | null): string | undefined => {
       if (!s) return undefined;
       const t = String(s).trim();
@@ -234,28 +238,34 @@ export class MenuService {
       return full.startsWith('/') ? full : `/${full}`;
     };
 
+    // Acepta string | any[]; nunca regresa null
+    const ensureLink = (v: unknown): RouteLink | undefined => {
+      if (Array.isArray(v)) return v as any[];
+      if (typeof v === 'string') return ensureAbs(v);
+      return undefined;
+    };
+
     const map = (n: SidebarNode): MenuNode => {
-      // tolera name/text/label según la fuente
       const lbl =
         (n as any).name?.toString?.().trim?.() ??
         (n as any).text?.toString?.().trim?.() ??
         (n as any).label?.toString?.().trim?.() ??
         '';
 
-      // 👇 ahora el item es MenuNode (que sí tiene 'label')
       const item: MenuNode = { label: lbl };
 
-      const linkVal = ensureAbs((n as any).link ?? null);
+      const linkVal = ensureLink((n as any).link);
       if (linkVal !== undefined) item.link = linkVal;
 
-      const rawIcon: string | undefined = (n as any).icon;
-      const iconVal = this.mapIcon ? this.mapIcon(rawIcon) : rawIcon;
-      if (iconVal) item.icon = iconVal; // no asignar undefined a prop string
+      const rawIcon: string | undefined | null = (n as any).icon ?? undefined;
+      const iconVal = this.mapIcon
+        ? this.mapIcon(rawIcon ?? undefined)
+        : rawIcon ?? undefined;
+      if (iconVal) item.icon = iconVal;
 
-      const kids = (n.children ?? []).map(map); // kids: MenuNode[]
+      const kids = (n.children ?? []).map(map);
       if (kids.length) item.children = kids;
 
-      // ❌ No uses 'title' ni 'submenu' si tu MenuNode no las define
       return item;
     };
 

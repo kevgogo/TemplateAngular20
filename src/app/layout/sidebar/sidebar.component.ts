@@ -17,7 +17,8 @@ import {
   AnyItem,
   MenuNode,
   SidebarItem,
-} from '@shared/types/layout/menu-node.types';
+  RouteLink,
+} from '@core/models/menu.types';
 
 @Component({
   selector: 'app-sidebar',
@@ -360,7 +361,7 @@ export class SidebarComponent {
         const kids = (it.submenu ?? undefined) as AnyItem[] | undefined;
         return {
           label: it.text,
-          link: it.link,
+          link: it.link ?? undefined,
           icon: it.icon ?? undefined,
           children: kids?.length ? kids.map(mapOne) : undefined,
         };
