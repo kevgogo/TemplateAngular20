@@ -7,6 +7,7 @@
   id="appSidebar"
 >
   <!-- Campo de búsqueda (solo visible cuando no está colapsado) -->
+  <!-- Campo de búsqueda (solo visible cuando NO está colapsado) -->
   @if (!collapsedResolved) {
   <div class="search-container border-bottom">
     <div
@@ -37,6 +38,22 @@
       </button>
       }
     </div>
+  </div>
+  }
+
+  <!-- Botón de búsqueda cuando SÍ está colapsado -->
+  @if (collapsedResolved) {
+  <div
+    class="collapsed-search border-bottom d-flex justify-content-center py-2"
+  >
+    <button
+      type="button"
+      class="btn link d-flex align-items-center px-3 py-2 text-decoration-none active"
+      aria-label="Buscar"
+      title="Buscar"
+    >
+      <i class="bi bi-search"></i>
+    </button>
   </div>
   }
 

@@ -350,8 +350,13 @@ export class SidebarComponent {
   // ================== CONVERSIÓN SidebarItem -> MenuNode ==================
 
   /** ¿Es SidebarItem (legacy)? */
-  private isSidebarItem(o: any): o is SidebarItem {
-    return !!o && 'text' in o && !('label' in o);
+  private isSidebarItem(o: AnyItem): o is SidebarItem {
+    return !!o && (o as any)?.text !== undefined;
+  }
+
+  /** ¿Es MenuNode (nuevo)? */
+  private isMenuNode(o: AnyItem): o is MenuNode {
+    return !!o && (o as any)?.label !== undefined;
   }
 
   /** Convierte SidebarItem[] | MenuNode[] a MenuNode[] */
@@ -360,20 +365,27 @@ export class SidebarComponent {
       if (this.isSidebarItem(it)) {
         const kids = (it.submenu ?? undefined) as AnyItem[] | undefined;
         return {
-          label: it.text,
-          link: it.link ?? undefined,
-          icon: it.icon ?? undefined,
+          label: it.text ?? '',
+          link: (it.link ?? undefined) as RouteLink | undefined, // null -> undefined
+          icon: (it.icon ?? undefined) as string | undefined, // null -> undefined
           children: kids?.length ? kids.map(mapOne) : undefined,
         };
       }
-      // ya es MenuNode
-      return {
-        label: it.label,
-        link: it.link,
-        icon: it.icon,
-        children: it.children?.length ? it.children.map(mapOne) : undefined,
-      };
+
+      if (this.isMenuNode(it)) {
+        const kids = (it.children ?? undefined) as AnyItem[] | undefined;
+        return {
+          label: it.label ?? '',
+          link: (it.link ?? undefined) as RouteLink | undefined, // null -> undefined
+          icon: (it.icon ?? undefined) as string | undefined, // null -> undefined
+          children: kids?.length ? kids.map(mapOne) : undefined,
+        };
+      }
+
+      // Fallback defensivo (no debería ocurrir con AnyItem bien definido)
+      return { label: '' };
     };
+
     return (items ?? []).map(mapOne);
   }
 }

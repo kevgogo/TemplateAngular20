@@ -4,21 +4,23 @@ name: template-angular-20
 services:
   # LOCAL: sirve en "/"
   app-local:
+    image: node:22-alpine
     container_name: local
     hostname: local
-    build:
-      context: ..
-      dockerfile: deploy/dockerfile
-      args:
-        BUILD_CONFIGURATION: local
-        BASE_HREF: "/" # Angular en raíz
+    working_dir: /usr/src/app
+    ports:
+      - "4200:4200"
+    volumes:
+      - ..:/usr/src/app # monta tu repo en /usr/src/app
+      - /usr/src/app/node_modules # evita que node_modules se solape
     environment:
-      SERVER_NAME: ${SERVER_NAME}
-      ROOT_DIR: ${ROOT_DIR}
-      BASE_PATH: "" # Nginx en raíz
-      ASSET_EXPIRES: -1
-      ASSET_CACHE_CONTROL: "no-store, no-cache, must-revalidate, proxy-revalidate"
-    ports: ["8080:80"]
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true # mejora watch en Docker/Win/Mac
+      - WATCHPACK_POLLING=true
+      - NG_CLI_ANALYTICS=false
+    command: >
+      sh -c "npm ci &&
+             npm run start:local"
     restart: unless-stopped
 
   # DEV: subruta /plantilla-colibri-app-20

@@ -1,9 +1,27 @@
-{
-  "/api": {
+[
+  {
+    "context": ["/api"],
     "target": "https://qa-colibri.sunshinebouquet.com:44334",
     "secure": false,
     "changeOrigin": true,
+    "ws": true,
     "logLevel": "debug",
     "pathRewrite": { "^/api": "" }
+  },
+  {
+    "context": ["/Security"],
+    "target": "https://qa-colibri.sunshinebouquet.com:44334",
+    "secure": false,
+    "changeOrigin": true,
+    "ws": true,
+    "logLevel": "debug"
+  },
+  {
+    "context": ["/graphql", "/GraphQL"],
+    "target": "https://qa-colibri.sunshinebouquet.com:44334",
+    "secure": false,
+    "changeOrigin": true,
+    "ws": true,
+    "logLevel": "debug"
   }
-}
+]
