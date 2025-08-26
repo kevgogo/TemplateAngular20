@@ -28,10 +28,16 @@
               { "glob": "**/*", "input": "public" },
               "src/assets",
               { "glob": "favicon.ico", "input": "src", "output": "/" },
-              { "glob": "web.config", "input": "src", "output": "/" }
+              { "glob": "web.config", "input": "src", "output": "/" },
+              {
+                "glob": "**/*",
+                "input": "node_modules/bootstrap-icons/font/fonts",
+                "output": "assets/fonts/bootstrap-icons/"
+              }
             ],
             "styles": [
               "node_modules/bootstrap/dist/css/bootstrap.min.css",
+              "node_modules/@fortawesome/fontawesome-free/css/all.min.css",
               "node_modules/bootstrap-icons/font/bootstrap-icons.css",
               "node_modules/ngx-toastr/toastr.css",
               "node_modules/devextreme/dist/css/dx.light.css",
