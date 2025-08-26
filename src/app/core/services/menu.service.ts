@@ -274,7 +274,7 @@ export class MenuService {
 
   private toMenuUsr(nodes: SidebarNode[]): MenuUsrItem[] {
     const map: (n: SidebarNode) => MenuUsrItem = (n) => ({
-      text: (n.name ?? '').trim(), // 👈 SIEMPRE name
+      text: (n.name ?? '').trim(),
       link: n.link || undefined,
       icon: this.mapIcon(n.icon),
       submenu: (n.children ?? []).map(map),

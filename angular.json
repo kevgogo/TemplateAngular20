@@ -42,7 +42,8 @@
               "node_modules/ngx-toastr/toastr.css",
               "node_modules/devextreme/dist/css/dx.light.css",
               "src/assets/css/themes.css",
-              "src/styles.scss"
+              "src/styles.scss",
+              "src/assets/fonts/legacy-fa/fa4.css"
             ]
           },
           "configurations": {
