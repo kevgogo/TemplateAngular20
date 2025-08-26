@@ -10,20 +10,10 @@ import { CommonService } from '@core/services/common.service';
 import { GraphQLAuthService } from '@core/graphql/graphql-auth.service';
 import { GraphQLClientService } from '@core/graphql/graphql-client.service';
 
-import { switchMap, take, catchError } from 'rxjs/operators';
-import { EMPTY, forkJoin, of } from 'rxjs';
-
-// 👇 Tipos y utilidades para armar y persistir menús
-import { ApiMenuResponse, RawMenuItem } from '@core/models/menu.types';
-import { buildAndPersistMenus } from '@core/utils/menu-adapters.util';
+import { switchMap, take } from 'rxjs/operators';
+import { EMPTY } from 'rxjs';
 
 type UiTheme = { theme?: string; skin?: string };
-
-function getObjResult<T>(resp: any, fallback: T[] = []): T[] {
-  return resp?.typeResult === 1 && Array.isArray(resp.objectResult)
-    ? (resp.objectResult as T[])
-    : fallback;
-}
 
 @Component({
   standalone: true,
@@ -48,78 +38,84 @@ export default class AuthCallbackComponent implements OnDestroy {
   };
 
   constructor() {
-    // 1) Tema antes de pintar
+    // 1) Aplica el tema ya guardado (ui.theme.v1) ANTES de pintar
     this.applyThemeFromStorage();
     window.addEventListener('storage', this.onStorage);
 
-    // 2) Flujo de login
-    const keyLogin = this.route.snapshot.queryParamMap.get('keyLogin') ?? '';
+    // 2) Soporta múltiples nombres de parámetro (según backend/redirección)
+    const qp = this.route.snapshot.queryParamMap;
+    const keyLogin =
+      qp.get('KeyLoggin') ||
+      qp.get('KeyLogin') ||
+      qp.get('keyLogin') ||
+      qp.get('key') ||
+      qp.get('token') ||
+      '';
+
     if (!keyLogin) {
       this.common.redirecToUnauthorized({
         code: '401',
         error: 'Token',
-        message: 'Token no valido',
+        message: 'Token no válido',
       });
       return;
     }
 
+    // 3) Flujo de autenticación
     this.auth.getUserContext(keyLogin).subscribe({
       next: (x: any) => {
-        if (x?.typeResult !== 1) {
+        if (x?.typeResult === 1) {
+          const user = x.objectResult?.[0] ?? x.objectResult ?? {};
+          // Guarda todo el contexto de usuario tal cual venía antes
+          Object.keys(user).forEach((k) =>
+            this.setting.setUserSetting(k, user[k])
+          );
+
+          // Token (acepta varias formas comunes)
+          const bearer =
+            user?.token ??
+            user?.Token ??
+            x?.messageResult ??
+            x?.token ??
+            x?.Token ??
+            null;
+
+          if (!bearer) {
+            this.common.redirecToUnauthorized({
+              code: '401',
+              error: 'No autorizado',
+              message: 'No se obtuvo un token válido del contexto de usuario.',
+            });
+            return;
+          }
+          this.setting.setUserSetting('token', bearer);
+
+          // 4) Construye + persiste + publica el árbol del menú y luego navega
+          this.menu
+            .loadAndBuildMenuTree$()
+            .pipe(take(1))
+            .subscribe({
+              next: () => {
+                // 5) Prefetch del token de GraphQL (no bloquea)
+                this.prefetchGraphQLToken();
+                // 6) Redirigir al dashboard/shell
+                this.router.navigate(['']);
+              },
+              error: () => {
+                this.common.redirecToError({
+                  code: '500',
+                  error: 'Menú',
+                  message: 'No fue posible construir el menú del usuario.',
+                });
+              },
+            });
+        } else {
           this.common.redirecToError({
             code: '404',
             error: 'Not found',
-            message: 'usuario no encontrado',
+            message: 'Usuario no encontrado',
           });
-          return;
         }
-
-        // 2.1) Guardar usuario + token
-        const user = x.objectResult?.[0] ?? {};
-        Object.keys(user).forEach((k) =>
-          this.setting.setUserSetting(k, user[k])
-        );
-        this.setting.setUserSetting('token', x.messageResult);
-
-        // 2.2) Cargar menú + permisos, construir árbol y persistir "menu_nodes" / "menu_usr"
-        forkJoin({
-          menu: this.menu.getMenu(),
-          perms: this.menu.getPermission(),
-        })
-          .pipe(
-            take(1),
-            catchError(() => of({ menu: null, perms: null } as any))
-          )
-          .subscribe({
-            next: ({ menu, perms }) => {
-              try {
-                const permissionMenu = getObjResult<any>(perms);
-                sessionStorage.setItem(
-                  'permission_menu',
-                  JSON.stringify(permissionMenu)
-                );
-              } catch {
-                /* no-op */
-              }
-
-              // Tipamos aquí el array final
-              const raw = getObjResult<RawMenuItem>(menu);
-              buildAndPersistMenus(raw, {
-                // baseHref: '/plantilla-colibri-app-20',
-                filterStatus: 1,
-              });
-
-              this.prefetchGraphQLToken();
-              this.router.navigate(['']);
-            },
-            error: () => {
-              this.common.redirecToError({
-                code: '500',
-                error: 'Server Error',
-                message: 'No fue posible cargar el menú',
-              });
-            },
-          });
       },
       error: () => {
         this.common.redirecToError({
