@@ -68,9 +68,9 @@ aside.sidebar {
   }
 
   /* Iconos */
-  .link .bi,
-  .sub-link .bi,
-  .dropdown-like .bi {
+  .link .fa,
+  .sub-link .fa,
+  .dropdown-like .fa {
     display: inline-block;
     position: relative;
     z-index: 1;
@@ -83,12 +83,12 @@ aside.sidebar {
     font-size: 1rem;
   }
 
-  .bi::before {
+  .fa::before {
     display: inline-block;
     vertical-align: -0.125em;
   }
 
-  .bi.ms-auto {
+  .fa.ms-auto {
     opacity: 0.7;
     transition: transform 0.15s ease, opacity 0.15s ease;
   }
@@ -228,10 +228,10 @@ aside.sidebar {
       position: relative;
     }
 
-    .label,
-    .ms-auto {
-      display: none !important;
-    }
+    // .label,
+    // .ms-auto {
+    //   display: none !important;
+    // }
 
     .chevron-collapsed {
       position: absolute;

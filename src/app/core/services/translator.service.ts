@@ -12,9 +12,7 @@ export class TranslatorService {
   private readonly availablelangs: Array<{ code: string; text: string }> = [
     { code: 'es_CO', text: 'Español (Colombia)' },
     { code: 'es_EC', text: 'Español (Ecuador)' },
-    { code: 'es_AR', text: 'Español (Argentina)' },
     { code: 'en_US', text: 'English (US)' },
-    { code: 'en', text: 'English' },
   ];
 
   private readonly STORAGE_KEY = 'i18n.lang';

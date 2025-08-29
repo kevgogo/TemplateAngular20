@@ -39,6 +39,10 @@ export class SidebarComponent {
     this.searchTerm.set(''); // reset búsqueda
     this.resetListPreservingSelection(); // abre ancestros del activo
   }
+
+  /** Abre uno por nivel y cierra los hermanos (acordeón) */
+  @Input() accordionPerLevel = true;
+
   get items(): MenuNode[] {
     return this.filteredItems();
   }
@@ -53,7 +57,7 @@ export class SidebarComponent {
   private router = inject(Router);
 
   // ------------------ Búsqueda (signals) ------------------
-  searchTerm = signal('');
+  searchTerm = signal('>');
   isSearching = computed(() => this.searchTerm().trim().length > 0);
 
   /** Items filtrados basados en el término de búsqueda */
@@ -176,12 +180,53 @@ export class SidebarComponent {
     return this.openSet.has(id) || this.forcedOpen.has(id);
   }
 
+  /** Toggle simple (se mantiene por compatibilidad; ya no se usa en clicks acordeón) */
   toggle(id: string): void {
     if (this.openSet.has(id)) this.openSet.delete(id);
     else this.openSet.add(id);
   }
 
-  /** Click en item raíz (comporta distinto según modo) */
+  /** Cierra una rama completa (el id y todos sus descendientes) */
+  private closeBranch(prefix: string): void {
+    for (const k of Array.from(this.openSet)) {
+      if (k === prefix || k.startsWith(prefix + '.')) {
+        this.openSet.delete(k);
+      }
+    }
+  }
+
+  /**
+   * Cierra todos los hermanos del mismo nivel que `id`,
+   * sin tocar `forcedOpen` (búsqueda/ruta activa).
+   */
+  private collapseSiblings(id: string): void {
+    if (!this.accordionPerLevel) return;
+
+    const lastDot = id.lastIndexOf('.');
+    const parentPrefix = lastDot === -1 ? '' : id.slice(0, lastDot);
+    const depth = id.split('.').length;
+
+    for (const k of Array.from(this.openSet)) {
+      if (k === id) continue;
+
+      const kDepth = k.split('.').length;
+      if (kDepth !== depth) continue; // solo el mismo nivel
+
+      const kParentPrefix = (() => {
+        const pos = k.lastIndexOf('.');
+        return pos === -1 ? '' : k.slice(0, pos);
+      })();
+
+      if (kParentPrefix === parentPrefix) {
+        // es hermano -> cerrar su rama completa
+        this.closeBranch(k);
+      }
+    }
+  }
+
+  // ------------------ Handlers (actualizados a acordeón) ------------------
+
+  /** Click en item raíz (nivel 0). Si no tiene hijos, no intercepta navegación */
   onRootClick(ev: MouseEvent, node: MenuNode, rootIndex: number): void {
     if (this.hasChildren(node)) {
       ev.preventDefault();
@@ -195,11 +240,27 @@ export class SidebarComponent {
             rootIndex
           );
       } else {
-        // Expandido: inline toggle
-        this.toggle(this.nodeId(null, rootIndex));
+        // Expandido: acordeón por nivel
+        const id = this.nodeId(null, rootIndex);
+
+        if (!this.accordionPerLevel) {
+          // Comportamiento anterior (toggle simple)
+          this.toggle(id);
+          return;
+        }
+
+        if (this.isOpen(id)) {
+          // cerrar rama completa
+          this.closeBranch(id);
+        } else {
+          // cerrar hermanos y abrir este
+          this.collapseSiblings(id);
+          this.openSet.add(id);
+        }
       }
       return;
     }
+
     // Sin hijos: deja navegar
     if (this.collapsedResolved) this.closePanel();
 
@@ -211,8 +272,24 @@ export class SidebarComponent {
   onItemClick(ev: MouseEvent, node: MenuNode, id: string): void {
     if (this.hasChildren(node)) {
       ev.preventDefault();
-      if (!this.collapsedResolved) this.toggle(id);
+      if (!this.collapsedResolved) {
+        if (!this.accordionPerLevel) {
+          // Comportamiento anterior (toggle simple)
+          this.toggle(id);
+          return;
+        }
+
+        if (this.isOpen(id)) {
+          // cerrar rama completa
+          this.closeBranch(id);
+        } else {
+          // cerrar hermanos y abrir este
+          this.collapseSiblings(id);
+          this.openSet.add(id);
+        }
+      }
     } else {
+      // Hoja: permite navegar; si hay búsqueda activa, límpiala
       if (this.isSearching()) this.clearSearch();
     }
   }

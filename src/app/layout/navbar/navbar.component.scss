@@ -29,3 +29,27 @@ nav {
   box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.08);
   transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
+
+/* Botón de ícono cuadrado y centrado */
+.navbar .icon-btn {
+  --size: 36px; /* ajusta a tu gusto */
+  width: var(--size);
+  height: var(--size);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1; /* evita alturas raras del .btn */
+}
+
+.navbar .icon-btn .fa {
+  display: block; /* usa la caja del glifo, no la de línea */
+  line-height: 1; /* FA4 ya lo trae, reforzamos */
+  font-size: 1.5rem; /* equivalente a fs-4 */
+}
+
+.navbar .icon-btn .fa-user-circle {
+  transform: translateY(0.5px);
+}

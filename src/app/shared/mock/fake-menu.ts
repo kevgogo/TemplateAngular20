@@ -2,26 +2,6 @@
 import type { RawMenuItem } from '@core/models/menu.types';
 
 export const DEMO_MENU: RawMenuItem[] = [
-  // /elements
-  {
-    id: -100,
-    fatherId: null,
-    moduleId: null,
-    name: 'Elementos Básicos',
-    nameSpanish: null,
-    controller: null,
-    action: null,
-    description: 'Elementos básicos y componentes UI',
-    description2: null,
-    path: '/elements',
-    icon: 'fa fa-th-large',
-    order: 9900,
-    status: 1,
-    menuName: null,
-    moduleName: null,
-    permission: null,
-  },
-
   // /demo (root)
   {
     id: -200,
@@ -43,6 +23,26 @@ export const DEMO_MENU: RawMenuItem[] = [
   },
 
   // Hijos de /demo/**
+  // ← PRIMERO
+  {
+    id: -209,
+    fatherId: -200,
+    moduleId: null,
+    name: 'Elementos Básicos',
+    nameSpanish: null,
+    controller: null,
+    action: null,
+    description: 'Elementos básicos y componentes UI',
+    description2: null,
+    path: '/demo/elements', // ← ajustado para mantener la jerarquía /demo/**
+    icon: 'fa fa-th-large',
+    order: 0, // ← menor que los demás para que quede primero
+    status: 1,
+    menuName: null,
+    moduleName: null,
+    permission: null,
+  },
+
   {
     id: -201,
     fatherId: -200,

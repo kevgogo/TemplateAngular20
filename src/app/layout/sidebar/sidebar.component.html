@@ -14,7 +14,7 @@
       class="input-group input-group-sm search-like-row gap-2 px-3 py-2 align-items-center"
     >
       <span class="input-group-text bg-transparent border-0 p-0 me-2">
-        <i class="bi bi-search opacity-75"></i>
+        <i class="fa fa-search opacity-75"></i>
       </span>
 
       <input
@@ -34,7 +34,7 @@
         aria-label="Limpiar búsqueda"
         title="Limpiar búsqueda"
       >
-        <i class="bi bi-x-lg"></i>
+        <i class="fa fa-x-lg"></i>
       </button>
       }
     </div>
@@ -42,7 +42,7 @@
   }
 
   <!-- Botón de búsqueda cuando SÍ está colapsado -->
-  @if (collapsedResolved) {
+  <!-- @if (collapsedResolved) {
   <div
     class="collapsed-search border-bottom d-flex justify-content-center py-2"
   >
@@ -52,10 +52,10 @@
       aria-label="Buscar"
       title="Buscar"
     >
-      <i class="bi bi-search"></i>
+      <i class="fa fa-search"></i>
     </button>
   </div>
-  }
+  } -->
 
   <!-- Lista principal del menú -->
   @if (items.length > 0) {
@@ -100,7 +100,7 @@
         [attr.title]="collapsedResolved ? it.label : null"
         role="menuitem"
       >
-        <i class="bi" [ngClass]="it.icon"></i>
+        <i class="fa" [ngClass]="it.icon"></i>
 
         @if (!collapsedResolved) {
         <span
@@ -114,11 +114,11 @@
 
         @if (hasChildren(it)) {
         <i
-          class="bi ms-auto"
+          class="fa ms-auto"
           [ngClass]="
             isOpen(nodeId(null, $index))
-              ? 'bi-chevron-down'
-              : 'bi-chevron-right'
+              ? 'fa-chevron-down'
+              : 'fa-chevron-right'
           "
         ></i>
         } }
@@ -182,7 +182,7 @@
           (click)="onItemClick($event, n, nodeId(parentId, $index))"
           role="menuitem"
         >
-          <i class="bi" [ngClass]="n.icon"></i>
+          <i class="fa" [ngClass]="n.icon"></i>
 
           <span
             class="text-truncate"
@@ -196,11 +196,11 @@
 
           @if (hasChildren(n)) {
           <i
-            class="bi ms-auto"
+            class="fa ms-auto"
             [ngClass]="
               isOpen(nodeId(parentId, $index))
-                ? 'bi-chevron-down'
-                : 'bi-chevron-right'
+                ? 'fa-chevron-down'
+                : 'fa-chevron-right'
             "
           ></i>
           }
@@ -239,10 +239,10 @@
         (click)="panelBack()"
         aria-label="Atrás"
       >
-        <i class="bi bi-chevron-left"></i>
+        <i class="fa fa-chevron-left"></i>
       </button>
       } @else {
-      <i class="bi bi-list-ul me-2 opacity-75"></i>
+      <i class="fa fa-list-ul me-2 opacity-75"></i>
       }
       <div class="title text-truncate fw-semibold flex-grow-1">
         {{ panelTitle }}
@@ -253,7 +253,7 @@
         (click)="closePanel()"
         aria-label="Cerrar"
       >
-        <i class="bi bi-x-lg"></i>
+        <i class="fa fa-x-lg"></i>
       </button>
     </div>
 
@@ -266,13 +266,13 @@
           (click)="onPanelItemClick($event, n)"
           role="menuitem"
         >
-          <i class="bi" [ngClass]="n.icon"></i>
+          <i class="fa" [ngClass]="n.icon"></i>
 
           <span class="text-truncate" [attr.title]="n.label">{{
             n.label
           }}</span>
           @if (hasChildren(n)) {
-          <i class="bi bi-chevron-right ms-auto opacity-75"></i>
+          <i class="fa fa-chevron-right ms-auto opacity-75"></i>
           }
         </a>
       </li>

@@ -3,15 +3,23 @@ import { Routes } from '@angular/router';
 
 export const DEMO_ROUTES: Routes = [
   {
-    path: 'demo',
+    path: '',
     title: 'Demos',
     data: { breadcrumb: 'Demos' },
     children: [
       {
+        path: 'elements',
+        title: 'Elementos Básicos',
+        loadComponent: () =>
+          import('@pages/demo/elements/basic-elements.page').then(
+            (m) => m.BasicElementsPage
+          ),
+      },
+      {
         path: 'shared',
         title: 'Shared Showcase',
         loadComponent: () =>
-          import('./shared/shared-showcase.page').then(
+          import('@pages/demo/shared/shared-showcase.page').then(
             (m) => m.SharedShowcasePage
           ),
       },
@@ -19,21 +27,23 @@ export const DEMO_ROUTES: Routes = [
         path: 'graphql',
         title: 'GraphQL Demo',
         loadComponent: () =>
-          import('./graphql/graphql-demo.page').then((m) => m.GraphqlDemoPage),
+          import('@pages/demo/graphql/graphql-demo.page').then(
+            (m) => m.GraphqlDemoPage
+          ),
       },
       {
         path: 'messages',
         title: 'Mensajes & Alertas',
         loadComponent: () =>
-          import('./messages/messages-demo.page').then(
-            (m) => m.MessagesDemoPage
+          import('@pages/demo/messages/messages-demo.page').then(
+            (m) => m.DemoMessagesPage
           ),
       },
       {
         path: 'modals',
         title: 'Modales con inyección',
         loadComponent: () =>
-          import('./modals/modal-inject-demo.page').then(
+          import('@pages/demo/modals/modal-inject-demo.page').then(
             (m) => m.ModalInjectDemoPage
           ),
       },
@@ -41,7 +51,7 @@ export const DEMO_ROUTES: Routes = [
         path: 'devextreme/calendar',
         title: 'DevExtreme Calendar',
         loadComponent: () =>
-          import('./devextreme/calendar-demo.page').then(
+          import('@pages/demo/devextreme/calendar-demo.page').then(
             (m) => m.CalendarDemoPage
           ),
       },
@@ -49,7 +59,7 @@ export const DEMO_ROUTES: Routes = [
         path: 'devextreme/treeview',
         title: 'DevExtreme TreeView',
         loadComponent: () =>
-          import('./devextreme/treeview-demo.page').then(
+          import('@pages/demo/devextreme/treeview-demo.page').then(
             (m) => m.TreeviewDemoPage
           ),
       },
@@ -57,35 +67,41 @@ export const DEMO_ROUTES: Routes = [
         path: 'chrono',
         title: 'Chrono / Reloj',
         loadComponent: () =>
-          import('./chrono/chrono-demo.page').then((m) => m.ChronoDemoPage),
+          import('@pages/demo/chrono/chrono-demo.page').then(
+            (m) => m.ChronoDemoPage
+          ),
       },
       {
         path: 'files',
         title: 'PDF/Excel/ZIP',
         loadComponent: () =>
-          import('./files/files-demo.page').then((m) => m.FilesDemoPage),
+          import('@pages/demo/files/files-demo.page').then(
+            (m) => m.FilesDemoPage
+          ),
       },
       {
         path: 'test/adder',
-        loadComponent: () =>
-          import('./test/adder.component').then((m) => m.AdderComponent),
         title: 'Demo · Test · Adder',
+        loadComponent: () =>
+          import('@pages/demo/test/adder.component').then(
+            (m) => m.AdderComponent
+          ),
       },
       {
         path: 'icons-explorer/icons',
-        loadComponent: () =>
-          import('./icons/icons-explorer/fa-icons-explorer.page').then(
-            (m) => m.FaIconsExplorerPage
-          ),
         title: 'Selector de Iconos',
+        loadComponent: () =>
+          import(
+            '@pages/demo/icons/icons-explorer/fa-icons-explorer.page'
+          ).then((m) => m.FaIconsExplorerPage),
       },
       {
         path: 'icons/fa4',
+        title: 'Buscador FA 4.7.0',
         loadComponent: () =>
-          import('./icons/fa4-search/fa4-search.component').then(
+          import('@pages/demo/icons/fa4-search/fa4-search.component').then(
             (m) => m.Fa4SearchComponent
           ),
-        title: 'Buscador FA 4.7.0',
       },
       { path: '', pathMatch: 'full', redirectTo: 'shared' },
     ],

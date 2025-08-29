@@ -7,29 +7,23 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { SHARED_IMPORTS } from '@shared/app-shared-imports';
-import { ProgressbarComponent } from '@shared/components/progressbar/progressbar.component';
-import { AlertComponent } from '@shared/components/alert/alert.component';
-import { ChronoComponent } from '@shared/components/chrono/chrono.component';
+import { ToastrService } from 'ngx-toastr';
 import { TranslatorService } from '@core/services/translator.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { SHARED_IMPORTS } from '@shared/app-shared-imports';
+import { SwalPortalTargets } from '@sweetalert2/ngx-sweetalert2';
 
 @Component({
   selector: 'app-shared-showcase',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    SHARED_IMPORTS,
-    TranslateModule,
-    ProgressbarComponent,
-    AlertComponent,
-    ChronoComponent,
-  ],
+  imports: [CommonModule, FormsModule, TranslateModule, SHARED_IMPORTS],
   templateUrl: './shared-showcase.page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SharedShowcasePage {
+  private _toastr = inject(ToastrService);
+  public readonly swalTargets = inject(SwalPortalTargets);
+
   protected readonly Math = Math;
 
   // ===== Demo de componentes =====
@@ -88,6 +82,24 @@ export class SharedShowcasePage {
         return 'America/Argentina/Buenos_Aires';
       default:
         return 'America/Bogota';
+    }
+  }
+
+  // ✅ MÉTODO PÚBLICO (lo llama el HTML)
+  toast(kind: 'success' | 'info' | 'warning' | 'error') {
+    switch (kind) {
+      case 'success':
+        this._toastr.success('Operación exitosa', 'OK');
+        break;
+      case 'info':
+        this._toastr.info('Dato informativo');
+        break;
+      case 'warning':
+        this._toastr.warning('Atención', 'Cuidado');
+        break;
+      case 'error':
+        this._toastr.error('Algo falló', 'Error');
+        break;
     }
   }
 }

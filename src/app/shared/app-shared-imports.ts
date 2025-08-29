@@ -1,27 +1,44 @@
-// src/app/shared/app-shared-imports.ts
+// Angular
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterOutlet, RouterLinkActive } from '@angular/router';
 
+// Componentes dentro de @Shared
+import { ChronoComponent } from '@shared/components/chrono/chrono.component';
+import { AlertComponent } from '@shared/components/alert/alert.component';
+import { ProgressbarComponent } from '@shared/components/progressbar/progressbar.component';
+
+// @Externos de node_modules
 import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
-import { ChronoComponent } from './components/chrono/chrono.component';
-import { AlertComponent } from './components/alert/alert.component';
-import { BsIconDirective } from '@shared/directives/bs-icon.directive';
-import { FaIconDirective } from './directives/fa-icon.directive';
+import {
+  SwalComponent,
+  SwalDirective,
+  SwalPortalDirective,
+} from '@sweetalert2/ngx-sweetalert2';
 
-export { AlertComponent } from './components/alert/alert.component';
-export { ChronoComponent } from './components/chrono/chrono.component';
-export { BsIconDirective } from '@shared/directives/bs-icon.directive';
-export { FaIconDirective } from './directives/fa-icon.directive';
+// Exportamos externos
 
+// Exportamos los creados dentro de @Shared
+export { AlertComponent } from '@shared/components/alert/alert.component';
+export { ChronoComponent } from '@shared/components/chrono/chrono.component';
+export { ProgressbarComponent } from '@shared/components/progressbar/progressbar.component';
+
+// Exportamos externos
 export const SHARED_IMPORTS = [
+  // Angular
   CommonModule,
   RouterLink,
   RouterOutlet,
   RouterLinkActive,
   BsDropdownModule,
-  // DialogsHostComponent,
+
+  // @Shared
   ChronoComponent,
   AlertComponent,
-  BsIconDirective,
-  FaIconDirective,
+  ProgressbarComponent,
+  AlertComponent,
+
+  // Externos node_modules
+  SwalComponent,
+  SwalDirective,
+  SwalPortalDirective,
 ];

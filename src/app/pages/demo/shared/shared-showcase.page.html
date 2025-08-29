@@ -111,3 +111,60 @@
     </div>
   </section>
 </div>
+
+<!-- ========== SweetAlert2 ========== -->
+<section class="mb-4">
+  <h3 class="h6">SweetAlert2</h3>
+  <div class="d-flex gap-2 flex-wrap">
+    <!-- Modal simple -->
+    <button
+      class="btn btn-primary"
+      [swal]="['Hola', 'Modal simple', 'success']"
+    >
+      Simple
+    </button>
+
+    <!-- Confirmación con callbacks -->
+    <button
+      class="btn btn-warning"
+      [swal]="{
+        title: '¿Eliminar?',
+        text: 'Esta acción no se puede deshacer',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, borrar',
+        cancelButtonText: 'Cancelar'
+      }"
+      (confirm)="toast('success')"
+      (dismiss)="toast('info')"
+    >
+      Confirmación
+    </button>
+
+    <swal #templated title="Con plantilla" [swalOptions]="{ theme: 'auto' }">
+      <div *swalPortal="swalTargets.content" class="alert alert-info mb-0">
+        Contenido Angular dentro del modal 🎉
+      </div>
+    </swal>
+    <button class="btn btn-outline-secondary" (click)="templated.fire()">
+      Abrir con plantilla
+    </button>
+  </div>
+</section>
+
+<!-- ========== Toastr ========== -->
+<section class="mb-4">
+  <h3 class="h6">Toastr</h3>
+  <div class="d-flex flex-wrap gap-2">
+    <button class="btn btn-success btn-sm" (click)="toast('success')">
+      Success
+    </button>
+    <button class="btn btn-info btn-sm" (click)="toast('info')">Info</button>
+    <button class="btn btn-warning btn-sm" (click)="toast('warning')">
+      Warning
+    </button>
+    <button class="btn btn-danger btn-sm" (click)="toast('error')">
+      Error
+    </button>
+  </div>
+</section>

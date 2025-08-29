@@ -40,16 +40,6 @@ export const routes: Routes = [
             (m) => m.DashboardPage
           ),
       },
-      {
-        path: 'elements',
-        title: 'Elementos Básicos',
-        data: { breadcrumb: 'Elementos Básicos' },
-        // canActivate: [accessControlGuard],
-        loadComponent: () =>
-          import('@pages/elements/basic-elements.page').then(
-            (m) => m.BasicElementsPage
-          ),
-      },
 
       // Errores (ahora desde shared/pages/errors)
       {
@@ -66,18 +56,14 @@ export const routes: Routes = [
         title: 'Acceso denegado',
         data: { breadcrumb: '403' },
         loadComponent: () =>
-          import('@pages/errors/forbidden.page').then(
-            (m) => m.ForbiddenPage
-          ),
+          import('@pages/errors/forbidden.page').then((m) => m.ForbiddenPage),
       },
       {
         path: 'error/404',
         title: 'Página no encontrada',
         data: { breadcrumb: '404' },
         loadComponent: () =>
-          import('@pages/errors/not-found.page').then(
-            (m) => m.NotFoundPage
-          ),
+          import('@pages/errors/not-found.page').then((m) => m.NotFoundPage),
       },
       {
         path: 'error/500',
@@ -89,14 +75,14 @@ export const routes: Routes = [
           ),
       },
 
+      {
+        path: 'demo',
+        loadChildren: () =>
+          import('@pages/demo/demo.routes').then((m) => m.DEMO_ROUTES),
+      },
+
       // 404 para rutas desconocidas dentro del shell
       { path: '**', redirectTo: 'error/404' },
-
-      // {
-      //   path: 'demo',
-      //   loadChildren: () =>
-      //     import('./features').then((m) => m.DEMO_ROUTES),
-      // },
     ],
   },
 

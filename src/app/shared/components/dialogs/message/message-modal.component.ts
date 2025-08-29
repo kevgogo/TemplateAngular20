@@ -17,10 +17,10 @@ export class MessageModalComponent {
   get iconClass() {
     const t = this.options?.type_message ?? 'info';
     return {
-      success: 'bi bi-check-circle-fill text-success',
-      info: 'bi bi-info-circle-fill text-info',
-      warning: 'bi bi-exclamation-triangle-fill text-warning',
-      error: 'bi bi-x-circle-fill text-danger',
+      success: 'fa fa-check-circle-fill text-success',
+      info: 'fa fa-info-circle-fill text-info',
+      warning: 'fa fa-exclamation-triangle-fill text-warning',
+      error: 'fa fa-x-circle-fill text-danger',
     }[t];
   }
 

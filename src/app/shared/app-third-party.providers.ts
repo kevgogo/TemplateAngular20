@@ -9,13 +9,18 @@ import { CollapseModule } from 'ngx-bootstrap/collapse';
 import { ModalModule, ModalOptions } from 'ngx-bootstrap/modal';
 import { TooltipConfig, TooltipModule } from 'ngx-bootstrap/tooltip';
 import { PopoverModule } from 'ngx-bootstrap/popover';
-import { ToastrModule } from 'ngx-toastr';
+import { ToastrModule, ToastrService } from 'ngx-toastr';
+import { provideSweetAlert2 } from '@sweetalert2/ngx-sweetalert2';
+import { provideAnimations } from '@angular/platform-browser/animations';
 
 import { provideTranslateService } from '@ngx-translate/core';
 import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
 
 export function provideThirdParty(): EnvironmentProviders {
   return makeEnvironmentProviders([
+    // Requerido por ngx-toastr
+    provideAnimations(),
+
     importProvidersFrom(
       BsDropdownModule.forRoot(),
       CollapseModule.forRoot(),
@@ -23,8 +28,9 @@ export function provideThirdParty(): EnvironmentProviders {
       TooltipModule.forRoot(),
       PopoverModule.forRoot(),
       ToastrModule.forRoot({
+        timeOut: 4000,
         positionClass: 'toast-bottom-right',
-        timeOut: 2500,
+        preventDuplicates: true,
       })
     ),
 
@@ -52,6 +58,12 @@ export function provideThirdParty(): EnvironmentProviders {
         // enforceLoading: true,  // cache-busting
         // useHttpBackend: true,  // evita interceptores
       }),
+    }),
+
+    // Config opcional para SweetAlert2
+    provideSweetAlert2({
+      fireOnInit: false,
+      dismissOnDestroy: true,
     }),
   ]);
 }

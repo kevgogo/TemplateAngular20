@@ -1,27 +1,25 @@
-<div class="container py-3">
-  <h2 class="h5 mb-3">Mensajes & Alertas</h2>
-  <div class="d-flex flex-wrap gap-2">
-    <button class="btn btn-success" (click)="showMessage('success')">
-      Success
-    </button>
-    <button class="btn btn-info" (click)="showMessage('info')">Info</button>
-    <button class="btn btn-warning" (click)="showMessage('warning')">
-      Warning
-    </button>
-    <button class="btn btn-danger" (click)="showMessage('error')">Error</button>
-    <button class="btn btn-outline-primary ms-auto" (click)="askConfirm()">
-      Confirmar
-    </button>
-  </div>
+<section class="mb-3">
+  <h5>Confirm</h5>
+  <button class="btn btn-primary btn-sm me-2" (click)="confirmarBasico()">Confirm básico</button>
+  <button class="btn btn-outline-primary btn-sm me-2" (click)="confirmarLgStatic()">Confirm LG + static</button>
+  <button class="btn btn-outline-secondary btn-sm" (click)="confirmarConHtml()">Confirm con HTML</button>
+</section>
 
-  <div class="mt-4">
-    <app-alert
-      [type]="'info'"
-      [message]="'Componente <app-alert> funcionando'"
-      [closeable]="true"
-    >
-      <strong>Tip:</strong> puedes pasar HTML a través de
-      <code>&lt;ng-content&gt;</code>.
-    </app-alert>
-  </div>
-</div>
+<section class="mb-3">
+  <h5>Message (Modal informativa)</h5>
+  <button class="btn btn-info btn-sm me-2" (click)="infoMessage()">Info</button>
+  <button class="btn btn-warning btn-sm me-2" (click)="warningMessageHtml()">Warning HTML</button>
+  <button class="btn btn-success btn-sm" (click)="successMessageLgAnimOff()">Success LG (sin anim)</button>
+</section>
+
+<section class="mb-3">
+  <h5>SweetAlert2 (arriba centrado)</h5>
+  <button class="btn btn-success btn-sm me-2" (click)="swalArriba()">Modal arriba</button>
+  <button class="btn btn-outline-success btn-sm" (click)="swalToastArriba()">Toast arriba</button>
+</section>
+
+<section class="mb-3">
+  <h5>Toastr (overrides por llamada)</h5>
+  <button class="btn btn-outline-dark btn-sm me-2" (click)="toastrCentro()">Success centro</button>
+  <button class="btn btn-outline-danger btn-sm" (click)="toastrErrorSticky()">Error sticky</button>
+</section>

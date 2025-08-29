@@ -51,7 +51,7 @@ import { Input } from '@angular/core';
           class="avatar rounded-circle bg-body-secondary d-inline-flex align-items-center justify-content-center"
           style="width:56px;height:56px"
         >
-          <i class="bi bi-person fs-4"></i>
+          <i class="fa fa-person fs-4"></i>
         </div>
         <div>
           <div class="fw-bold">{{ user?.name }}</div>

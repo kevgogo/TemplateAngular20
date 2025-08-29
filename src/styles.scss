@@ -1,5 +1,3 @@
-@import url("./assets/css/themes.css");
-
 /* ---------- Variables globales ---------- */
 :root {
   /* Alturas (ajusta a tu UI real) */
@@ -175,4 +173,32 @@ app-headbar .dropdown-menu,
 app-page-header .dropdown-menu,
 app-header-page .dropdown-menu {
   z-index: calc(var(--z-navbar) + 10);
+}
+
+/* Fallback de capas por si algún header o sidebar se sube demasiado */
+.modal-backdrop {
+  z-index: 1050 !important;
+}
+.modal {
+  z-index: 1060 !important;
+}
+/* Evita que la sombra en .modal-dialog genere una franja vertical a 100vh */
+.modal-dialog.shadow,
+.modal-dialog.shadow-sm,
+.modal-dialog.shadow-lg {
+  box-shadow: none !important; /* quita la sombra del contenedor */
+}
+
+/* Mueve la sombra al "card" real del modal */
+.modal-dialog.shadow .modal-content {
+  box-shadow: var(--bs-box-shadow) !important;
+}
+.modal-dialog.shadow-sm .modal-content {
+  box-shadow: var(
+    --bs-box-shadow-sm,
+    0 0.125rem 0.25rem rgba(0, 0, 0, 0.075)
+  ) !important;
+}
+.modal-dialog.shadow-lg .modal-content {
+  box-shadow: var(--bs-box-shadow-lg) !important;
 }
