@@ -9,7 +9,8 @@
   --z-navbar: 1030; /* por encima de dropdowns (Bootstrap ~1000) */
   --z-breadcrumbs: 1020;
   --z-headbar: 1015;
-  --z-sidebar: 1040; /* por encima de breadcrumbs*/
+  --z-sidebar: 1040; /* contenedor */
+  --z-sidebar-panel: 1060; /* flypanel/backdrop */
 
   /* Radio/sombras opcionales si quieres consistencia */
   --card-radius: 1rem;
@@ -202,4 +203,12 @@ app-header-page .dropdown-menu {
 }
 .modal-dialog.shadow-lg .modal-content {
   box-shadow: var(--bs-box-shadow-lg) !important;
+}
+
+/* styles.scss (o shell.component.scss) */
+.layout,
+.main,
+.content {
+  overflow: visible; /* evitar que recorte overlays */
+  transform: none; /* evitar stacking context accidental */
 }

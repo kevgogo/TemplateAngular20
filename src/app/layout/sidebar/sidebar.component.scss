@@ -283,7 +283,7 @@ aside.sidebar {
   position: fixed;
   inset: 0;
   background: transparent;
-  z-index: 1999;
+  z-index: calc(var(--z-sidebar-panel) - 1);
 }
 .flypanel {
   position: fixed;
@@ -295,7 +295,7 @@ aside.sidebar {
   border: 1px solid var(--bs-border-color, rgba(0, 0, 0, 0.1));
   border-radius: 0.5rem;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-  z-index: 2000;
+  z-index: var(--z-sidebar-panel);
 }
 .flypanel-header {
   display: flex;
