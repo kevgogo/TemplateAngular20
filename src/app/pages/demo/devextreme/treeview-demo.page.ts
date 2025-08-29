@@ -2,7 +2,7 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DxTreeViewModule } from 'devextreme-angular';
-import { MENU_DATA } from '@shared/mock/menu';
+import { DEMO_MENU } from '@shared/mock/fake-menu';
 
 interface TreeItem {
   id: string;
@@ -22,7 +22,7 @@ export class TreeviewDemoPage {
   items: TreeItem[] = [];
 
   constructor() {
-    this.items = (MENU_DATA ?? []).map((n, idx) =>
+    this.items = (DEMO_MENU ?? []).map((n, idx) =>
       this.toTree(n, `root-${idx}`)
     );
   }

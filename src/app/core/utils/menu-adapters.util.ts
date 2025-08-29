@@ -1,3 +1,4 @@
+import { RouterLink } from '@angular/router';
 import { RawMenuItem, SidebarNode } from '@core/models/menu.types';
 import { buildSidebarTree, BuildTreeOptions } from '@core/utils/menu-tree.util';
 
@@ -10,7 +11,7 @@ export type MenuNodesItem = {
 
 export type MenuUsrItem = {
   text: string;
-  link?: string;
+  link?: string | RouterLink;
   icon?: string;
   submenu?: MenuUsrItem[];
 };

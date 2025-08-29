@@ -65,6 +65,28 @@ export const DEMO_ROUTES: Routes = [
         loadComponent: () =>
           import('./files/files-demo.page').then((m) => m.FilesDemoPage),
       },
+      {
+        path: 'test/adder',
+        loadComponent: () =>
+          import('./test/adder.component').then((m) => m.AdderComponent),
+        title: 'Demo · Test · Adder',
+      },
+      {
+        path: 'icons-explorer/icons',
+        loadComponent: () =>
+          import('./icons/icons-explorer/fa-icons-explorer.page').then(
+            (m) => m.FaIconsExplorerPage
+          ),
+        title: 'Selector de Iconos',
+      },
+      {
+        path: 'icons/fa4',
+        loadComponent: () =>
+          import('./icons/fa4-search/fa4-search.component').then(
+            (m) => m.Fa4SearchComponent
+          ),
+        title: 'Buscador FA 4.7.0',
+      },
       { path: '', pathMatch: 'full', redirectTo: 'shared' },
     ],
   },

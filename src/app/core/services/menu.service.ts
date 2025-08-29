@@ -17,14 +17,9 @@ import {
   MenuNode,
   RouteLink,
 } from '@core/models/menu.types';
-import { buildSidebarTree, BuildTreeOptions } from '@core/utils/menu-tree.util';
-import {
-  toMenuNodes,
-  toMenuUsr,
-  persistMenusToSession,
-  MenuNodesItem,
-  MenuUsrItem,
-} from '@core/utils/menu-adapters.util';
+import { BuildTreeOptions } from '@core/utils/menu-tree.util';
+import { DEMO_MENU } from '@shared/mock/fake-menu';
+import { MenuUsrItem } from '@core/utils/menu-adapters.util';
 
 @Injectable({ providedIn: 'root' })
 export class MenuService {
@@ -72,7 +67,7 @@ export class MenuService {
   }
 
   // ------------------------------------------------------------
-  // Orquestador: pide menú + permisos, arma árbol y persiste en session
+  // Orquestador: pide menú + permisos, inyecta extras, arma árbol y persiste
   // ------------------------------------------------------------
   loadAndBuildMenuTree$(
     opts: BuildTreeOptions = {}
@@ -90,11 +85,23 @@ export class MenuService {
         // Toma items crudos
         const raw: RawMenuItem[] = (menu?.objectResult ?? []) as RawMenuItem[];
 
+        // ⬇️ Inyecta extras FA4 del mock (sin duplicar)
+        const rawWithExtras = this._mergeExtras(
+          raw,
+          DEMO_MENU as RawMenuItem[]
+        );
+
         // Arma árbol completo
-        const tree = this.buildSidebarTree(raw, { filterStatus: 1, ...opts });
+        const tree = this.buildSidebarTree(rawWithExtras, {
+          filterStatus: 1,
+          ...opts,
+        });
 
         // Persiste DOS formas que ya usas: menu_nodes (para Sidebar) y menu_usr
         this.persistMenusToSession(tree);
+
+        // TODO: Cargamos los menus de @shared/mock/fake-menu
+        this._sidebarItems$.next(tree);
 
         // Notifica al Shell
         this.reloadSidebarFromSession();
@@ -135,7 +142,37 @@ export class MenuService {
   }
 
   // ============================================================
-  // Internos: construir árbol y adaptar a las dos formas
+  // Internos: merge de extras y utilidades de clave
+  // ============================================================
+  /** Genera una llave estable por item para evitar duplicados entre API y extras */
+  private _itemKey(
+    it: Pick<RawMenuItem, 'path' | 'controller' | 'action'>
+  ): string {
+    const p = (it.path || '').trim().toLowerCase();
+    const c = (it.controller || '').trim().toLowerCase();
+    const a = (it.action || '').trim().toLowerCase();
+    return p || (c && a ? `${c}/${a}` : '');
+  }
+
+  /** Funde extras con raw (sin duplicar por path o controller/action) */
+  private _mergeExtras(
+    raw: RawMenuItem[],
+    extras: RawMenuItem[]
+  ): RawMenuItem[] {
+    const seen = new Set(raw.map((x) => this._itemKey(x)).filter(Boolean));
+    const merged = raw.slice();
+
+    for (const it of extras) {
+      const k = this._itemKey(it);
+      if (!k || seen.has(k)) continue;
+      merged.push(it);
+      seen.add(k);
+    }
+    return merged;
+  }
+
+  // ============================================================
+  // Internos: construir árbol
   // ============================================================
   private buildSidebarTree(
     items: RawMenuItem[],
@@ -199,12 +236,16 @@ export class MenuService {
 
   private computeLink(it: RawMenuItem, baseHref = ''): string | null {
     const p = (it.path || '').trim();
-    if (p) return this.joinUrl(baseHref, p);
-
+    if (p) {
+      const full = this.joinUrl(baseHref, p);
+      return full.startsWith('/') ? full : '/' + full; // ⬅️ garantiza slash inicial
+    }
     const c = (it.controller || '').trim();
     const a = (it.action || '').trim();
     const segments = [c, a].filter(Boolean);
-    return segments.length ? this.joinUrl(baseHref, ...segments) : null;
+    if (!segments.length) return null;
+    const full = this.joinUrl(baseHref, ...segments);
+    return full.startsWith('/') ? full : '/' + full; // ⬅️ idem
   }
 
   private joinUrl(...parts: string[]): string {
@@ -245,7 +286,7 @@ export class MenuService {
       return undefined;
     };
 
-    const map = (n: SidebarNode): MenuNode => {
+    const mapNode = (n: SidebarNode): MenuNode => {
       const lbl =
         (n as any).name?.toString?.().trim?.() ??
         (n as any).text?.toString?.().trim?.() ??
@@ -257,81 +298,26 @@ export class MenuService {
       const linkVal = ensureLink((n as any).link);
       if (linkVal !== undefined) item.link = linkVal;
 
+      // ⚠️ Dejamos FA4 tal cual; NO convertimos a Bootstrap Icons
       const rawIcon: string | undefined | null = (n as any).icon ?? undefined;
-      const iconVal = this.mapIcon
-        ? this.mapIcon(rawIcon ?? undefined)
-        : rawIcon ?? undefined;
-      if (iconVal) item.icon = iconVal;
+      if (rawIcon) item.icon = rawIcon;
 
-      const kids = (n.children ?? []).map(map);
+      const kids = (n.children ?? []).map(mapNode);
       if (kids.length) item.children = kids;
 
       return item;
     };
 
-    return (nodes ?? []).map(map);
+    return (nodes ?? []).map(mapNode);
   }
 
   private toMenuUsr(nodes: SidebarNode[]): MenuUsrItem[] {
     const map: (n: SidebarNode) => MenuUsrItem = (n) => ({
       text: (n.name ?? '').trim(),
       link: n.link || undefined,
-      icon: this.mapIcon(n.icon),
+      icon: n.icon,
       submenu: (n.children ?? []).map(map),
     });
     return nodes.map(map);
-  }
-
-  // Mapeo opcional de FontAwesome -> Bootstrap Icons (ajusta a tu gusto)
-  private mapIcon(icon?: string | null): string | undefined {
-    if (!icon) return undefined;
-    const x = icon.trim().toLowerCase();
-    const dict: Record<string, string> = {
-      'fa fa-cog': 'bi-gear',
-      'fa fa-cogs': 'bi-gear-wide-connected',
-      'fa fa-puzzle-piece': 'bi-puzzle',
-      'fa fa-list-alt': 'bi-card-checklist',
-      'fa fa-server': 'bi-hdd-network',
-      'fa fa-user-secret': 'bi-person-badge',
-      'fa fa-street-view': 'bi-geo-alt',
-      'fa fa-mortar-board': 'bi-mortarboard',
-      'fa fa-clock-o': 'bi-clock',
-      'fa fa-columns': 'bi-layout-three-columns',
-      'fa fa-automobile': 'bi-truck',
-      'fa fa-history': 'bi-arrow-clockwise',
-      'fa fa-clipboard': 'bi-clipboard',
-      'fa fa-shopping-cart': 'bi-cart',
-      'fa fa-bank': 'bi-bank',
-      'fa fa-truck': 'bi-truck',
-      'fa fa-anchor': 'bi-anchor',
-      'fa fa-tag': 'bi-tag',
-      'fa fa-users': 'bi-people',
-      'fa fa-navicon': 'bi-list',
-      'fa fa-calendar-o': 'bi-calendar3',
-      'fa fa-calendar': 'bi-calendar3-event',
-      'fa fa-underline': 'bi-rulers',
-      'fa fa-refresh': 'bi-arrow-repeat',
-      'fa fa-bar-chart': 'bi-bar-chart',
-      'fa fa-sort-numeric-asc': 'bi-sort-numeric-down',
-      'fa fa-question': 'bi-question-circle',
-      'fa fa-cubes': 'bi-boxes',
-      'fa fa-cube': 'bi-box',
-      'fa fa-stack-overflow': 'bi-layers',
-      'fa fa-check-square': 'bi-check2-square',
-      'fa fa-check-square-o': 'bi-check-square',
-      'fa fa-bicycle': 'bi-bicycle',
-      'fa fa-motorcycle': 'bi-truck',
-      'fa fa-certificate': 'bi-award',
-      'fa fa-eye': 'bi-eye',
-      'fa fa-external-link': 'bi-box-arrow-up-right',
-      'fa fa-bars': 'bi-ui-checks-grid',
-      'fa fa-link': 'bi-link-45deg',
-      'fa fa-chain-broken': 'bi-link',
-      'fa fa-bullseye': 'bi-bullseye',
-      'fa fa-sliders': 'bi-sliders',
-      'fa fa-cart-plus': 'bi-cart-plus',
-      'fa fa-cart-arrow-down': 'bi-cart-dash',
-    };
-    return dict[x] ?? icon;
   }
 }

@@ -1,0 +1,85 @@
+.fa4-search {
+  .controls {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    margin-bottom: 1rem;
+    input[type="search"] {
+      flex: 1;
+      padding: 0.5rem 0.75rem;
+      border-radius: 0.5rem;
+      border: 1px solid #ddd;
+    }
+    .toggle {
+      display: inline-flex;
+      gap: 0.5rem;
+      align-items: center;
+      font-size: 0.9rem;
+    }
+    .count {
+      margin-left: auto;
+      font-weight: 600;
+      color: #666;
+    }
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .tile {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border: 1px solid #eee;
+    border-radius: 0.75rem;
+    align-items: flex-start;
+    background: #fff;
+    i.fa {
+      font-size: 1.6rem;
+      line-height: 1;
+      width: 2rem;
+      text-align: center;
+    }
+    .meta {
+      flex: 1;
+      .name {
+        font-weight: 700;
+      }
+      .aliases {
+        margin-top: 0.25rem;
+        display: flex;
+        gap: 0.25rem;
+        flex-wrap: wrap;
+        .chip {
+          font-size: 0.75rem;
+          background: #f5f5f5;
+          padding: 0.15rem 0.4rem;
+          border-radius: 0.5rem;
+        }
+      }
+      .actions {
+        margin-top: 0.5rem;
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        button {
+          border: 1px solid #e0e0e0;
+          background: #fafafa;
+          padding: 0.35rem 0.55rem;
+          border-radius: 0.5rem;
+          cursor: pointer;
+        }
+        button:hover {
+          background: #f0f0f0;
+        }
+      }
+    }
+  }
+
+  .loading {
+    color: #666;
+  }
+}

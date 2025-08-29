@@ -28,22 +28,15 @@
               { "glob": "**/*", "input": "public" },
               "src/assets",
               { "glob": "favicon.ico", "input": "src", "output": "/" },
-              { "glob": "web.config", "input": "src", "output": "/" },
-              {
-                "glob": "**/*",
-                "input": "node_modules/bootstrap-icons/font/fonts",
-                "output": "assets/fonts/bootstrap-icons/"
-              }
+              { "glob": "web.config", "input": "src", "output": "/" }
             ],
             "styles": [
               "node_modules/bootstrap/dist/css/bootstrap.min.css",
-              "node_modules/@fortawesome/fontawesome-free/css/all.min.css",
-              "node_modules/bootstrap-icons/font/bootstrap-icons.css",
               "node_modules/ngx-toastr/toastr.css",
               "node_modules/devextreme/dist/css/dx.light.css",
+              "node_modules/font-awesome/css/font-awesome.min.css",
               "src/assets/css/themes.css",
-              "src/styles.scss",
-              "src/assets/fonts/legacy-fa/fa4.css"
+              "src/styles.scss"
             ]
           },
           "configurations": {
@@ -131,18 +124,10 @@
           "builder": "@angular/build:extract-i18n"
         },
         "test": {
-          "builder": "@angular/build:karma",
+          "builder": "@angular-builders/jest:run",
           "options": {
-            "polyfills": ["zone.js", "zone.js/testing"],
-            "tsConfig": "tsconfig.spec.json",
-            "inlineStyleLanguage": "scss",
-            "assets": [
-              {
-                "glob": "**/*",
-                "input": "public"
-              }
-            ],
-            "styles": ["src/styles.scss"]
+            "configPath": "jest.config.mjs",
+            "passWithNoTests": true
           }
         }
       }

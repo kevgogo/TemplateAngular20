@@ -1,9 +1,3 @@
-/* Dónde quedaron copiadas las fuentes */
-@use "bootstrap-icons/font/bootstrap-icons" with (
-  $bootstrap-icons-font-dir: "/assets/fonts/bootstrap-icons/"
-);
-
-/* Si tienes tu paleta/temas propios, mantenla aquí */
 @import url("./assets/css/themes.css");
 
 /* ---------- Variables globales ---------- */

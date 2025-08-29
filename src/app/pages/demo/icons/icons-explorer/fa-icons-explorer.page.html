@@ -1,0 +1,93 @@
+<section class="fa-explorer">
+  <header class="ph">
+    <h1>Buscador de Iconos · Font Awesome</h1>
+
+    <div class="controls">
+      <label class="grp">
+        <span>Versión</span>
+        <select [ngModel]="version()" (ngModelChange)="version.set($event)">
+          <option value="v4">4.x</option>
+          <option value="v5">5.x</option>
+          <option value="v6">6.x</option>
+          <option value="v7">7.x</option>
+        </select>
+      </label>
+
+      <label class="grp">
+        <span>Estilo</span>
+        <select [ngModel]="style()" (ngModelChange)="style.set($event)">
+          <option value="solid">solid</option>
+          <option value="regular">regular</option>
+          <option value="brands">brands</option>
+        </select>
+      </label>
+
+      <label class="grp">
+        <span>Mostrar</span>
+        <select [ngModel]="display()" (ngModelChange)="display.set($event)">
+          <option value="class">clase</option>
+          <option value="snippet">&lt;i&gt; snippet</option>
+        </select>
+      </label>
+
+      <label class="grp grow">
+        <span>Buscar</span>
+        <input
+          type="text"
+          placeholder="filtra por id / inglés / español…"
+          [ngModel]="q()"
+          (ngModelChange)="q.set($event)"
+        />
+      </label>
+    </div>
+
+    <!-- Barra de fijado -->
+    <div class="pinned" *ngIf="selected() as sel">
+      <span class="tag">Fijado</span>
+      <i [class]="iconClass(sel)"></i>
+      <code>fa-{{ sel }}</code>
+      <button class="unpin" (click)="selected.set(null)">Quitar</button>
+    </div>
+  </header>
+
+  <div class="status" *ngIf="loading()">Cargando íconos…</div>
+  <div class="status error" *ngIf="errorMsg() as e">
+    {{ e }}<br />
+    <small
+      >Verifica acceso a la CDN o configura assets locales en el
+      servicio.</small
+    >
+  </div>
+
+  <div class="grid" *ngIf="!loading()">
+    <div
+      class="card"
+      *ngFor="let meta of iconsOrdered()"
+      [class.selected]="isSelected(meta.id)"
+      (click)="select(meta)"
+      title="Click para fijar en la primera posición"
+    >
+      <div class="icoprev">
+        <i [class]="iconClass(meta.id)"></i>
+      </div>
+
+      <div class="meta">
+        <div class="labels">
+          <div class="id">fa-{{ meta.id }}</div>
+          <div class="langs">
+            <span class="en" *ngIf="meta.en">EN: {{ meta.en }}</span>
+            <span class="es" *ngIf="meta.es">ES: {{ meta.es }}</span>
+          </div>
+        </div>
+        <button
+          class="copy"
+          (click)="copy(snippetFor(meta.id)); $event.stopPropagation()"
+        >
+          Copiar
+        </button>
+      </div>
+
+      <pre class="snippet">{{ snippetFor(meta.id) }}</pre>
+    </div>
+  </div>
+</section>

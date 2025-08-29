@@ -1,0 +1,56 @@
+<div class="fa4-search">
+  <div class="controls">
+    <input
+      type="search"
+      [ngModel]="query()"
+      (ngModelChange)="query.set($event)"
+      placeholder="Buscar por nombre o alias (v4.7.0)…"
+      aria-label="Buscar íconos Font Awesome 4"
+    />
+    <label class="toggle">
+      <input
+        type="checkbox"
+        [ngModel]="onlyUnique()"
+        (ngModelChange)="onlyUnique.set($event)"
+      />
+      <span>Mostrar solo nombres principales</span>
+    </label>
+    <span class="count" *ngIf="loaded()"
+      >Resultados: {{ filtered().length }}</span
+    >
+  </div>
+
+  @if(loaded()){
+  <div class="grid">
+    <div class="tile" *ngFor="let it of filtered(); trackBy: trackByName">
+      <i [class]="classFor(it)" aria-hidden="true"></i>
+      <div class="meta">
+        <div class="name">fa-{{ it.name }}</div>
+        <div class="aliases" *ngIf="it.aliases?.length">
+          <span class="chip" *ngFor="let a of it.aliases">alias: {{ a }}</span>
+        </div>
+        <div class="actions">
+          <button type="button" (click)="copy(it.class)">Copiar clase</button>
+          <button type="button" (click)="copy('\\' + it.unicode)">
+            Copiar unicode
+          </button>
+          <button
+            type="button"
+            (click)="
+              copy(
+                '<i class=&quot;' +
+                  it.class +
+                  '&quot; aria-hidden=&quot;true&quot;></i>'
+              )
+            "
+          >
+            Copiar HTML
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  } @else {
+  <div class="loading">Cargando íconos…</div>
+  }
+</div>

@@ -1,0 +1,21 @@
+<div class="p-3">
+  <h2 class="h5 mb-3">Suma</h2>
+
+  <label class="form-label">A</label>
+  <input
+    data-testid="a"
+    type="number"
+    class="form-control mb-2"
+    (input)="onA($event)"
+  />
+
+  <label class="form-label">B</label>
+  <input
+    data-testid="b"
+    type="number"
+    class="form-control mb-3"
+    (input)="onB($event)"
+  />
+
+  <div data-testid="sum" class="fw-bold">Resultado: {{ sum() }}</div>
+</div>

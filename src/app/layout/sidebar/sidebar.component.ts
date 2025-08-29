@@ -12,7 +12,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { LayoutService } from '@core/services/layout.service';
-import { MENU_DATA } from '@shared/mock/menu';
+import { DEMO_MENU } from '@shared/mock/fake-menu';
 import {
   AnyItem,
   MenuNode,
@@ -45,7 +45,7 @@ export class SidebarComponent {
 
   /** Fallback local (mock) también convertido al vuelo */
   private _originalItems: MenuNode[] = this.normalize(
-    this.coerceToMenuNodes(MENU_DATA as any)
+    this.coerceToMenuNodes(DEMO_MENU as any)
   );
 
   private layout = inject(LayoutService);
