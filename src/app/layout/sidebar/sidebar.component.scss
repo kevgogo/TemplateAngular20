@@ -16,7 +16,7 @@ aside.sidebar {
   color: var(--bs-body-color, #212529);
   transition: width 0.2s ease;
   overflow: visible;
-  z-index: 10;
+  z-index: var(--z-sidebar);
   font-size: 13px;
 
   .root,

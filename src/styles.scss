@@ -9,6 +9,7 @@
   --z-navbar: 1030; /* por encima de dropdowns (Bootstrap ~1000) */
   --z-breadcrumbs: 1020;
   --z-headbar: 1015;
+  --z-sidebar: 1040; /* por encima de breadcrumbs*/
 
   /* Radio/sombras opcionales si quieres consistencia */
   --card-radius: 1rem;
@@ -60,7 +61,7 @@ body.fixed-pageheader section.content {
 
 body.sidebar-fixed app-sidebar.sidebar {
   position: sticky;
-  z-index: var(--z-headbar);
+  z-index: var(--z-sidebar);
 }
 
 /* ---------- Navbar Bootstrap cuando es fixed-top ---------- */
