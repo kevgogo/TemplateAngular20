@@ -1,3 +1,10 @@
+/* =====================================
+   Sidebar + Flypanel (SCSS completo)
+   - Scroll interno SOLO en el flypanel de búsqueda
+   - Header/Footer fijos
+   - Sin afectar otros flypanels
+   ===================================== */
+
 /* ======== Variables ======== */
 $w-expanded: 224px;
 $w-collapsed: 72px;
@@ -7,7 +14,9 @@ aside.sidebar {
   width: auto;
 }
 
-/* ======== Sidebar base ======== */
+/* =====================================
+   Sidebar base
+   ===================================== */
 .sidebar {
   position: relative;
   width: $w-expanded;
@@ -36,9 +45,10 @@ aside.sidebar {
     text-decoration: none;
     border-radius: 0;
     position: relative;
-    transition: background-color 0.15s ease, color 0.15s ease;
+    transition:
+      background-color 0.15s ease,
+      color 0.15s ease;
   }
-
   .link:hover,
   .sub-link:hover,
   .dropdown-like:hover {
@@ -51,18 +61,16 @@ aside.sidebar {
     color: var(--bs-primary, #0d6efd);
     font-weight: 600;
   }
-
   .link[aria-expanded="true"],
   .sub-link[aria-expanded="true"] {
     color: var(--bs-primary, #0d6efd);
     font-weight: 600;
   }
 
-  /* Background degradado por niveles - SOLO para elementos activos */
+  /* Background degradado por niveles - SOLO activos */
   .submenu.depth-1 .sub-link.active {
     background: color-mix(in srgb, var(--bs-primary, #0d6efd) 6%, transparent);
   }
-
   .submenu.depth-2 .sub-link.active {
     background: transparent;
   }
@@ -82,22 +90,22 @@ aside.sidebar {
     text-align: center;
     font-size: 1rem;
   }
-
   .fa::before {
     display: inline-block;
     vertical-align: -0.125em;
   }
-
   .fa.ms-auto {
     opacity: 0.7;
-    transition: transform 0.15s ease, opacity 0.15s ease;
+    transition:
+      transform 0.15s ease,
+      opacity 0.15s ease;
   }
   .link[aria-expanded="true"] .ms-auto,
   .sub-link[aria-expanded="true"] .ms-auto {
     opacity: 1;
   }
 
-  /* ====== Expandido ====== */
+  /* ===== Expandido ===== */
   &:not(.collapsed) {
     .submenu {
       margin: 0.25rem 0;
@@ -122,7 +130,7 @@ aside.sidebar {
       }
     }
 
-    /* SangrÃ­as */
+    /* Sangrías */
     .submenu.depth-1 {
       padding-left: 0.75rem;
     }
@@ -155,7 +163,6 @@ aside.sidebar {
     }
 
     /* ===== Barra de acento SOLO en nodos con hijos y EXPANDIDOS ===== */
-    /* Reset global para que no aparezca en otros casos */
     .link::before,
     .sub-link::before {
       content: none;
@@ -212,14 +219,13 @@ aside.sidebar {
     }
   }
 
-  /* ====== Colapsado ====== */
+  /* ===== Colapsado ===== */
   &.collapsed {
     width: $w-collapsed;
 
     .item {
       position: relative;
     }
-
     .link {
       justify-content: center;
       gap: 0;
@@ -227,11 +233,6 @@ aside.sidebar {
       padding-right: 0.5rem;
       position: relative;
     }
-
-    // .label,
-    // .ms-auto {
-    //   display: none !important;
-    // }
 
     .chevron-collapsed {
       position: absolute;
@@ -253,7 +254,7 @@ aside.sidebar {
     }
   }
 
-  /* === Quitar cualquier ::after de <a> === */
+  /* Quitar cualquier ::after de <a> */
   .link::after,
   .sub-link::after,
   .dropdown-like::after,
@@ -261,14 +262,10 @@ aside.sidebar {
     content: none !important;
   }
 
+  /* Alto de filas de nivel 0 */
   .root > .item a {
-    height: 50px; // igual al 50px del shell
+    height: 50px;
   }
-
-  /* Espaciado entre items del nivel 0 */
-  // .root > .item + .item {
-  //   margin-top: 0.25rem;
-  // }
 
   /* Accesibilidad */
   a:focus-visible {
@@ -278,7 +275,9 @@ aside.sidebar {
   }
 }
 
-/* ====== Panel ÃšNICO (colapsado) ====== */
+/* =====================================
+   Panel Único (colapsado)
+   ===================================== */
 .flypanel-backdrop {
   position: fixed;
   inset: 0;
@@ -290,7 +289,7 @@ aside.sidebar {
   min-width: 260px;
   max-width: 360px;
   max-height: calc(100vh - 24px);
-  overflow-y: auto;
+  /* SIN overflow aquí: el scroll va en .panel-scroll */
   background: var(--bs-body-bg, #fff);
   border: 1px solid var(--bs-border-color, rgba(0, 0, 0, 0.1));
   border-radius: 0.5rem;
@@ -329,10 +328,10 @@ aside.sidebar {
   display: none !important;
 }
 
+/* Buscador (sidebar expandida) */
 .search-container {
   height: 50px;
 }
-
 .sidebar .item.meta .link {
   pointer-events: none;
   cursor: default;
@@ -345,33 +344,30 @@ aside.sidebar {
   padding: 0.05rem 0.25rem;
   border-radius: 0.2rem;
 }
-
 .search-area {
   height: 50px;
 }
-/* Hace que el bloque collapsed-search luzca como un item de menú */
+
+/* ===== Lupa en modo colapsado (estilo permanente activo) ===== */
 .collapsed-search {
   padding: 0;
   border-bottom: 1px solid var(--sb-border);
-
   .link {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    height: 50px; /* mismo alto que tus filas */
+    height: 50px;
     width: 100%;
-    padding: 0 1rem; /* equivalente a .px-3 */
+    padding: 0 1rem;
     background: transparent;
     border: 0;
     border-radius: 0;
     color: var(--sb-fg);
     text-decoration: none;
-
     &:hover {
       background: var(--sb-hover-bg);
       color: var(--sb-fg);
     }
-
     .fa {
       width: 1.125rem;
       min-width: 1.125rem;
@@ -379,25 +375,18 @@ aside.sidebar {
     }
   }
 }
-
-/* === Lupa (collapsed-search): activo PERMANENTE sin hover === */
 aside.sidebar .collapsed-search {
-  /* si algún selector pinta el contenedor en :hover */
   background: transparent !important;
 }
 aside.sidebar .collapsed-search:hover {
   background: transparent !important;
 }
-
-/* estado activo fijo */
 aside.sidebar .collapsed-search .link.active-static {
   background: var(--sb-active-bg) !important;
   color: var(--sb-active-fg) !important;
   box-shadow: none !important;
   outline: 0 !important;
 }
-
-/* no cambiar al pasar mouse / focus / active */
 aside.sidebar .collapsed-search .link.active-static:hover,
 aside.sidebar .collapsed-search:hover .link.active-static,
 aside.sidebar .collapsed-search .link.active-static:focus,
@@ -408,72 +397,120 @@ aside.sidebar .collapsed-search .link.active-static:active {
   box-shadow: none !important;
   outline: 0 !important;
 }
-
-/* por si hay decoradores de pseudo-elemento en tus enlaces */
-aside.sidebar .collapsed-search .link.active-static::before,
-aside.sidebar .collapsed-search .link.active-static::after {
-  content: none !important;
+aside.sidebar .collapsed-search .link {
+  height: 50px;
 }
 
-/* (opcional) asegurar la misma altura que los ítems del menú */
-aside.sidebar .collapsed-search .link {
-  height: 50px; /* ajusta si tu fila usa otro alto */
+/* =====================================
+   Flypanel de búsqueda: scroll interno
+   ===================================== */
+/* Scrollbar delgada sólo DENTRO del contenedor scrolleable del panel */
+.flypanel .panel-scroll {
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: color-mix(in srgb, var(--bs-primary, #0d6efd) 25%, #999)
+    transparent;
+}
+.flypanel .panel-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+.flypanel .panel-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.flypanel .panel-scroll::-webkit-scrollbar-thumb {
+  background-color: color-mix(in srgb, var(--bs-primary, #0d6efd) 35%, #aaa);
+  border-radius: 6px;
+  border: 2px solid transparent;
+}
+.flypanel .panel-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: color-mix(in srgb, var(--bs-primary, #0d6efd) 55%, #888);
+}
+
+/* El body del panel no scrollea; el scroll vive en .panel-scroll */
+.flypanel .panel-body {
+  overflow: visible;
+}
+
+/* Altura del área scrolleable calculada (no afecta a otros flypanels) */
+.flypanel .panel-scroll {
+  --fp-safe: 24px; /* márgenes externos del panel */
+  --fp-header: 44px; /* alto aprox. del header */
+  --fp-search: 40px; /* alto aprox. del input + paddings */
+  --fp-footer: 68px; /* alto del footer (meta + botones) */
+
+  max-height: calc(
+    60vh - var(--fp-safe) - var(--fp-header) - var(--fp-search) - var(
+        --fp-footer
+      )
+  );
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain; /* evita chain-scroll hacia el documento */
+}
+
+/* Footer centrado y fijo al fondo del panel */
+.flypanel .panel-footer.center {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  text-align: center;
+  padding: 0.5rem 0.75rem;
+  background: var(--bs-body-bg, #fff);
+  border-top: 1px solid var(--bs-border-color, rgba(0, 0, 0, 0.1));
+  padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0));
+}
+.flypanel .panel-footer.center .actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 
 /* =========================
-   Flypanel: modo compacto
+   Flypanel: modo compacto (opcional)
    ========================= */
 .flypanel.compact {
-  /* ancho igual; solo densidad */
   .flypanel-header {
     min-height: 36px;
     padding-top: 0.25rem !important;
     padding-bottom: 0.25rem !important;
-
     .title {
-      font-size: 0.875rem; /* 14px aprox */
+      font-size: 0.875rem;
       line-height: 1.15;
     }
-
     .btn {
       padding: 0 0.25rem !important;
       line-height: 1;
     }
   }
-
-  /* input de búsqueda más bajo */
   .form-control.form-control-sm {
     height: 28px;
     padding: 0.15rem 0.5rem;
-    font-size: 0.8125rem; /* 13px aprox */
+    font-size: 0.8125rem;
     line-height: 1.1;
   }
-
-  /* lista más apretada */
   .panel-list {
     padding: 0.25rem 0;
   }
-
   .panel-item {
-    margin: 0; /* sin gaps verticales extra */
+    margin: 0;
   }
-
   .dropdown-like {
-    padding: 0.375rem 0.75rem; /* 6px 12px */
+    padding: 0.375rem 0.75rem;
     gap: 0.5rem;
-    font-size: 0.8125rem; /* 13px aprox */
+    font-size: 0.8125rem;
     line-height: 1.15;
   }
-
-  /* íconos más pequeños y estrechos */
   .fa {
     font-size: 0.95rem;
     width: 1rem;
     min-width: 1rem;
     text-align: center;
   }
-
-  /* resaltado más discreto para que no “salte” tanto */
   .search-highlight {
     padding: 0 0.1rem;
     background: color-mix(
@@ -483,8 +520,6 @@ aside.sidebar .collapsed-search .link {
     );
   }
 }
-
-/* Ocultar iconos en modo compacto si se usa la bandera */
 .flypanel.compact.hide-icons .fa {
   display: none;
 }

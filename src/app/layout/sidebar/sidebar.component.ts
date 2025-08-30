@@ -25,6 +25,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
 
 type SearchScope = 'all' | 'root';
+type FlatResult = { node: MenuNode; depth: number };
 
 @Component({
   selector: 'app-sidebar',
@@ -35,6 +36,8 @@ type SearchScope = 'all' | 'root';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SidebarComponent {
+  readonly Math = Math;
+
   /** Override opcional. Si no se provee, se usa el estado del LayoutService */
   @Input() collapsed: boolean | null = null;
 
@@ -55,10 +58,63 @@ export class SidebarComponent {
     this._originalItems = this.normalize(coerced);
     this.resetListPreservingSelection();
   }
+  // ====== OPCIONES ======
+  @Input() rememberFlypanelScroll = true; // recuerda scroll entre vistas del flypanel
+  @Input() scrollToTopOnNewSearch = true; // al cambiar término de búsqueda, sube al top
 
+  /** Máx. resultados a renderizar en el panel de búsqueda (inicial) */
+  @Input() panelInitialLimit = 15;
+  /** Cuántos sumar cada vez que el usuario pida “Mostrar más” */
+  @Input() panelLoadStep = 15;
+  @Input() panelIndentInSearch = false; // true = indenta por nivel, false = sin indentado
+
+  // ===== Footer de búsqueda =====
+  @Input() showSearchFooter = true; // poder ocultarlo si no lo quieres
+
+  /** Límite actual visible (se resetea al abrir búsqueda o cambiar término) */
+  panelLimit = signal(this.panelInitialLimit ?? 15);
+
+  /** Colección “plana” de resultados (respeta searchHideParentsInPanel) */
+  panelResultsFlat = computed<FlatResult[]>(() => {
+    const out: FlatResult[] = [];
+    const walk = (nodes: MenuNode[], depth: number) => {
+      for (const n of nodes) {
+        const has = this.hasChildren(n);
+        // omitir fila del padre si la bandera está activa
+        if (!(this.searchHideParentsInPanel && has))
+          out.push({ node: n, depth });
+        if (has) walk(n.children!, depth + 1);
+      }
+    };
+    walk(this.panelFilteredItems(), 0);
+    return out;
+  });
+
+  /** Resultados visibles según límite actual */
+  visiblePanelResults = computed(() =>
+    this.panelResultsFlat().slice(0, this.panelLimit()),
+  );
+
+  /** Cuántos faltan por mostrar */
+  remainingPanelResults = computed(() =>
+    Math.max(0, this.panelResultsFlat().length - this.panelLimit()),
+  );
+
+  totalPanelResults = computed(() => this.panelResultsFlat().length);
+
+  showMorePanel() {
+    this.panelLimit.update((v) => v + this.panelLoadStep);
+  }
+  showAllPanel() {
+    this.panelLimit.set(this.panelResultsFlat().length);
+  }
+
+  // ====== ESTADO DE SCROLL DEL FLYPANEL ======
+  private panelScrollPos = new Map<string, number>();
+  private flypanelScrollHandler?: (e: Event) => void;
   /** El menú lateral base (no filtrado) */
   private _originalItems: MenuNode[] = this.normalize(
-    this.coerceToMenuNodes(DEMO_MENU as any)
+    this.coerceToMenuNodes(DEMO_MENU as any),
   );
 
   /** Getter para la lista que se pinta en el sidebar (expandidos) */
@@ -77,22 +133,93 @@ export class SidebarComponent {
 
   // ====== Bloqueo/desbloqueo de scroll del body (panel abierto) ======
   private savedScrollY = 0;
-  private preventScroll = (e: Event) => e.preventDefault();
+  private preventScroll = (e: Event) => {
+    const t = (e.target as HTMLElement) || null;
+    const path = (e as any).composedPath?.() as EventTarget[] | undefined;
+
+    const insideFlypanel =
+      !!this._flypanelEl &&
+      (this._flypanelEl === t ||
+        (t && this._flypanelEl.contains(t)) ||
+        (path && path.includes(this._flypanelEl)));
+
+    if (insideFlypanel) return; // ✅ deja que el panel haga scroll
+    e.preventDefault(); // ⛔️ bloquea scroll del body/fondo
+  };
 
   // ====== Hook para cerrar si hay scroll dentro del flypanel ======
   private flypanelScrollSub?: Subscription;
+  // Reemplaza tu setter actual de @ViewChild('flypanelEl') por este:
   @ViewChild('flypanelEl')
   set flypanelElSetter(ref: ElementRef<HTMLElement> | undefined) {
+    // limpia subs anteriores
     this.flypanelScrollSub?.unsubscribe();
     this.flypanelScrollSub = undefined;
-    if (ref?.nativeElement) {
-      this.flypanelScrollSub = this.layout.enableAutoCloseOnElement(
-        ref.nativeElement,
-        { direction: 'any' }
+
+    // quita listener anterior si existe
+    if (this.flypanelScrollHandler && this._flypanelEl) {
+      this._flypanelEl.removeEventListener(
+        'scroll',
+        this.flypanelScrollHandler,
+        { capture: false } as any,
       );
     }
+
+    this._flypanelEl = ref?.nativeElement ?? null;
+
+    if (this._flypanelEl) {
+      // // autocierre al scrollear DENTRO del panel
+      // this.flypanelScrollSub = this.layout.enableAutoCloseOnElement(
+      //   this._flypanelEl,
+      //   { direction: 'any' }
+      // );
+
+      // guarda scroll en cada evento
+      this.flypanelScrollHandler = () => this.saveCurrentScroll();
+      this._flypanelEl.addEventListener('scroll', this.flypanelScrollHandler, {
+        passive: true,
+      });
+
+      // restaura si tenemos record
+      queueMicrotask(() => this.restoreCurrentScroll());
+    }
+  }
+  private _flypanelEl: HTMLElement | null = null;
+  // ====== HELPERS DE SCROLL ======
+  private currentScrollKey(): string {
+    if (this.searchMode) {
+      // búsqueda global o por root
+      const root = this.searchRoot?.label ?? '';
+      return this.searchScope === 'root' ? `search:root:${root}` : 'search:all';
+    }
+    // clave por ruta de drill-down
+    const path = this.panelStack.map((n) => n.label || '').join(' > ');
+    return `stack:${path || 'root'}`;
   }
 
+  private saveCurrentScroll(): void {
+    if (!this.rememberFlypanelScroll || !this._flypanelEl) return;
+    this.panelScrollPos.set(
+      this.currentScrollKey(),
+      this._flypanelEl.scrollTop,
+    );
+  }
+
+  private restoreCurrentScroll(): void {
+    if (!this._flypanelEl) return;
+    const y = this.rememberFlypanelScroll
+      ? (this.panelScrollPos.get(this.currentScrollKey()) ?? 0)
+      : 0;
+    this._flypanelEl.scrollTop = y;
+  }
+
+  private resetCurrentScroll(): void {
+    if (!this._flypanelEl) return;
+    this._flypanelEl.scrollTop = 0;
+    if (this.rememberFlypanelScroll) {
+      this.panelScrollPos.set(this.currentScrollKey(), 0);
+    }
+  }
   // ====== Refs de input en el panel (para focus) ======
   @ViewChild('searchInputEl') searchInputEl?: ElementRef<HTMLInputElement>;
 
@@ -144,7 +271,10 @@ export class SidebarComponent {
 
   onPanelSearchChange(v: string) {
     this.panelSearchTerm.set(v);
+    this.panelLimit.set(this.panelInitialLimit); // +++
+    if (this.scrollToTopOnNewSearch) this.resetCurrentScroll();
   }
+
   clearPanelSearch() {
     this.panelSearchTerm.set('');
   }
@@ -237,7 +367,7 @@ export class SidebarComponent {
           this.openPanelForRoot(
             ev.currentTarget as HTMLElement,
             node,
-            rootIndex
+            rootIndex,
           );
       } else {
         const id = this.nodeId(null, rootIndex);
@@ -304,7 +434,7 @@ export class SidebarComponent {
   openPanelForRoot(
     anchorEl: HTMLElement,
     rootNode: MenuNode,
-    rootIndex: number
+    rootIndex: number,
   ): void {
     this.searchMode = false;
     this.searchScope = 'all';
@@ -314,6 +444,7 @@ export class SidebarComponent {
     this.panelStack = [rootNode];
     this.repositionPanel(anchorEl);
     this.lockScroll();
+    queueMicrotask(() => this.restoreCurrentScroll());
   }
 
   /** Búsqueda GLOBAL (desde la lupa del sidebar colapsado) */
@@ -327,7 +458,11 @@ export class SidebarComponent {
     this.panelStack = [];
     this.repositionPanel(anchorEl);
     this.lockScroll();
-    queueMicrotask(() => this.searchInputEl?.nativeElement?.focus());
+    this.panelLimit.set(this.panelInitialLimit);
+    queueMicrotask(() => {
+      if (this.scrollToTopOnNewSearch) this.resetCurrentScroll();
+      this.searchInputEl?.nativeElement?.focus();
+    });
   }
 
   /** Búsqueda SOLO dentro del root actualmente abierto en el panel */
@@ -339,12 +474,17 @@ export class SidebarComponent {
     this.searchScope = 'root';
     this.searchRoot = currentRoot;
     this.panelSearchTerm.set('');
-    queueMicrotask(() => this.searchInputEl?.nativeElement?.focus());
+    this.panelLimit.set(this.panelInitialLimit); // +++
+    queueMicrotask(() => {
+      if (this.scrollToTopOnNewSearch) this.resetCurrentScroll();
+      this.searchInputEl?.nativeElement?.focus();
+    });
   }
 
   onPanelItemClick(ev: MouseEvent, node: MenuNode): void {
     if (this.hasChildren(node)) {
       ev.preventDefault();
+      this.saveCurrentScroll();
       this.panelStack.push(node);
     } else {
       this.closePanel();
@@ -354,6 +494,7 @@ export class SidebarComponent {
   onSearchNodeClick(ev: MouseEvent, node: MenuNode): void {
     if (this.hasChildren(node)) {
       ev.preventDefault();
+      this.saveCurrentScroll();
       this.searchMode = false;
       this.searchScope = 'all';
       this.searchRoot = null;
@@ -383,8 +524,11 @@ export class SidebarComponent {
       this.panelSearchTerm.set('');
       return;
     }
-    if (this.panelStack.length > 1) this.panelStack.pop();
-    else this.closePanel();
+    if (this.panelStack.length > 1) {
+      this.saveCurrentScroll();
+      this.panelStack.pop();
+      queueMicrotask(() => this.restoreCurrentScroll());
+    } else this.closePanel();
   }
 
   closeFlypanel() {
@@ -393,6 +537,7 @@ export class SidebarComponent {
 
   closePanel(): void {
     if (!this.panelOpen && !this.searchMode) return;
+    this.saveCurrentScroll();
     this.panelOpenRootIndex = null;
     this.panelStack = [];
     this.panelStyle = {};
@@ -409,7 +554,7 @@ export class SidebarComponent {
       (anchorEl.closest('li.item, button, a') as HTMLElement) ?? anchorEl;
     const r = li.getBoundingClientRect();
     const aside = this.host.nativeElement.querySelector(
-      'aside.sidebar'
+      'aside.sidebar',
     ) as HTMLElement;
     const a = aside.getBoundingClientRect();
     const maxTop = Math.max(8, Math.min(r.top, window.innerHeight - 16 - 320));
@@ -418,8 +563,8 @@ export class SidebarComponent {
       top: `${Math.round(maxTop)}px`,
       left: `${Math.round(a.right)}px`,
       minWidth: '260px',
-      maxHeight: 'calc(100vh - 24px)',
-      overflowY: 'auto',
+      // maxHeight: 'calc(100vh - 24px)',
+      // overflowY: 'auto',
     };
   }
 
@@ -433,7 +578,7 @@ export class SidebarComponent {
     if (this.collapsedResolved && (this.panelOpen || this.searchMode)) {
       const btn =
         this.host.nativeElement.querySelector(
-          '.collapsed-search .link, li.item > .link'
+          '.collapsed-search .link, li.item > .link',
         ) || undefined;
       if (btn) this.repositionPanel(btn as HTMLElement);
     }
@@ -457,7 +602,7 @@ export class SidebarComponent {
 
   private findActiveIndexPath(
     nodes: MenuNode[],
-    trail: number[] = []
+    trail: number[] = [],
   ): number[] | null {
     for (let i = 0; i < nodes.length; i++) {
       const n = nodes[i];
@@ -555,7 +700,7 @@ export class SidebarComponent {
   // Utilidad: resaltar términos
   highlightSearchTerm(text: string, term: string): string {
     const t = term.trim();
-    if (!t) return text;
+    if (!t || t.length < 2) return text;
     const regex = new RegExp(`(${this.escapeRegex(t)})`, 'gi');
     return text.replace(regex, '<mark class="search-highlight">$1</mark>');
   }

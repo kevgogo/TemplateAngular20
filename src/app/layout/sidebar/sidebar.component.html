@@ -6,158 +6,166 @@
   aria-label="Sidebar"
   id="appSidebar"
 >
-  <!-- Campo de búsqueda (solo visible cuando NO está colapsado) -->
+  <!-- =================== Búsqueda (NO colapsado) =================== -->
   @if (!collapsedResolved) {
-  <div class="search-container border-bottom">
-    <div
-      class="input-group input-group-sm search-like-row gap-2 px-3 py-2 align-items-center"
-    >
-      <span class="input-group-text bg-transparent border-0 p-0 me-2">
-        <i class="fa fa-search opacity-75"></i>
-      </span>
-
-      <input
-        type="text"
-        class="form-control form-control-sm border-0 bg-transparent shadow-none p-0"
-        placeholder="Buscar en el menú..."
-        [value]="searchTerm()"
-        (input)="onSearchChange($any($event).target.value)"
-        aria-label="Buscar en el menú"
-      />
-
-      @if (isSearching()) {
-      <a
-        href="#"
-        class="btn btn-sm btn-link text-muted p-0 ms-2"
-        (click)="$event.preventDefault(); clearSearch()"
-        aria-label="Limpiar búsqueda"
-        title="Limpiar búsqueda"
+    <div class="search-container border-bottom">
+      <div
+        class="input-group input-group-sm search-like-row gap-2 px-3 py-2 align-items-center"
       >
-        <i class="fa fa-times opacity-75"></i>
-      </a>
-      }
+        <span class="input-group-text bg-transparent border-0 p-0 me-2">
+          <i class="fa fa-search opacity-75"></i>
+        </span>
+
+        <input
+          type="text"
+          class="form-control form-control-sm border-0 bg-transparent shadow-none p-0"
+          placeholder="Buscar en el menú..."
+          [value]="searchTerm()"
+          (input)="onSearchChange($any($event).target.value)"
+          aria-label="Buscar en el menú"
+        />
+
+        @if (isSearching()) {
+          <button
+            type="button"
+            class="btn btn-sm btn-link text-muted p-0 ms-2"
+            (click)="clearSearch()"
+            aria-label="Limpiar búsqueda"
+            title="Limpiar búsqueda"
+          >
+            <i class="fa fa-x-lg"></i>
+          </button>
+        }
+      </div>
     </div>
-  </div>
   }
 
-  <!-- Botón de búsqueda GLOBAL cuando SÍ está colapsado (abre flypanel en modo búsqueda) -->
+  <!-- =================== Botón búsqueda (SÍ colapsado) =================== -->
   @if (collapsedResolved) {
-  <div class="collapsed-search border-bottom d-flex justify-content-center">
-    <a
-      #searchBtn
-      href="#"
-      class="link active active-static d-flex align-items-center px-3 py-2 text-decoration-none opacity-75"
-      aria-label="Buscar en el menú"
-      title="Buscar en el menú"
-      (click)="$event.preventDefault(); openSearchPanel(searchBtn)"
-    >
-      <i class="fa fa-search"></i>
-    </a>
-  </div>
-  }
-
-  <!-- Lista principal (expandido). Si hay búsqueda, items ya viene filtrado -->
-  @if (items.length > 0) {
-  <ul class="root list-unstyled m-0">
-    @if (isSearching() && !collapsedResolved) {
-    <li class="item meta" role="status" aria-live="polite">
-      <div
-        class="link d-flex align-items-center gap-2 px-3 py-2 text-decoration-none"
-      >
-        <span class="label text-truncate flex-grow-1">
-          {{ items.length }} resultado{{
-            items.length !== 1 ? "s" : ""
-          }}
-          encontrado{{ items.length !== 1 ? "s" : "" }} para
-          <mark class="search-term">{{ searchTerm() }}</mark>
-        </span>
-      </div>
-    </li>
-    } @for (it of items; track $index) {
-    <li
-      class="item"
-      [class.has-children]="hasChildren(it)"
-      [class.open]="
-        !collapsedResolved && hasChildren(it) && isOpen(nodeId(null, $index))
-      "
-      [class.search-match]="isSearching()"
-    >
-      <!-- NIVEL 0 (raíz) -->
+    <div class="collapsed-search border-bottom d-flex justify-content-center">
       <a
-        class="link d-flex align-items-center gap-2 px-3 py-2 text-decoration-none"
-        [routerLink]="hasChildren(it) ? [] : it.link || []"
-        routerLinkActive="active"
-        [routerLinkActiveOptions]="{ exact: true }"
-        (click)="onRootClick($event, it, $index)"
-        [attr.aria-haspopup]="hasChildren(it) ? 'true' : null"
-        [attr.aria-expanded]="
-          !collapsedResolved && hasChildren(it)
-            ? isOpen(nodeId(null, $index))
-            : null
-        "
-        [attr.title]="collapsedResolved ? it.label : null"
-        role="menuitem"
+        #searchBtn
+        href="#"
+        class="link active active-static d-flex align-items-center px-3 py-2 text-decoration-none"
+        aria-label="Buscar en el menú"
+        title="Buscar en el menú"
+        (click)="$event.preventDefault(); openSearchPanel(searchBtn)"
       >
-        <i class="fa" [ngClass]="it.icon"></i>
-
-        @if (!collapsedResolved) {
-        <span
-          class="label text-truncate flex-grow-1 hide-when-sidebar-collapsed"
-          [innerHTML]="
-            isSearching()
-              ? highlightSearchTerm(it.label, searchTerm())
-              : it.label
-          "
-        ></span>
-
-        @if (hasChildren(it)) {
-        <i
-          class="fa ms-auto"
-          [ngClass]="
-            isOpen(nodeId(null, $index))
-              ? 'fa-chevron-down'
-              : 'fa-chevron-right'
-          "
-        ></i>
-        } }
+        <i class="fa fa-search"></i>
       </a>
-
-      <!-- EXPANDIDO: submenú inline SOLO si está abierto -->
-      @if (!collapsedResolved && hasChildren(it) && isOpen(nodeId(null,
-      $index))) {
-      <ng-template
-        [ngTemplateOutlet]="inlineTpl"
-        [ngTemplateOutletContext]="{
-          nodes: it.children,
-          depth: 1,
-          parentId: nodeId(null, $index)
-        }"
-      ></ng-template>
-      }
-    </li>
-    }
-  </ul>
-  } @else {
-  <ul class="root list-unstyled m-0">
-    @if (isSearching() && !collapsedResolved) {
-    <li class="item meta" role="status" aria-live="polite">
-      <div
-        class="link d-flex align-items-center gap-2 px-3 py-2 text-decoration-none"
-      >
-        <span class="label text-truncate flex-grow-1">
-          {{ items.length }} resultado{{
-            items.length !== 1 ? "s" : ""
-          }}
-          encontrado{{ items.length !== 1 ? "s" : "" }} para
-          <mark class="search-term">{{ searchTerm() }}</mark>
-        </span>
-      </div>
-    </li>
-    }
-  </ul>
+    </div>
   }
 
-  <!-- =================== Template: Inline (expandido) =================== -->
+  <!-- =================== Lista principal (árbol) =================== -->
+  @if (items.length > 0) {
+    <ul class="root list-unstyled m-0">
+      @if (isSearching() && !collapsedResolved) {
+        <li class="item meta" role="status" aria-live="polite">
+          <div
+            class="link d-flex align-items-center gap-2 px-3 py-2 text-decoration-none"
+          >
+            <span class="label text-truncate flex-grow-1">
+              {{ items.length }} resultado{{
+                items.length !== 1 ? "s" : ""
+              }}
+              encontrado{{ items.length !== 1 ? "s" : "" }} para
+              <mark class="search-term">{{ searchTerm() }}</mark>
+            </span>
+          </div>
+        </li>
+      }
+
+      @for (it of items; track $index) {
+        <li
+          class="item"
+          [class.has-children]="hasChildren(it)"
+          [class.open]="
+            !collapsedResolved &&
+            hasChildren(it) &&
+            isOpen(nodeId(null, $index))
+          "
+          [class.search-match]="isSearching()"
+        >
+          <!-- Nivel 0 -->
+          <a
+            class="link d-flex align-items-center gap-2 px-3 py-2 text-decoration-none"
+            [routerLink]="hasChildren(it) ? [] : it.link || []"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: true }"
+            (click)="onRootClick($event, it, $index)"
+            [attr.aria-haspopup]="hasChildren(it) ? 'true' : null"
+            [attr.aria-expanded]="
+              !collapsedResolved && hasChildren(it)
+                ? isOpen(nodeId(null, $index))
+                : null
+            "
+            [attr.title]="collapsedResolved ? it.label : null"
+            role="menuitem"
+          >
+            <i class="fa" [ngClass]="it.icon"></i>
+
+            @if (!collapsedResolved) {
+              <span
+                class="label text-truncate flex-grow-1 hide-when-sidebar-collapsed"
+                [innerHTML]="
+                  isSearching()
+                    ? highlightSearchTerm(it.label, searchTerm())
+                    : it.label
+                "
+              ></span>
+
+              @if (hasChildren(it)) {
+                <i
+                  class="fa ms-auto"
+                  [ngClass]="
+                    isOpen(nodeId(null, $index))
+                      ? 'fa-chevron-down'
+                      : 'fa-chevron-right'
+                  "
+                ></i>
+              }
+            }
+          </a>
+
+          <!-- Expandido: submenú inline -->
+          @if (
+            !collapsedResolved &&
+            hasChildren(it) &&
+            isOpen(nodeId(null, $index))
+          ) {
+            <ng-template
+              [ngTemplateOutlet]="inlineTpl"
+              [ngTemplateOutletContext]="{
+                nodes: it.children,
+                depth: 1,
+                parentId: nodeId(null, $index),
+              }"
+            ></ng-template>
+          }
+        </li>
+      }
+    </ul>
+  } @else {
+    <ul class="root list-unstyled m-0">
+      @if (isSearching() && !collapsedResolved) {
+        <li class="item meta" role="status" aria-live="polite">
+          <div
+            class="link d-flex align-items-center gap-2 px-3 py-2 text-decoration-none"
+          >
+            <span class="label text-truncate flex-grow-1">
+              {{ items.length }} resultado{{
+                items.length !== 1 ? "s" : ""
+              }}
+              encontrado{{ items.length !== 1 ? "s" : "" }} para
+              <mark class="search-term">{{ searchTerm() }}</mark>
+            </span>
+          </div>
+        </li>
+      }
+    </ul>
+  }
+
+  <!-- =================== Template recursivo (expandido) =================== -->
   <ng-template
     #inlineTpl
     let-nodes="nodes"
@@ -166,200 +174,227 @@
   >
     <ul class="submenu" [class]="'depth-' + depth">
       @for (n of nodes; track $index) {
-      <li
-        class="subitem"
-        [class.has-children]="hasChildren(n)"
-        [class.open]="hasChildren(n) && isOpen(nodeId(parentId, $index))"
-        [class.search-match]="isSearching()"
-      >
-        <a
-          class="sub-link d-flex align-items-center gap-2 px-3 py-2 text-decoration-none"
-          [routerLink]="hasChildren(n) ? [] : n.link || []"
-          routerLinkActive="active"
-          [routerLinkActiveOptions]="{ exact: true }"
-          (click)="onItemClick($event, n, nodeId(parentId, $index))"
-          role="menuitem"
+        <li
+          class="subitem"
+          [class.has-children]="hasChildren(n)"
+          [class.open]="hasChildren(n) && isOpen(nodeId(parentId, $index))"
+          [class.search-match]="isSearching()"
         >
-          <i class="fa" [ngClass]="n.icon"></i>
+          <a
+            class="sub-link d-flex align-items-center gap-2 px-3 py-2 text-decoration-none"
+            [routerLink]="hasChildren(n) ? [] : n.link || []"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: true }"
+            (click)="onItemClick($event, n, nodeId(parentId, $index))"
+            role="menuitem"
+          >
+            <i class="fa" [ngClass]="n.icon"></i>
 
-          <span
-            class="text-truncate"
-            [attr.title]="n.label"
-            [innerHTML]="
-              isSearching()
-                ? highlightSearchTerm(n.label, searchTerm())
-                : n.label
-            "
-          ></span>
+            <span
+              class="text-truncate"
+              [attr.title]="n.label"
+              [innerHTML]="
+                isSearching()
+                  ? highlightSearchTerm(n.label, searchTerm())
+                  : n.label
+              "
+            ></span>
 
-          @if (hasChildren(n)) {
-          <i
-            class="fa ms-auto"
-            [ngClass]="
-              isOpen(nodeId(parentId, $index))
-                ? 'fa-chevron-down'
-                : 'fa-chevron-right'
-            "
-          ></i>
+            @if (hasChildren(n)) {
+              <i
+                class="fa ms-auto"
+                [ngClass]="
+                  isOpen(nodeId(parentId, $index))
+                    ? 'fa-chevron-down'
+                    : 'fa-chevron-right'
+                "
+              ></i>
+            }
+          </a>
+
+          @if (hasChildren(n) && isOpen(nodeId(parentId, $index))) {
+            <ng-template
+              [ngTemplateOutlet]="inlineTpl"
+              [ngTemplateOutletContext]="{
+                nodes: n.children,
+                depth: depth + 1,
+                parentId: nodeId(parentId, $index),
+              }"
+            ></ng-template>
           }
-        </a>
-
-        @if (hasChildren(n) && isOpen(nodeId(parentId, $index))) {
-        <ng-template
-          [ngTemplateOutlet]="inlineTpl"
-          [ngTemplateOutletContext]="{
-            nodes: n.children,
-            depth: depth + 1,
-            parentId: nodeId(parentId, $index)
-          }"
-        ></ng-template>
-        }
-      </li>
+        </li>
       }
     </ul>
   </ng-template>
 
-  <!-- =================== Flypanel (colapsado: root normal o búsqueda) =================== -->
+  <!-- =================== Flypanel (colapsado) =================== -->
   @if (collapsedResolved && (panelOpenRootIndex !== null || searchMode)) {
-  <div
-    class="flypanel-backdrop"
-    (click)="closePanel()"
-    aria-hidden="true"
-  ></div>
+    <div
+      class="flypanel-backdrop"
+      (click)="closePanel()"
+      aria-hidden="true"
+    ></div>
 
-  <div
-    #flypanelEl
-    class="flypanel"
-    [ngStyle]="panelStyle"
-    [class.compact]="searchMode && compactSearchInPanel"
-    [class.hide-icons]="
-      searchMode && compactSearchInPanel && compactHideIconsInPanel
-    "
-    role="menu"
-    aria-label="Submenú"
-    tabindex="-1"
-    (keydown.escape)="closePanel()"
-  >
-    <div class="flypanel-header d-flex align-items-center px-3 py-2">
-      @if (!searchMode && canGoBack) {
-      <a
-        href="#"
-        class="btn btn-sm btn-link px-1 me-2"
-        (click)="$event.preventDefault(); panelBack()"
-        aria-label="Atrás"
-      >
-        <i class="fa fa-chevron-left"></i>
-      </a>
-      } @else if (!searchMode) {
-      <i class="fa fa-list-ul me-2 opacity-75"></i>
-      } @else {
-      <i class="fa fa-search me-2 opacity-75"></i>
-      }
-
-      <div class="title text-truncate fw-semibold flex-grow-1">
-        {{ panelTitle }}
-      </div>
-
-      <!-- Lupa: búsqueda acotada al root abierto -->
-      @if (!searchMode && panelOpenRootIndex !== null) {
-      <a
-        href="#"
-        class="btn btn-sm btn-link px-1 me-1"
-        title="Buscar en esta sección"
-        aria-label="Buscar en esta sección"
-        (click)="$event.preventDefault(); openRootSearch()"
-      >
-        <i class="fa fa-search"></i>
-      </a>
-      }
-
-      <a
-        href="#"
-        class="btn btn-sm btn-link px-1"
-        (click)="$event.preventDefault(); closePanel()"
-        aria-label="Cerrar"
-      >
-        <i class="fa fa-times opacity-75"></i>
-      </a>
-    </div>
-
-    <!-- Contenido del panel -->
-    @if (searchMode) {
-    <!-- Panel de búsqueda (global o root). SOLO renderiza si hay término -->
-    <div class="px-3 py-2">
-      <input
-        #searchInputEl
-        type="text"
-        class="form-control form-control-sm"
-        placeholder="Buscar..."
-        [value]="panelSearchTerm()"
-        (input)="onPanelSearchChange($any($event).target.value)"
-        aria-label="Buscar"
-      />
-    </div>
-
-    @if (panelIsSearching()) {
-    <ul class="panel-list list-unstyled m-0">
-      <ng-template #panelSearchTpl let-nodes="nodes" let-depth="depth">
-        @for (n of nodes; track $index) {
-        <li
-          class="panel-item"
-          [style.paddingLeft.px]="depth ? depth * 12 : null"
-        >
-          <!-- si la bandera está activa y el nodo tiene hijos, no pinto la fila del padre -->
-          @if (!(searchHideParentsInPanel && hasChildren(n))) {
+    <div
+      #flypanelEl
+      class="flypanel"
+      [ngStyle]="panelStyle"
+      role="menu"
+      aria-label="Submenú"
+      tabindex="-1"
+    >
+      <div class="flypanel-header d-flex align-items-center px-3 py-2">
+        @if (!searchMode && canGoBack) {
           <a
             href="#"
-            class="dropdown-like d-flex align-items-center gap-2 px-3 py-2 text-decoration-none"
-            [routerLink]="hasChildren(n) ? [] : n.link || []"
-            (click)="onPanelSearchResultClick($event, n)"
+            class="btn btn-sm btn-link px-1 me-2"
+            (click)="$event.preventDefault(); panelBack()"
+            aria-label="Atrás"
           >
-            <i class="fa" [ngClass]="n.icon"></i>
-            <span
-              class="text-truncate"
-              [attr.title]="n.label"
-              [innerHTML]="highlightSearchTerm(n.label, panelSearchTerm())"
-            ></span>
-            @if (hasChildren(n)) {
-            <i class="fa fa-chevron-right ms-auto opacity-75"></i> }
+            <i class="fa fa-chevron-left"></i>
           </a>
-          } @if (hasChildren(n)) {
-          <ng-template
-            [ngTemplateOutlet]="panelSearchTpl"
-            [ngTemplateOutletContext]="{ nodes: n.children, depth: depth + 1 }"
-          ></ng-template>
-          }
-        </li>
+        } @else if (!searchMode) {
+          <i class="fa fa-list-ul me-2 opacity-75"></i>
         }
-      </ng-template>
 
-      <ng-template
-        [ngTemplateOutlet]="panelSearchTpl"
-        [ngTemplateOutletContext]="{ nodes: panelFilteredItems(), depth: 0 }"
-      ></ng-template>
-    </ul>
-    } } @else {
-    <!-- Panel normal (sin búsqueda) -->
-    <ul class="panel-list list-unstyled m-0">
-      @for (n of panelNodes; track $index) {
-      <li class="panel-item" [class.has-children]="hasChildren(n)">
+        <div class="title text-truncate fw-semibold flex-grow-1">
+          {{ panelTitle }}
+        </div>
+
         <a
-          class="dropdown-like d-flex align-items-center gap-2 px-3 py-2 text-decoration-none"
-          [routerLink]="hasChildren(n) ? [] : n.link || []"
-          (click)="onPanelItemClick($event, n)"
-          role="menuitem"
+          href="#"
+          class="btn btn-sm btn-link px-1"
+          (click)="$event.preventDefault(); closePanel()"
+          aria-label="Cerrar"
         >
-          <i class="fa" [ngClass]="n.icon"></i>
-          <span class="text-truncate" [attr.title]="n.label">{{
-            n.label
-          }}</span>
-          @if (hasChildren(n)) {
-          <i class="fa fa-chevron-right ms-auto opacity-75"></i> }
+          <i class="fa fa-times opacity-75"></i>
         </a>
-      </li>
+      </div>
+
+      @if (searchMode) {
+        <div class="panel-searchbar px-3 py-2">
+          <input
+            #searchInputEl
+            type="text"
+            class="form-control form-control-sm"
+            placeholder="Buscar en el menú..."
+            [value]="panelSearchTerm()"
+            (input)="onPanelSearchChange(searchInputEl.value)"
+          />
+        </div>
+
+        <div class="panel-body">
+          <div
+            class="panel-scroll"
+            #panelScrollEl
+            role="region"
+            aria-label="Resultados"
+          >
+            @if (visiblePanelResults().length === 0) {
+              <div class="px-3 py-2 text-body-secondary" aria-live="polite">
+                Sin resultados para “{{ panelSearchTerm() }}”.
+              </div>
+            }
+
+            <ul class="panel-list list-unstyled m-0">
+              @for (r of visiblePanelResults(); track r.node) {
+                <li
+                  class="panel-item"
+                  [style.paddingLeft.px]="
+                    panelIndentInSearch ? r.depth * 12 : 0
+                  "
+                >
+                  <a
+                    class="dropdown-like d-flex align-items-center gap-2 px-3 py-2 text-decoration-none"
+                    [routerLink]="hasChildren(r.node) ? [] : r.node.link || []"
+                    (click)="onPanelSearchResultClick($event, r.node)"
+                  >
+                    <i class="fa" [ngClass]="r.node.icon"></i>
+                    <span
+                      class="text-truncate"
+                      [attr.title]="r.node.label"
+                      [innerHTML]="
+                        highlightSearchTerm(r.node.label, panelSearchTerm())
+                      "
+                    ></span>
+                    @if (hasChildren(r.node)) {
+                      <i class="fa fa-chevron-right ms-auto opacity-75"></i>
+                    }
+                  </a>
+                </li>
+              }
+            </ul>
+          </div>
+        </div>
+
+        <div class="panel-footer center">
+          <div class="meta small text-body-secondary">
+            {{ visiblePanelResults().length }} /
+            {{ totalPanelResults() }} resultados
+          </div>
+
+          @if (remainingPanelResults() > 0) {
+            <div class="actions">
+              <button
+                type="button"
+                class="btn btn-sm btn-outline-secondary"
+                (click)="showMorePanel()"
+              >
+                Mostrar más ({{
+                  remainingPanelResults() > panelLoadStep
+                    ? panelLoadStep
+                    : remainingPanelResults()
+                }})
+              </button>
+              <button
+                type="button"
+                class="btn btn-sm btn-outline-secondary"
+                (click)="showAllPanel()"
+              >
+                Mostrar todo
+              </button>
+            </div>
+          } @else {
+            <div class="actions small text-body-secondary">
+              Fin de resultados
+            </div>
+          }
+        </div>
+      } @else {
+        <!-- ======= PANEL NORMAL: contenido en scroll ======= -->
+        <div class="">
+          <ul class="panel-list list-unstyled m-0">
+            @for (n of panelNodes; track $index) {
+              <li class="panel-item" [class.has-children]="hasChildren(n)">
+                @if (hasChildren(n)) {
+                  <a
+                    href="#"
+                    class="dropdown-like d-flex align-items-center gap-2 px-3 py-2 text-decoration-none"
+                    (click)="onPanelItemClick($event, n)"
+                  >
+                    <i class="fa" [ngClass]="n.icon"></i>
+                    <span class="text-truncate" [attr.title]="n.label">{{
+                      n.label
+                    }}</span>
+                    <i class="fa fa-chevron-right ms-auto opacity-75"></i>
+                  </a>
+                } @else {
+                  <a
+                    class="dropdown-like d-flex align-items-center gap-2 px-3 py-2 text-decoration-none"
+                    [routerLink]="n.link || []"
+                    (click)="onPanelItemClick($event, n)"
+                  >
+                    <i class="fa" [ngClass]="n.icon"></i>
+                    <span class="text-truncate" [attr.title]="n.label">{{
+                      n.label
+                    }}</span>
+                  </a>
+                }
+              </li>
+            }
+          </ul>
+        </div>
       }
-    </ul>
-    }
-  </div>
+    </div>
   }
 </aside>
