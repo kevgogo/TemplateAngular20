@@ -7,6 +7,8 @@ import {
   ElementRef,
   signal,
   computed,
+  DestroyRef,
+  ViewChild,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
@@ -19,6 +21,8 @@ import {
   SidebarItem,
   RouteLink,
 } from '@core/models/menu.types';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-sidebar',
@@ -39,13 +43,12 @@ export class SidebarComponent {
     this.searchTerm.set(''); // reset búsqueda
     this.resetListPreservingSelection(); // abre ancestros del activo
   }
-
-  /** Abre uno por nivel y cierra los hermanos (acordeón) */
-  @Input() accordionPerLevel = true;
-
   get items(): MenuNode[] {
     return this.filteredItems();
   }
+
+  /** Abre uno por nivel y cierra los hermanos (acordeón) */
+  @Input() accordionPerLevel = true;
 
   /** Fallback local (mock) también convertido al vuelo */
   private _originalItems: MenuNode[] = this.normalize(
@@ -55,9 +58,31 @@ export class SidebarComponent {
   private layout = inject(LayoutService);
   private host = inject(ElementRef<HTMLElement>);
   private router = inject(Router);
+  private destroyRef = inject(DestroyRef);
+
+  // ====== bloqueo/desbloqueo del scroll del body (cuando panel abierto) ======
+  private savedScrollY = 0;
+  private preventScroll = (e: Event) => e.preventDefault();
+
+  // ====== Hook al elemento del panel para cerrar si se scrollea dentro ======
+  private flypanelScrollSub?: Subscription;
+  @ViewChild('flypanelEl')
+  set flypanelElSetter(ref: ElementRef<HTMLElement> | undefined) {
+    this.flypanelScrollSub?.unsubscribe();
+    this.flypanelScrollSub = undefined;
+    if (ref?.nativeElement) {
+      this.flypanelScrollSub = this.layout.enableAutoCloseOnElement(
+        ref.nativeElement,
+        { direction: 'any' }
+      );
+    }
+  }
+
+  // 👇 NUEVO: referencia al input del panel de búsqueda para darle foco
+  @ViewChild('searchInputEl') searchInputEl?: ElementRef<HTMLInputElement>;
 
   // ------------------ Búsqueda (signals) ------------------
-  searchTerm = signal('>');
+  searchTerm = signal('>'); // se respeta tu valor inicial
   isSearching = computed(() => this.searchTerm().trim().length > 0);
 
   /** Items filtrados basados en el término de búsqueda */
@@ -70,57 +95,53 @@ export class SidebarComponent {
   /** Filtra recursivamente los items del menú */
   private filterMenuItems(items: MenuNode[], searchTerm: string): MenuNode[] {
     const filtered: MenuNode[] = [];
-
     for (const item of items) {
       const matchesItem = item.label.toLowerCase().includes(searchTerm);
-
       let filteredChildren: MenuNode[] | undefined;
-      if (item.children) {
+      if (item.children)
         filteredChildren = this.filterMenuItems(item.children, searchTerm);
-      }
-
       if (matchesItem || (filteredChildren && filteredChildren.length > 0)) {
-        const filteredItem: MenuNode = {
+        filtered.push({
           ...item,
           children: filteredChildren?.length ? filteredChildren : undefined,
-        };
-        filtered.push(filteredItem);
+        });
       }
     }
-
     return filtered;
   }
 
-  /** Maneja el cambio en el input de búsqueda (desde el template) */
+  constructor() {
+    // Cerrar por scroll global SOLO si el panel está abierto
+    this.layout.closeSidebarPanel$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        if (this.panelOpen || this.searchMode) this.closePanel();
+      });
+  }
+
+  ngOnDestroy() {
+    this.flypanelScrollSub?.unsubscribe();
+  }
+
+  // ====== Búsqueda: handlers ======
   onSearchChange(value: string): void {
     this.searchTerm.set(value);
-
     if (!this.isSearching()) {
-      // si quedó vacío, resetea preservando selección
       this.resetListPreservingSelection();
       return;
     }
-
-    // Auto-expandir resultados cuando hay búsqueda activa
-    if (!this.collapsedResolved) {
-      this.expandAllForSearch();
-    }
+    if (!this.collapsedResolved) this.expandAllForSearch(); // solo en expandido
   }
-
-  /** Limpia la búsqueda (botón X o navegación) */
   clearSearch(): void {
     this.searchTerm.set('');
     this.resetListPreservingSelection();
   }
 
-  /** Expande todos los nodos que tienen resultados de búsqueda */
   private expandAllForSearch(): void {
     this.openSet.clear();
-    this.forcedOpen.clear(); // cuando se busca, solo abrimos por resultados
+    this.forcedOpen.clear();
     this.addOpenNodesRecursively(this.filteredItems(), null);
   }
-
-  /** Añade nodos abiertos recursivamente para mostrar resultados de búsqueda */
   private addOpenNodesRecursively(
     nodes: MenuNode[],
     parentId: string | null
@@ -134,104 +155,70 @@ export class SidebarComponent {
     });
   }
 
-  /** Resalta el término de búsqueda en el texto */
+  // Para resaltar en el template con [innerHTML]
   highlightSearchTerm(text: string, term: string): string {
     const t = term.trim();
     if (!t) return text;
     const regex = new RegExp(`(${this.escapeRegex(t)})`, 'gi');
-    return text.replace(regex, '<mark class="search-highlight">$1</mark>');
+    return text.replace(regex, '<span class="search-term">$1</span>');
   }
-
-  /** Escapa caracteres especiales para regex */
   private escapeRegex(str: string): string {
     return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   }
 
   // ------------------ Normalización + helpers ------------------
-  /** Convierte children: [] en undefined y normaliza recursivamente */
   private normalize(nodes: MenuNode[]): MenuNode[] {
     return (nodes ?? []).map((n) => {
-      const copy: MenuNode = { ...n };
       const kids = Array.isArray(n.children) ? n.children.filter(Boolean) : [];
-      copy.children = kids.length ? this.normalize(kids) : undefined;
-      return copy;
+      return { ...n, children: kids.length ? this.normalize(kids) : undefined };
     });
   }
+  hasChildren = (n?: MenuNode | null): boolean => !!n && !!n.children?.length;
 
-  /** Verdadero si el nodo tiene hijos NO vacíos */
-  hasChildren = (n?: MenuNode | null): boolean =>
-    !!n && Array.isArray(n.children) && n.children.length > 0;
-
-  /** Estado real resuelto (Input ?? servicio) */
   get collapsedResolved(): boolean {
     return this.collapsed ?? this.layout.isSidebarCollapsed();
   }
 
   // ------------------ Expandido (inline) ------------------
-  private openSet = new Set<string>(); // aperturas del usuario / búsqueda
-  private forcedOpen = new Set<string>(); // aperturas forzadas (ancestros del activo)
+  private openSet = new Set<string>(); // usuario/búsqueda
+  private forcedOpen = new Set<string>(); // ancestros de activo
 
   nodeId(parentId: string | null, index: number): string {
     return parentId ? `${parentId}.${index}` : String(index);
   }
-
   isOpen(id: string): boolean {
-    // Unión: abiertas por usuario/búsqueda ∪ abiertas por ruta activa
     return this.openSet.has(id) || this.forcedOpen.has(id);
   }
 
-  /** Toggle simple (se mantiene por compatibilidad; ya no se usa en clicks acordeón) */
   toggle(id: string): void {
     if (this.openSet.has(id)) this.openSet.delete(id);
     else this.openSet.add(id);
   }
-
-  /** Cierra una rama completa (el id y todos sus descendientes) */
   private closeBranch(prefix: string): void {
     for (const k of Array.from(this.openSet)) {
-      if (k === prefix || k.startsWith(prefix + '.')) {
-        this.openSet.delete(k);
-      }
+      if (k === prefix || k.startsWith(prefix + '.')) this.openSet.delete(k);
     }
   }
-
-  /**
-   * Cierra todos los hermanos del mismo nivel que `id`,
-   * sin tocar `forcedOpen` (búsqueda/ruta activa).
-   */
   private collapseSiblings(id: string): void {
     if (!this.accordionPerLevel) return;
-
     const lastDot = id.lastIndexOf('.');
     const parentPrefix = lastDot === -1 ? '' : id.slice(0, lastDot);
     const depth = id.split('.').length;
-
     for (const k of Array.from(this.openSet)) {
       if (k === id) continue;
-
       const kDepth = k.split('.').length;
-      if (kDepth !== depth) continue; // solo el mismo nivel
-
-      const kParentPrefix = (() => {
-        const pos = k.lastIndexOf('.');
-        return pos === -1 ? '' : k.slice(0, pos);
-      })();
-
-      if (kParentPrefix === parentPrefix) {
-        // es hermano -> cerrar su rama completa
-        this.closeBranch(k);
-      }
+      if (kDepth !== depth) continue;
+      const pos = k.lastIndexOf('.');
+      const kParentPrefix = pos === -1 ? '' : k.slice(0, pos);
+      if (kParentPrefix === parentPrefix) this.closeBranch(k);
     }
   }
 
-  // ------------------ Handlers (actualizados a acordeón) ------------------
-
-  /** Click en item raíz (nivel 0). Si no tiene hijos, no intercepta navegación */
+  // ------------------ Handlers (expandido / colapsado) ------------------
   onRootClick(ev: MouseEvent, node: MenuNode, rootIndex: number): void {
     if (this.hasChildren(node)) {
       ev.preventDefault();
       if (this.collapsedResolved) {
-        // Colapsado: abrir/cerrar panel único
         if (this.panelOpenRootIndex === rootIndex) this.closePanel();
         else
           this.openPanelForRoot(
@@ -240,64 +227,53 @@ export class SidebarComponent {
             rootIndex
           );
       } else {
-        // Expandido: acordeón por nivel
         const id = this.nodeId(null, rootIndex);
-
         if (!this.accordionPerLevel) {
-          // Comportamiento anterior (toggle simple)
           this.toggle(id);
           return;
         }
-
-        if (this.isOpen(id)) {
-          // cerrar rama completa
-          this.closeBranch(id);
-        } else {
-          // cerrar hermanos y abrir este
+        if (this.isOpen(id)) this.closeBranch(id);
+        else {
           this.collapseSiblings(id);
           this.openSet.add(id);
         }
       }
       return;
     }
-
-    // Sin hijos: deja navegar
     if (this.collapsedResolved) this.closePanel();
-
-    // Limpiar búsqueda al navegar
     if (this.isSearching()) this.clearSearch();
   }
 
-  /** Click en item no raíz (expandido, inline) */
   onItemClick(ev: MouseEvent, node: MenuNode, id: string): void {
     if (this.hasChildren(node)) {
       ev.preventDefault();
       if (!this.collapsedResolved) {
         if (!this.accordionPerLevel) {
-          // Comportamiento anterior (toggle simple)
           this.toggle(id);
           return;
         }
-
-        if (this.isOpen(id)) {
-          // cerrar rama completa
-          this.closeBranch(id);
-        } else {
-          // cerrar hermanos y abrir este
+        if (this.isOpen(id)) this.closeBranch(id);
+        else {
           this.collapseSiblings(id);
           this.openSet.add(id);
         }
       }
     } else {
-      // Hoja: permite navegar; si hay búsqueda activa, límpiala
       if (this.isSearching()) this.clearSearch();
+      if (this.collapsedResolved) this.closePanel();
     }
   }
 
-  // ------------------ Colapsado: panel único con drilldown ------------------
+  // ------------------ Panel (colapsado) ------------------
   panelOpenRootIndex: number | null = null;
-  panelStack: MenuNode[] = []; // ruta actual (root -> ... -> nodo actual)
-  panelStyle: Record<string, string> = {}; // posición del panel
+  panelStack: MenuNode[] = [];
+  panelStyle: Record<string, string> = {};
+
+  // 👇 NUEVO: modo búsqueda dentro del flypanel
+  searchMode = false;
+  get panelOpen(): boolean {
+    return this.panelOpenRootIndex !== null;
+  }
 
   get panelNodes(): MenuNode[] {
     const current = this.panelStack[this.panelStack.length - 1];
@@ -306,9 +282,11 @@ export class SidebarComponent {
   get canGoBack(): boolean {
     return this.panelStack.length > 1;
   }
+
   get panelTitle(): string {
-    const current = this.panelStack[this.panelStack.length - 1];
-    return current?.label ?? '';
+    return this.searchMode
+      ? 'Buscar en el menú.'
+      : this.panelStack[this.panelStack.length - 1]?.label ?? ''; // título normal
   }
 
   openPanelForRoot(
@@ -316,18 +294,43 @@ export class SidebarComponent {
     rootNode: MenuNode,
     rootIndex: number
   ): void {
+    this.searchMode = false;
     this.panelOpenRootIndex = rootIndex;
     this.panelStack = [rootNode];
     this.repositionPanel(anchorEl);
+    this.lockScroll();
+  }
+
+  // 👇 NUEVO: abrir el panel en modo búsqueda
+  openSearchPanel(anchorEl: HTMLElement): void {
+    this.searchMode = true;
+    this.panelOpenRootIndex = null; // no estamos en un root concreto
+    this.panelStack = [];
+    this.repositionPanel(anchorEl);
+    this.lockScroll();
+    queueMicrotask(() => this.searchInputEl?.nativeElement?.focus());
   }
 
   onPanelItemClick(ev: MouseEvent, node: MenuNode): void {
     if (this.hasChildren(node)) {
       ev.preventDefault();
-      this.panelStack.push(node); // drill-down en el mismo panel
+      this.panelStack.push(node);
     } else {
-      this.closePanel(); // navegará por routerLink y cerramos
+      this.closePanel();
       if (this.isSearching()) this.clearSearch();
+    }
+  }
+
+  // 👇 NUEVO: click en resultado del panel de búsqueda
+  onSearchNodeClick(ev: MouseEvent, node: MenuNode): void {
+    if (this.hasChildren(node)) {
+      ev.preventDefault();
+      // saltamos a panel "normal" con el nodo como raíz
+      this.searchMode = false;
+      this.panelOpenRootIndex = -1; // marcador (no se usa visualmente)
+      this.panelStack = [node];
+    } else {
+      this.onPanelItemClick(ev, node);
     }
   }
 
@@ -336,21 +339,27 @@ export class SidebarComponent {
     else this.closePanel();
   }
 
+  closeFlypanel() {
+    this.closePanel();
+  }
+
   closePanel(): void {
+    if (!this.panelOpen && !this.searchMode) return; // ya cerrado
     this.panelOpenRootIndex = null;
     this.panelStack = [];
     this.panelStyle = {};
+    this.searchMode = false;
+    this.unlockScroll();
   }
 
-  /** Posiciona el panel al lado del sidebar, alineado al item clickeado */
   private repositionPanel(anchorEl: HTMLElement): void {
-    const li = (anchorEl.closest('li.item') as HTMLElement) ?? anchorEl;
+    const li =
+      (anchorEl.closest('li.item, button, a') as HTMLElement) ?? anchorEl;
     const r = li.getBoundingClientRect();
     const aside = this.host.nativeElement.querySelector(
       'aside.sidebar'
     ) as HTMLElement;
     const a = aside.getBoundingClientRect();
-
     const maxTop = Math.max(8, Math.min(r.top, window.innerHeight - 16 - 320));
     this.panelStyle = {
       position: 'fixed',
@@ -362,7 +371,6 @@ export class SidebarComponent {
     };
   }
 
-  /** Cerrar con ESC y reposicionar en resize */
   @HostListener('window:keydown.escape')
   onEsc() {
     if (this.collapsedResolved) this.closePanel();
@@ -371,33 +379,31 @@ export class SidebarComponent {
 
   @HostListener('window:resize')
   onResize() {
-    if (this.collapsedResolved && this.panelOpenRootIndex !== null) {
-      const items =
-        this.host.nativeElement.querySelectorAll('li.item > a.link');
-      const anchor = items.item(this.panelOpenRootIndex) as HTMLElement;
-      if (anchor) this.repositionPanel(anchor);
+    if (
+      this.collapsedResolved &&
+      (this.panelOpenRootIndex !== null || this.searchMode)
+    ) {
+      const btn = this.host.nativeElement.querySelector(
+        '.collapsed-search .btn, li.item > .link'
+      );
+      if (btn) this.repositionPanel(btn as HTMLElement);
     }
   }
 
   // ------------------ Reset + mantener selección ------------------
   private resetListPreservingSelection() {
-    // Mostrar árbol original (al dejar el término vacío)
     this.openSet.clear();
     this.forcedOpen.clear();
-
     const path = this.findActiveIndexPath(this._originalItems);
-    if (path) this.openIndexPath(path); // abre los ancestros
+    if (path) this.openIndexPath(path);
   }
-
   private openIndexPath(path: number[]) {
     let pid: string | null = null;
     for (const idx of path.slice(0, -1)) {
-      // solo ancestros
       pid = this.nodeId(pid, idx);
       this.forcedOpen.add(pid);
     }
   }
-
   private findActiveIndexPath(
     nodes: MenuNode[],
     trail: number[] = []
@@ -405,7 +411,6 @@ export class SidebarComponent {
     for (let i = 0; i < nodes.length; i++) {
       const n = nodes[i];
       const here = [...trail, i];
-
       if (this.isItemActive(n)) return here;
       if (n.children?.length) {
         const found = this.findActiveIndexPath(n.children, here);
@@ -414,7 +419,6 @@ export class SidebarComponent {
     }
     return null;
   }
-
   private isItemActive(n: MenuNode): boolean {
     if (!n.link) return false;
     const current = this.router.url.split('?')[0];
@@ -424,45 +428,73 @@ export class SidebarComponent {
     return current === toUrl;
   }
 
-  // ================== CONVERSIÓN SidebarItem -> MenuNode ==================
-
-  /** ¿Es SidebarItem (legacy)? */
+  // ================== Conversión SidebarItem -> MenuNode ==================
   private isSidebarItem(o: AnyItem): o is SidebarItem {
     return !!o && (o as any)?.text !== undefined;
   }
-
-  /** ¿Es MenuNode (nuevo)? */
   private isMenuNode(o: AnyItem): o is MenuNode {
     return !!o && (o as any)?.label !== undefined;
   }
-
-  /** Convierte SidebarItem[] | MenuNode[] a MenuNode[] */
   private coerceToMenuNodes(items: AnyItem[]): MenuNode[] {
     const mapOne = (it: AnyItem): MenuNode => {
       if (this.isSidebarItem(it)) {
         const kids = (it.submenu ?? undefined) as AnyItem[] | undefined;
         return {
           label: it.text ?? '',
-          link: (it.link ?? undefined) as RouteLink | undefined, // null -> undefined
-          icon: (it.icon ?? undefined) as string | undefined, // null -> undefined
+          link: it.link as RouteLink | undefined,
+          icon: it.icon as string | undefined,
           children: kids?.length ? kids.map(mapOne) : undefined,
         };
       }
-
       if (this.isMenuNode(it)) {
         const kids = (it.children ?? undefined) as AnyItem[] | undefined;
         return {
           label: it.label ?? '',
-          link: (it.link ?? undefined) as RouteLink | undefined, // null -> undefined
-          icon: (it.icon ?? undefined) as string | undefined, // null -> undefined
+          link: it.link as RouteLink | undefined,
+          icon: it.icon as string | undefined,
           children: kids?.length ? kids.map(mapOne) : undefined,
         };
       }
-
-      // Fallback defensivo (no debería ocurrir con AnyItem bien definido)
       return { label: '' };
     };
-
     return (items ?? []).map(mapOne);
+  }
+
+  // ====== Lock/unlock scroll del body para el modo colapsado ======
+  private lockScroll(): void {
+    this.savedScrollY =
+      window.scrollY || document.documentElement.scrollTop || 0;
+    document.documentElement.classList.add('sidebar-flypanel-open');
+    document.body.classList.add('sidebar-flypanel-open');
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${this.savedScrollY}px`;
+    document.body.style.left = '0';
+    document.body.style.right = '0';
+    document.body.style.width = '100%';
+    window.addEventListener('wheel', this.preventScroll, {
+      passive: false,
+      capture: true,
+    });
+    window.addEventListener('touchmove', this.preventScroll, {
+      passive: false,
+      capture: true,
+    });
+  }
+  private unlockScroll(): void {
+    const wasLocked = document.body.classList.contains('sidebar-flypanel-open');
+    document.documentElement.classList.remove('sidebar-flypanel-open');
+    document.body.classList.remove('sidebar-flypanel-open');
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.left = '';
+    document.body.style.right = '';
+    document.body.style.width = '';
+    window.removeEventListener('wheel', this.preventScroll, {
+      capture: true,
+    } as any);
+    window.removeEventListener('touchmove', this.preventScroll, {
+      capture: true,
+    } as any);
+    if (wasLocked) window.scrollTo(0, this.savedScrollY);
   }
 }

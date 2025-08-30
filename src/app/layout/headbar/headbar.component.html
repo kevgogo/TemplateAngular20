@@ -23,7 +23,7 @@
     >
       <i
         class="fa fs-4"
-        [ngClass]="isFullscreen ? 'fa-fullscreen-exit' : 'fa-arrows-fullscreen'"
+        [ngClass]="isFullscreen ? 'fa-expand' : 'fa-compress'"
       ></i>
     </button>
 
@@ -35,7 +35,7 @@
       aria-label="Refrescar"
       title="Refrescar"
     >
-      <i class="fa fa-arrow-repeat fs-4"></i>
+      <i class="fa fa-refresh fs-4"></i>
     </button>
 
     <!-- Ocultar/Mostrar sidebar -->
@@ -49,9 +49,7 @@
     >
       <i
         class="fa fs-4"
-        [ngClass]="
-          sidebarHidden ? 'fa-chevron-bar-right' : 'fa-chevron-bar-left'
-        "
+        [ngClass]="sidebarHidden ? 'fa-chevron-right' : 'fa-chevron-left'"
       >
       </i>
     </button>
