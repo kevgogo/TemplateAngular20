@@ -5,14 +5,13 @@ export const DEMO_ROUTES: Routes = [
   {
     path: '',
     title: 'Demos',
-    data: { breadcrumb: 'Demos' },
     children: [
       {
         path: 'elements',
         title: 'Elementos Básicos',
         loadComponent: () =>
           import('@pages/demo/elements/basic-elements.page').then(
-            (m) => m.BasicElementsPage
+            (m) => m.BasicElementsPage,
           ),
       },
       {
@@ -20,7 +19,7 @@ export const DEMO_ROUTES: Routes = [
         title: 'Shared Showcase',
         loadComponent: () =>
           import('@pages/demo/shared/shared-showcase.page').then(
-            (m) => m.SharedShowcasePage
+            (m) => m.SharedShowcasePage,
           ),
       },
       {
@@ -28,7 +27,7 @@ export const DEMO_ROUTES: Routes = [
         title: 'GraphQL Demo',
         loadComponent: () =>
           import('@pages/demo/graphql/graphql-demo.page').then(
-            (m) => m.GraphqlDemoPage
+            (m) => m.GraphqlDemoPage,
           ),
       },
       {
@@ -36,7 +35,7 @@ export const DEMO_ROUTES: Routes = [
         title: 'Mensajes & Alertas',
         loadComponent: () =>
           import('@pages/demo/messages/messages-demo.page').then(
-            (m) => m.DemoMessagesPage
+            (m) => m.DemoMessagesPage,
           ),
       },
       {
@@ -44,7 +43,7 @@ export const DEMO_ROUTES: Routes = [
         title: 'Modales con inyección',
         loadComponent: () =>
           import('@pages/demo/modals/modal-inject-demo.page').then(
-            (m) => m.ModalInjectDemoPage
+            (m) => m.ModalInjectDemoPage,
           ),
       },
       {
@@ -52,7 +51,7 @@ export const DEMO_ROUTES: Routes = [
         title: 'DevExtreme Calendar',
         loadComponent: () =>
           import('@pages/demo/devextreme/calendar-demo.page').then(
-            (m) => m.CalendarDemoPage
+            (m) => m.CalendarDemoPage,
           ),
       },
       {
@@ -60,7 +59,7 @@ export const DEMO_ROUTES: Routes = [
         title: 'DevExtreme TreeView',
         loadComponent: () =>
           import('@pages/demo/devextreme/treeview-demo.page').then(
-            (m) => m.TreeviewDemoPage
+            (m) => m.TreeviewDemoPage,
           ),
       },
       {
@@ -68,7 +67,7 @@ export const DEMO_ROUTES: Routes = [
         title: 'Chrono / Reloj',
         loadComponent: () =>
           import('@pages/demo/chrono/chrono-demo.page').then(
-            (m) => m.ChronoDemoPage
+            (m) => m.ChronoDemoPage,
           ),
       },
       {
@@ -76,7 +75,7 @@ export const DEMO_ROUTES: Routes = [
         title: 'PDF/Excel/ZIP',
         loadComponent: () =>
           import('@pages/demo/files/files-demo.page').then(
-            (m) => m.FilesDemoPage
+            (m) => m.FilesDemoPage,
           ),
       },
       {
@@ -84,7 +83,7 @@ export const DEMO_ROUTES: Routes = [
         title: 'Demo · Test · Adder',
         loadComponent: () =>
           import('@pages/demo/test/adder.component').then(
-            (m) => m.AdderComponent
+            (m) => m.AdderComponent,
           ),
       },
       {
@@ -100,7 +99,7 @@ export const DEMO_ROUTES: Routes = [
         title: 'Buscador FA 4.7.0',
         loadComponent: () =>
           import('@pages/demo/icons/fa4-search/fa4-search.component').then(
-            (m) => m.Fa4SearchComponent
+            (m) => m.Fa4SearchComponent,
           ),
       },
       { path: '', pathMatch: 'full', redirectTo: 'shared' },
