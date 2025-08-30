@@ -1,25 +1,26 @@
-<!-- breadcrumbs.component.html -->
-<div class="border-bottom bg-body-tertiary px-3 d-flex align-items-center">
-  <nav aria-label="breadcrumb" class="small mb-0">
+<div
+  class="app-bc border-bottom bg-body-tertiary px-3 d-flex align-items-center"
+>
+  <nav aria-label="breadcrumb" class="small mb-0 w-100">
     <ol class="breadcrumb mb-0">
-      @for (c of crumbs(); track c.url; let i = $index; let last = $last; let
-      first = $first) {
-      <li
-        class="breadcrumb-item"
-        [class.active]="last"
-        [attr.aria-current]="last ? 'page' : null"
-      >
-        @if (!last) {
-        <a [routerLink]="c.url">
-          @if (i === 0) {
-          <i class="fa fa-house"></i>
-          }{{ c.label }}
-        </a>
-        } @else { @if (first) {
-        <i class="fa fa-hous"></i>
-        }{{ c.label }}
-        }
+      <!-- Inicio fijo -->
+      <li class="breadcrumb-item">
+        <a routerLink="/home"><i class="fa fa-home me-1"></i>Inicio</a>
       </li>
+
+      <!-- Resto de migas -->
+      @for (c of crumbs(); track c.url; let last = $last) {
+        <li
+          class="breadcrumb-item"
+          [class.active]="last"
+          [attr.aria-current]="last ? 'page' : null"
+        >
+          @if (!last) {
+            <a [routerLink]="c.url" [title]="c.label">{{ c.label }}</a>
+          } @else {
+            <span [title]="c.label">{{ c.label }}</span>
+          }
+        </li>
       }
     </ol>
   </nav>

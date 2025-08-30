@@ -1,3 +1,82 @@
-div {
+:host {
+  display: block;
+}
+
+/* Contenedor (ya usas clases de BS en el HTML, pero dejo tokens por si lo estilizas aquí) */
+.app-bc {
   height: 50px;
+  align-items: center;
+  /* Superficie y borde toman el tema actual */
+  background: var(--surface-1, var(--bs-tertiary-bg, #f8f9fa));
+  border-bottom: 1px solid var(--border-color, var(--bs-border-color, #dee2e6));
+}
+
+nav {
+  font-family:
+    "Open Sans",
+    system-ui,
+    -apple-system,
+    Segoe UI,
+    Roboto,
+    Arial,
+    sans-serif;
+  font-size: 13px;
+}
+
+/* === Bridge a tus tokens de tema (con fallback a Bootstrap y luego a hex) === */
+.breadcrumb {
+  /* Color de texto “silencioso” del breadcrumb */
+  --bc-text: var(--text-muted, var(--bs-secondary-color, #6c757d));
+
+  /* Color de enlace (usa tu primario del tema) */
+  --bc-link: var(
+    --link-color,
+    var(--primary-600, var(--primary, var(--bs-link-color, #1ca5b8)))
+  );
+
+  /* Separador y líneas (usa borde sutil del tema) */
+  --bc-sep: var(
+    --border-subtle,
+    var(--border-color, var(--bs-border-color, #c4d0d9))
+  );
+
+  /* Color del elemento activo (texto principal) */
+  --bc-active: var(--body-color, var(--bs-body-color, #212529));
+}
+
+/* Texto base de cada ítem (no activo) */
+.breadcrumb-item {
+  color: var(--bc-text);
+}
+
+/* Separador tipográfico */
+.breadcrumb-item + .breadcrumb-item::before {
+  content: "/";
+  padding: 0 0.5rem;
+  color: var(--bc-sep);
+}
+
+/* Enlaces: color del tema, con hover/focus heredando de tus tokens */
+.breadcrumb a {
+  color: var(--bc-link);
+  text-decoration: none;
+}
+.breadcrumb a:hover,
+.breadcrumb a:focus {
+  text-decoration: underline;
+}
+
+/* Último nivel */
+.breadcrumb-item.active span {
+  font-weight: 600;
+  color: var(--bc-active);
+}
+
+/* Truncamiento elegante */
+.breadcrumb-item > a,
+.breadcrumb-item > span {
+  max-width: 30ch;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

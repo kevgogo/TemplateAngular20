@@ -1,116 +1,164 @@
 import {
+  ChangeDetectionStrategy,
   Component,
+  computed,
   inject,
   signal,
-  computed,
-  ChangeDetectionStrategy,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
+  ActivatedRoute,
+  ActivatedRouteSnapshot,
+  NavigationEnd,
   Router,
   RouterModule,
-  NavigationEnd,
-  ActivatedRouteSnapshot,
 } from '@angular/router';
 import { filter } from 'rxjs/operators';
-import { SHARED_IMPORTS } from '@shared/app-shared-imports';
+import { MenuService } from '@core/services/menu.service';
+import { SidebarNode } from '@core/models/menu.types';
 
-type BreadcrumbValue = string | ((route: ActivatedRouteSnapshot) => string);
-
-export interface Crumb {
-  label: string;
-  url: string;
-}
+type Crumb = { label: string; url: string };
 
 @Component({
   selector: 'app-breadcrumbs',
   standalone: true,
-  imports: [SHARED_IMPORTS],
+  imports: [CommonModule, RouterModule],
   templateUrl: './breadcrumbs.component.html',
-  styleUrl: './breadcrumbs.component.scss',
+  styleUrls: ['./breadcrumbs.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BreadcrumbsComponent {
   private router = inject(Router);
+  private menu = inject(MenuService);
 
-  private _crumbs = signal<Crumb[]>([]);
-  readonly crumbs = computed(() => this._crumbs());
+  // Estado
+  private currentUrl = signal(this.cleanUrl(this.router.url));
+  private routeTrail = signal<{ url: string; label?: string }[]>([]);
+  private menuTree = signal<SidebarNode[]>([]);
 
   constructor() {
-    const build = () => {
-      const rootSnap = this.router.routerState.snapshot.root;
-      const list = this.prependHome(this.buildFromSnapshot(rootSnap));
-      this._crumbs.set(list);
-    };
-
-    // Recalcular en cada navegación "estable"
+    // Reconstruir trail en cada navegación (root del router para evitar undefined)
     this.router.events
       .pipe(filter((e) => e instanceof NavigationEnd))
-      .subscribe(build);
-    // Y una vez al iniciar
-    build();
+      .subscribe(() => {
+        this.currentUrl.set(this.cleanUrl(this.router.url));
+        const root = this.router.routerState.root as ActivatedRoute;
+        this.routeTrail.set(this.buildRouteTrail(root));
+      });
+
+    // Primera evaluación
+    const root = this.router.routerState.root as ActivatedRoute;
+    this.routeTrail.set(this.buildRouteTrail(root));
+
+    // Árbol del sidebar (mismos rótulos que ves en el menú)
+    this.menu
+      .getSidebarItems$()
+      .subscribe((nodes) => this.menuTree.set(nodes ?? []));
   }
 
-  // ===== Core =====
-  private buildFromSnapshot(
-    snap: ActivatedRouteSnapshot | null,
-    url: string = '',
-    acc: Crumb[] = []
-  ): Crumb[] {
-    if (!snap) return acc;
+  // Crumbs: Menú → Rutas → Slug (excluye el "Inicio" porque ya se dibuja fijo en el HTML)
+  readonly crumbs = computed<Crumb[]>(() => {
+    const trail = this.routeTrail();
+    const labelMap = this.buildMenuLabelMap(this.menuTree());
 
-    const cfg = snap.routeConfig ?? undefined;
+    const list: Crumb[] = [];
+    for (const step of trail) {
+      const normUrl = this.norm(step.url);
+      // Evita duplicar Home/Inicio: se renderiza fijo
+      if (normUrl === '/home') continue;
 
-    // Agregar segmento real de la URL (ya resuelto con params)
-    if (cfg?.path) {
-      const segment = this.segmentFromSnapshot(snap);
-      if (segment) url += `/${segment}`;
-    }
-
-    // Metadata de la ruta
-    const data = (snap.data || {}) as {
-      breadcrumb?: BreadcrumbValue;
-      breadcrumbSkip?: boolean;
-    };
-
-    if (!data.breadcrumbSkip) {
+      const labelFromMenu = labelMap.get(normUrl);
       const label =
-        this.resolveBreadcrumb(data.breadcrumb, snap) ??
-        this.fallbackLabel(snap);
-      if (label) acc.push({ label, url: url || '/' });
+        this.pickLabel(
+          labelFromMenu,
+          step.label,
+          this.slugToTitle(this.last(normUrl)),
+        ) || '';
+
+      // Filtra vacíos y Home/Inicio residuales
+      const low = label.toLowerCase();
+      if (!label || low === 'home' || low === 'inicio') continue;
+
+      list.push({ label, url: normUrl });
     }
 
-    return this.buildFromSnapshot(snap.firstChild, url, acc);
-  }
+    // Dedup contiguos por seguridad
+    return list.filter((c, i, arr) => i === 0 || c.label !== arr[i - 1].label);
+  });
 
-  private prependHome(crumbs: Crumb[]): Crumb[] {
-    return crumbs.length && crumbs[0].url === '/'
-      ? crumbs
-      : [{ label: 'Home', url: '/' }, ...crumbs];
-  }
+  // —— helpers —— //
 
-  private segmentFromSnapshot(snap: ActivatedRouteSnapshot): string {
-    // Usa los segmentos ya resueltos (sin :params)
-    return snap.url.map((u) => u.path).join('/');
-  }
+  private buildRouteTrail(
+    ar: ActivatedRoute | null | undefined,
+    base = '',
+  ): { url: string; label?: string }[] {
+    if (!ar) return [];
 
-  private resolveBreadcrumb(
-    bc: BreadcrumbValue | undefined,
-    snap: ActivatedRouteSnapshot
-  ): string | null {
-    if (!bc) return null;
-    return typeof bc === 'string' ? bc : bc(snap);
-  }
+    const out: { url: string; label?: string }[] = [];
 
-  private fallbackLabel(snap: ActivatedRouteSnapshot): string | null {
-    const cfg = snap.routeConfig;
-    if (!cfg || !cfg.path || cfg.path === '**') return null;
+    const snap = ar.snapshot;
+    const seg = (snap?.url ?? [])
+      .map((s) => s.path)
+      .filter(Boolean)
+      .join('/');
+    const url = this.norm(seg ? `${base}/${seg}` : base || '/');
 
-    // Reemplazar :param por valor real en el path
-    let label = cfg.path;
-    for (const [k, v] of Object.entries(snap.params ?? {})) {
-      label = label.replace(`:${k}`, String(v));
+    // Lee en orden: data.breadcrumb > data.title > routeConfig.title
+    const label = this.getRouteTitle(snap);
+
+    // Empuja si hay segmento **o** si hay un título (soporta path:'')
+    if (seg || label) out.push({ url, label });
+
+    for (const ch of ar.children ?? []) {
+      out.push(...this.buildRouteTrail(ch, url));
     }
-    return label.replace(/-/g, ' ').trim();
+    return out;
+  }
+
+  private getRouteTitle(snap?: ActivatedRouteSnapshot): string | undefined {
+    const fromData =
+      (snap?.data?.['breadcrumb'] as string | undefined) ??
+      (snap?.data?.['title'] as string | undefined);
+
+    // routeConfig.title puede ser string o función; aquí solo usamos string
+    const fromRouteConfig =
+      typeof snap?.routeConfig?.title === 'string'
+        ? (snap!.routeConfig!.title as string)
+        : undefined;
+
+    return fromData ?? fromRouteConfig;
+  }
+
+  private buildMenuLabelMap(tree: SidebarNode[]): Map<string, string> {
+    const map = new Map<string, string>();
+    const dfs = (n: SidebarNode) => {
+      const link = n.link ? this.norm(n.link) : null;
+      const label = (n.text ?? n.name ?? '').trim();
+      if (link && label) map.set(link, label);
+      for (const c of n.children ?? []) dfs(c);
+    };
+    for (const r of tree) dfs(r);
+    return map;
+  }
+
+  private pickLabel(...candidates: (string | undefined)[]) {
+    return candidates.find((v) => !!v && v.trim().length > 0)?.trim() ?? '';
+  }
+
+  private slugToTitle(s: string) {
+    return s.replace(/[-_]+/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase());
+  }
+
+  private last(url: string) {
+    const p = url.split('/').filter(Boolean);
+    return p[p.length - 1] ?? '';
+  }
+
+  private norm(u: string) {
+    return (u || '/').replace(/\/+$/g, '') || '/';
+  }
+
+  private cleanUrl(u: string) {
+    return u.split('?')[0].split('#')[0] || '/';
   }
 }
