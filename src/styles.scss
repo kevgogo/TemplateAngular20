@@ -14,6 +14,28 @@
 
   /* Radio/sombras opcionales si quieres consistencia */
   --card-radius: 1rem;
+
+  /* Base */
+  --sb-bg: var(--bs-body-bg);
+  --sb-fg: var(--bs-body-color);
+  --sb-border: var(--bs-border-color);
+  --sb-rail: var(--bs-border-color);
+
+  /* Estado/acciones */
+  --sb-accent: var(--app-primary);
+  /* Hover: leve tinte del primario */
+  --sb-hover-bg: color-mix(
+    in srgb,
+    var(--sb-accent),
+    transparent 92%
+  ); /* ~8% */
+  /* Active: un poco más fuerte que hover */
+  --sb-active-bg: color-mix(
+    in srgb,
+    var(--sb-accent),
+    transparent 85%
+  ); /* ~15% */
+  --sb-active-fg: var(--bs-body-color);
 }
 
 /* Offset top por defecto (navbar NO fija) */

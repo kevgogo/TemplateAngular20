@@ -1,16 +1,49 @@
 /* =====================================
    Sidebar + Flypanel (SCSS completo)
-   - Scroll interno SOLO en el flypanel de búsqueda
-   - Header/Footer fijos
-   - Sin afectar otros flypanels
+   LINK al sistema de colores (ThemeService / --shell-* / --bs-*)
    ===================================== */
 
-/* ======== Variables ======== */
+/* ======== Variables (SASS) ======== */
 $w-expanded: 224px;
 $w-collapsed: 72px;
+/* riel conserva border-color del tema */
 $rail-color: var(--bs-border-color, rgba(0, 0, 0, 0.15));
 
+/* ======== Tokens CSS del Sidebar (scoped) ======== */
 aside.sidebar {
+  /* Mapea primero a --shell- si existe; si no, cae a --bs- */
+  --sb-bg: var(--shell-sidebar-bg, var(--bs-body-bg, #fff));
+  --sb-fg: var(--shell-sidebar-fg, var(--bs-body-color, #212529));
+  --sb-border: var(
+    --shell-sidebar-border,
+    var(--bs-border-color, rgba(0, 0, 0, 0.1))
+  );
+  --sb-accent: var(--shell-accent, var(--bs-primary, #0d6efd));
+
+  /* Derivados */
+  --sb-hover-bg: var(
+    --shell-sidebar-hover-bg,
+    color-mix(in srgb, var(--sb-bg) 92%, var(--sb-accent) 8%)
+  );
+  --sb-active-bg: var(
+    --shell-sidebar-active-bg,
+    color-mix(in srgb, var(--sb-bg) 88%, var(--sb-accent) 12%)
+  );
+  /* Por defecto el texto activo usa el acento (como tu comportamiento actual) */
+  --sb-active-fg: var(--shell-sidebar-active-fg, var(--sb-accent));
+  --sb-muted-fg: var(
+    --shell-sidebar-muted-fg,
+    var(--bs-secondary-color, #6c757d)
+  );
+  --sb-focus-ring: var(
+    --shell-focus-ring,
+    color-mix(in srgb, var(--sb-accent) 35%, #fff)
+  );
+
+  /* Z-index con fallback */
+  --z-sidebar: var(--shell-z-sidebar, 1020);
+  --z-sidebar-panel: var(--shell-z-sidebar-panel, 1030);
+
   width: auto;
 }
 
@@ -21,8 +54,8 @@ aside.sidebar {
   position: relative;
   width: $w-expanded;
   height: 100%;
-  background: var(--bs-body-bg, #fff);
-  color: var(--bs-body-color, #212529);
+  background: var(--sb-bg);
+  color: var(--sb-fg);
   transition: width 0.2s ease;
   overflow: visible;
   z-index: var(--z-sidebar);
@@ -52,24 +85,24 @@ aside.sidebar {
   .link:hover,
   .sub-link:hover,
   .dropdown-like:hover {
-    background: rgba(0, 0, 0, 0.04);
+    background: var(--sb-hover-bg);
   }
 
   .link.active,
   .sub-link.active {
-    background: color-mix(in srgb, var(--bs-primary, #0d6efd) 12%, transparent);
-    color: var(--bs-primary, #0d6efd);
+    background: var(--sb-active-bg);
+    color: var(--sb-active-fg);
     font-weight: 600;
   }
   .link[aria-expanded="true"],
   .sub-link[aria-expanded="true"] {
-    color: var(--bs-primary, #0d6efd);
+    color: var(--sb-active-fg);
     font-weight: 600;
   }
 
   /* Background degradado por niveles - SOLO activos */
   .submenu.depth-1 .sub-link.active {
-    background: color-mix(in srgb, var(--bs-primary, #0d6efd) 6%, transparent);
+    background: color-mix(in srgb, var(--sb-accent) 6%, transparent);
   }
   .submenu.depth-2 .sub-link.active {
     background: transparent;
@@ -180,7 +213,7 @@ aside.sidebar {
         bottom: 6px;
         width: 4px;
         border-radius: 4px;
-        background: var(--bs-primary, #0d6efd);
+        background: var(--sb-accent);
         pointer-events: none;
         z-index: 0;
       }
@@ -198,7 +231,7 @@ aside.sidebar {
         bottom: 6px;
         width: 4px;
         border-radius: 4px;
-        background: var(--bs-primary, #0d6efd);
+        background: var(--sb-accent);
         pointer-events: none;
         z-index: 0;
       }
@@ -215,7 +248,7 @@ aside.sidebar {
     /* Hover leve niveles altos */
     .submenu.depth-3 .sub-link:hover,
     .submenu.depth-4 .sub-link:hover {
-      background: rgba(0, 0, 0, 0.035);
+      background: color-mix(in srgb, var(--sb-bg) 96%, #000 4%);
     }
   }
 
@@ -269,7 +302,7 @@ aside.sidebar {
 
   /* Accesibilidad */
   a:focus-visible {
-    outline: 2px solid var(--bs-primary, #0d6efd);
+    outline: 2px solid var(--sb-focus-ring);
     outline-offset: 2px;
     border-radius: 0;
   }
@@ -290,8 +323,8 @@ aside.sidebar {
   max-width: 360px;
   max-height: calc(100vh - 24px);
   /* SIN overflow aquí: el scroll va en .panel-scroll */
-  background: var(--bs-body-bg, #fff);
-  border: 1px solid var(--bs-border-color, rgba(0, 0, 0, 0.1));
+  background: var(--sb-bg);
+  border: 1px solid var(--sb-border);
   border-radius: 0.5rem;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   z-index: var(--z-sidebar-panel);
@@ -299,7 +332,7 @@ aside.sidebar {
 .flypanel-header {
   display: flex;
   align-items: center;
-  border-bottom: 1px solid var(--bs-border-color, rgba(0, 0, 0, 0.1));
+  border-bottom: 1px solid var(--sb-border);
   .title {
     line-height: 1.25rem;
     font-size: 13px;
@@ -407,8 +440,7 @@ aside.sidebar .collapsed-search .link {
 /* Scrollbar delgada sólo DENTRO del contenedor scrolleable del panel */
 .flypanel .panel-scroll {
   scrollbar-width: thin; /* Firefox */
-  scrollbar-color: color-mix(in srgb, var(--bs-primary, #0d6efd) 25%, #999)
-    transparent;
+  scrollbar-color: color-mix(in srgb, var(--sb-accent) 25%, #999) transparent;
 }
 .flypanel .panel-scroll::-webkit-scrollbar {
   width: 8px;
@@ -417,12 +449,12 @@ aside.sidebar .collapsed-search .link {
   background: transparent;
 }
 .flypanel .panel-scroll::-webkit-scrollbar-thumb {
-  background-color: color-mix(in srgb, var(--bs-primary, #0d6efd) 35%, #aaa);
+  background-color: color-mix(in srgb, var(--sb-accent) 35%, #aaa);
   border-radius: 6px;
   border: 2px solid transparent;
 }
 .flypanel .panel-scroll::-webkit-scrollbar-thumb:hover {
-  background-color: color-mix(in srgb, var(--bs-primary, #0d6efd) 55%, #888);
+  background-color: color-mix(in srgb, var(--sb-accent) 55%, #888);
 }
 
 /* El body del panel no scrollea; el scroll vive en .panel-scroll */
@@ -444,7 +476,7 @@ aside.sidebar .collapsed-search .link {
   );
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain; /* evita chain-scroll hacia el documento */
+  overscroll-behavior: contain;
 }
 
 /* Footer centrado y fijo al fondo del panel */
@@ -459,8 +491,8 @@ aside.sidebar .collapsed-search .link {
   gap: 0.5rem;
   text-align: center;
   padding: 0.5rem 0.75rem;
-  background: var(--bs-body-bg, #fff);
-  border-top: 1px solid var(--bs-border-color, rgba(0, 0, 0, 0.1));
+  background: var(--sb-bg);
+  border-top: 1px solid var(--sb-border);
   padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0));
 }
 .flypanel .panel-footer.center .actions {
@@ -522,4 +554,43 @@ aside.sidebar .collapsed-search .link {
 }
 .flypanel.compact.hide-icons .fa {
   display: none;
+}
+/* =========================
+   Flypanel: unificar color de botones
+   ========================= */
+.flypanel .panel-footer.center .btn {
+  /* Usa el acento del sidebar (→ shell-accent → bs-primary) */
+  --bs-btn-color: #fff;
+  --bs-btn-bg: var(--sb-accent);
+  --bs-btn-border-color: var(--sb-accent);
+
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: color-mix(in srgb, var(--sb-accent) 92%, #000 8%);
+  --bs-btn-hover-border-color: color-mix(
+    in srgb,
+    var(--sb-accent) 90%,
+    #000 10%
+  );
+
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: color-mix(in srgb, var(--sb-accent) 82%, #000 18%);
+  --bs-btn-active-border-color: color-mix(
+    in srgb,
+    var(--sb-accent) 80%,
+    #000 20%
+  );
+
+  --bs-btn-disabled-color: #fff;
+  --bs-btn-disabled-bg: color-mix(in srgb, var(--sb-accent) 60%, #bbb 40%);
+  --bs-btn-disabled-border-color: var(--bs-btn-disabled-bg);
+
+  /* opcional: micro-ajustes de tamaño/forma */
+  --bs-btn-padding-x: 0.9rem;
+  --bs-btn-padding-y: 0.45rem;
+  --bs-btn-border-radius: 9999px; /* pastilla */
+}
+
+/* Si quieres que el focus use tu ring del tema */
+.flypanel .panel-footer.center .btn:focus-visible {
+  box-shadow: 0 0 0 0.2rem var(--sb-focus-ring);
 }
