@@ -1,0 +1,8 @@
+{
+  "printWidth": 120,
+  "singleQuote": true,
+  "htmlWhitespaceSensitivity": "ignore",
+  "overrides": [
+    { "files": "*.component.html", "options": { "parser": "angular" } }
+  ]
+}
