@@ -6,7 +6,6 @@
   aria-label="Sidebar"
   id="appSidebar"
 >
-  <!-- Campo de búsqueda (solo visible cuando no está colapsado) -->
   <!-- Campo de búsqueda (solo visible cuando NO está colapsado) -->
   @if (!collapsedResolved) {
   <div class="search-container border-bottom">
@@ -27,40 +26,39 @@
       />
 
       @if (isSearching()) {
-      <button
-        type="button"
+      <a
+        href="#"
         class="btn btn-sm btn-link text-muted p-0 ms-2"
-        (click)="clearSearch()"
+        (click)="$event.preventDefault(); clearSearch()"
         aria-label="Limpiar búsqueda"
         title="Limpiar búsqueda"
       >
         <i class="fa fa-times opacity-75"></i>
-      </button>
+      </a>
       }
     </div>
   </div>
   }
 
-  <!-- Botón de búsqueda cuando SÍ está colapsado -->
+  <!-- Botón de búsqueda GLOBAL cuando SÍ está colapsado (abre flypanel en modo búsqueda) -->
   @if (collapsedResolved) {
-  <div
-    class="collapsed-search border-bottom d-flex justify-content-center py-2"
-  >
-    <button
-      type="button"
-      class="btn link d-flex align-items-center px-3 py-2 text-decoration-none active"
-      aria-label="Buscar"
-      title="Buscar"
+  <div class="collapsed-search border-bottom d-flex justify-content-center">
+    <a
+      #searchBtn
+      href="#"
+      class="link active active-static d-flex align-items-center px-3 py-2 text-decoration-none opacity-75"
+      aria-label="Buscar en el menú"
+      title="Buscar en el menú"
+      (click)="$event.preventDefault(); openSearchPanel(searchBtn)"
     >
       <i class="fa fa-search"></i>
-    </button>
+    </a>
   </div>
   }
 
-  <!-- Lista principal del menú -->
+  <!-- Lista principal (expandido). Si hay búsqueda, items ya viene filtrado -->
   @if (items.length > 0) {
   <ul class="root list-unstyled m-0">
-    <!-- Meta de resultados como item de nivel 0 -->
     @if (isSearching() && !collapsedResolved) {
     <li class="item meta" role="status" aria-live="polite">
       <div
@@ -86,7 +84,6 @@
     >
       <!-- NIVEL 0 (raíz) -->
       <a
-        #anchorEl
         class="link d-flex align-items-center gap-2 px-3 py-2 text-decoration-none"
         [routerLink]="hasChildren(it) ? [] : it.link || []"
         routerLinkActive="active"
@@ -140,7 +137,7 @@
     </li>
     }
   </ul>
-  } @else{
+  } @else {
   <ul class="root list-unstyled m-0">
     @if (isSearching() && !collapsedResolved) {
     <li class="item meta" role="status" aria-live="polite">
@@ -208,7 +205,6 @@
         </a>
 
         @if (hasChildren(n) && isOpen(nodeId(parentId, $index))) {
-        <!-- Llamada recursiva -->
         <ng-template
           [ngTemplateOutlet]="inlineTpl"
           [ngTemplateOutletContext]="{
@@ -223,10 +219,9 @@
     </ul>
   </ng-template>
 
-  <!-- =================== Panel ÚNICO (colapsado) =================== -->
-  @if (collapsedResolved && panelOpenRootIndex !== null) {
+  <!-- =================== Flypanel (colapsado: root normal o búsqueda) =================== -->
+  @if (collapsedResolved && (panelOpenRootIndex !== null || searchMode)) {
   <div
-    #flyBackdrop
     class="flypanel-backdrop"
     (click)="closePanel()"
     aria-hidden="true"
@@ -236,37 +231,115 @@
     #flypanelEl
     class="flypanel"
     [ngStyle]="panelStyle"
+    [class.compact]="searchMode && compactSearchInPanel"
+    [class.hide-icons]="
+      searchMode && compactSearchInPanel && compactHideIconsInPanel
+    "
     role="menu"
     aria-label="Submenú"
     tabindex="-1"
     (keydown.escape)="closePanel()"
   >
     <div class="flypanel-header d-flex align-items-center px-3 py-2">
-      @if (canGoBack) {
-      <button
-        type="button"
+      @if (!searchMode && canGoBack) {
+      <a
+        href="#"
         class="btn btn-sm btn-link px-1 me-2"
-        (click)="panelBack()"
+        (click)="$event.preventDefault(); panelBack()"
         aria-label="Atrás"
       >
         <i class="fa fa-chevron-left"></i>
-      </button>
-      } @else {
+      </a>
+      } @else if (!searchMode) {
       <i class="fa fa-list-ul me-2 opacity-75"></i>
+      } @else {
+      <i class="fa fa-search me-2 opacity-75"></i>
       }
+
       <div class="title text-truncate fw-semibold flex-grow-1">
         {{ panelTitle }}
       </div>
-      <button
-        type="button"
+
+      <!-- Lupa: búsqueda acotada al root abierto -->
+      @if (!searchMode && panelOpenRootIndex !== null) {
+      <a
+        href="#"
+        class="btn btn-sm btn-link px-1 me-1"
+        title="Buscar en esta sección"
+        aria-label="Buscar en esta sección"
+        (click)="$event.preventDefault(); openRootSearch()"
+      >
+        <i class="fa fa-search"></i>
+      </a>
+      }
+
+      <a
+        href="#"
         class="btn btn-sm btn-link px-1"
-        (click)="closePanel()"
+        (click)="$event.preventDefault(); closePanel()"
         aria-label="Cerrar"
       >
         <i class="fa fa-times opacity-75"></i>
-      </button>
+      </a>
     </div>
 
+    <!-- Contenido del panel -->
+    @if (searchMode) {
+    <!-- Panel de búsqueda (global o root). SOLO renderiza si hay término -->
+    <div class="px-3 py-2">
+      <input
+        #searchInputEl
+        type="text"
+        class="form-control form-control-sm"
+        placeholder="Buscar..."
+        [value]="panelSearchTerm()"
+        (input)="onPanelSearchChange($any($event).target.value)"
+        aria-label="Buscar"
+      />
+    </div>
+
+    @if (panelIsSearching()) {
+    <ul class="panel-list list-unstyled m-0">
+      <ng-template #panelSearchTpl let-nodes="nodes" let-depth="depth">
+        @for (n of nodes; track $index) {
+        <li
+          class="panel-item"
+          [style.paddingLeft.px]="depth ? depth * 12 : null"
+        >
+          <!-- si la bandera está activa y el nodo tiene hijos, no pinto la fila del padre -->
+          @if (!(searchHideParentsInPanel && hasChildren(n))) {
+          <a
+            href="#"
+            class="dropdown-like d-flex align-items-center gap-2 px-3 py-2 text-decoration-none"
+            [routerLink]="hasChildren(n) ? [] : n.link || []"
+            (click)="onPanelSearchResultClick($event, n)"
+          >
+            <i class="fa" [ngClass]="n.icon"></i>
+            <span
+              class="text-truncate"
+              [attr.title]="n.label"
+              [innerHTML]="highlightSearchTerm(n.label, panelSearchTerm())"
+            ></span>
+            @if (hasChildren(n)) {
+            <i class="fa fa-chevron-right ms-auto opacity-75"></i> }
+          </a>
+          } @if (hasChildren(n)) {
+          <ng-template
+            [ngTemplateOutlet]="panelSearchTpl"
+            [ngTemplateOutletContext]="{ nodes: n.children, depth: depth + 1 }"
+          ></ng-template>
+          }
+        </li>
+        }
+      </ng-template>
+
+      <ng-template
+        [ngTemplateOutlet]="panelSearchTpl"
+        [ngTemplateOutletContext]="{ nodes: panelFilteredItems(), depth: 0 }"
+      ></ng-template>
+    </ul>
+    } } @else {
+    <!-- Panel normal (sin búsqueda) -->
     <ul class="panel-list list-unstyled m-0">
       @for (n of panelNodes; track $index) {
       <li class="panel-item" [class.has-children]="hasChildren(n)">
@@ -277,17 +350,16 @@
           role="menuitem"
         >
           <i class="fa" [ngClass]="n.icon"></i>
-
           <span class="text-truncate" [attr.title]="n.label">{{
             n.label
           }}</span>
           @if (hasChildren(n)) {
-          <i class="fa fa-chevron-right ms-auto opacity-75"></i>
-          }
+          <i class="fa fa-chevron-right ms-auto opacity-75"></i> }
         </a>
       </li>
       }
     </ul>
+    }
   </div>
   }
 </aside>

@@ -24,6 +24,8 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
 
+type SearchScope = 'all' | 'root';
+
 @Component({
   selector: 'app-sidebar',
   standalone: true,
@@ -36,35 +38,48 @@ export class SidebarComponent {
   /** Override opcional. Si no se provee, se usa el estado del LayoutService */
   @Input() collapsed: boolean | null = null;
 
-  /** Menú (acepta MenuNode[] o SidebarItem[] y lo normaliza a MenuNode[]) */
+  /** Acordeón por nivel en árbol expandido */
+  @Input() accordionPerLevel = true;
+
+  /** Flypanel: ocultar filas de padres que tienen hijos en resultados */
+  @Input() searchHideParentsInPanel = true;
+
+  /** Flypanel de búsqueda: usa espaciado/fuentes más pequeños */
+  @Input() compactSearchInPanel = true;
+  /** (Opcional) Ocultar iconos en los resultados del flypanel */
+  @Input() compactHideIconsInPanel = false;
+
+  /** Entrada de datos (acepta SidebarItem[] o MenuNode[]) */
   @Input() set items(value: AnyItem[]) {
     const coerced = this.coerceToMenuNodes(value ?? []);
     this._originalItems = this.normalize(coerced);
-    this.searchTerm.set(''); // reset búsqueda
-    this.resetListPreservingSelection(); // abre ancestros del activo
-  }
-  get items(): MenuNode[] {
-    return this.filteredItems();
+    this.resetListPreservingSelection();
   }
 
-  /** Abre uno por nivel y cierra los hermanos (acordeón) */
-  @Input() accordionPerLevel = true;
-
-  /** Fallback local (mock) también convertido al vuelo */
+  /** El menú lateral base (no filtrado) */
   private _originalItems: MenuNode[] = this.normalize(
     this.coerceToMenuNodes(DEMO_MENU as any)
   );
+
+  /** Getter para la lista que se pinta en el sidebar (expandidos) */
+  get items(): MenuNode[] {
+    // Solo filtra en modo expandido y cuando se está buscando
+    if (!this.collapsedResolved && this.isSearching()) {
+      return this.sidebarFilteredItems();
+    }
+    return this._originalItems;
+  }
 
   private layout = inject(LayoutService);
   private host = inject(ElementRef<HTMLElement>);
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);
 
-  // ====== bloqueo/desbloqueo del scroll del body (cuando panel abierto) ======
+  // ====== Bloqueo/desbloqueo de scroll del body (panel abierto) ======
   private savedScrollY = 0;
   private preventScroll = (e: Event) => e.preventDefault();
 
-  // ====== Hook al elemento del panel para cerrar si se scrollea dentro ======
+  // ====== Hook para cerrar si hay scroll dentro del flypanel ======
   private flypanelScrollSub?: Subscription;
   @ViewChild('flypanelEl')
   set flypanelElSetter(ref: ElementRef<HTMLElement> | undefined) {
@@ -78,32 +93,75 @@ export class SidebarComponent {
     }
   }
 
-  // 👇 NUEVO: referencia al input del panel de búsqueda para darle foco
+  // ====== Refs de input en el panel (para focus) ======
   @ViewChild('searchInputEl') searchInputEl?: ElementRef<HTMLInputElement>;
 
-  // ------------------ Búsqueda (signals) ------------------
-  searchTerm = signal('>'); // se respeta tu valor inicial
+  // ------------------ BÚSQUEDA EN SIDEBAR EXPANDIDO ------------------
+  searchTerm = signal('');
   isSearching = computed(() => this.searchTerm().trim().length > 0);
 
-  /** Items filtrados basados en el término de búsqueda */
-  private filteredItems = computed(() => {
+  private sidebarFilteredItems = computed(() => {
     const term = this.searchTerm().toLowerCase().trim();
     if (!term) return this._originalItems;
     return this.filterMenuItems(this._originalItems, term);
   });
 
-  /** Filtra recursivamente los items del menú */
+  onSearchChange(value: string): void {
+    this.searchTerm.set(value);
+    if (!this.collapsedResolved) {
+      if (!this.isSearching()) {
+        this.resetListPreservingSelection();
+      } else {
+        this.expandAllForSearch();
+      }
+    }
+  }
+
+  clearSearch(): void {
+    this.searchTerm.set('');
+    this.resetListPreservingSelection();
+  }
+
+  // ------------------ BÚSQUEDA EN FLYPANEL (COLAPSADO) ------------------
+  panelSearchTerm = signal('');
+  panelIsSearching = computed(() => this.panelSearchTerm().trim().length > 0);
+
+  private searchScope: SearchScope = 'all';
+  private searchRoot: MenuNode | null = null;
+
+  private searchBaseNodes(): MenuNode[] {
+    if (this.searchScope === 'root' && this.searchRoot) {
+      return this.searchRoot.children ?? [];
+    }
+    return this._originalItems;
+  }
+
+  panelFilteredItems = computed(() => {
+    const term = this.panelSearchTerm().toLowerCase().trim();
+    if (!term) return this.searchBaseNodes();
+    return this.filterMenuItems(this.searchBaseNodes(), term);
+  });
+
+  onPanelSearchChange(v: string) {
+    this.panelSearchTerm.set(v);
+  }
+  clearPanelSearch() {
+    this.panelSearchTerm.set('');
+  }
+
+  /** Filtro recursivo (reutilizado por ambos modos) */
   private filterMenuItems(items: MenuNode[], searchTerm: string): MenuNode[] {
     const filtered: MenuNode[] = [];
     for (const item of items) {
-      const matchesItem = item.label.toLowerCase().includes(searchTerm);
-      let filteredChildren: MenuNode[] | undefined;
-      if (item.children)
-        filteredChildren = this.filterMenuItems(item.children, searchTerm);
-      if (matchesItem || (filteredChildren && filteredChildren.length > 0)) {
+      const matchesItem = (item.label || '').toLowerCase().includes(searchTerm);
+      let children: MenuNode[] | undefined;
+      if (item.children?.length) {
+        children = this.filterMenuItems(item.children, searchTerm);
+      }
+      if (matchesItem || (children && children.length > 0)) {
         filtered.push({
           ...item,
-          children: filteredChildren?.length ? filteredChildren : undefined,
+          children: children?.length ? children : undefined,
         });
       }
     }
@@ -111,59 +169,11 @@ export class SidebarComponent {
   }
 
   constructor() {
-    // Cerrar por scroll global SOLO si el panel está abierto
     this.layout.closeSidebarPanel$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
         if (this.panelOpen || this.searchMode) this.closePanel();
       });
-  }
-
-  ngOnDestroy() {
-    this.flypanelScrollSub?.unsubscribe();
-  }
-
-  // ====== Búsqueda: handlers ======
-  onSearchChange(value: string): void {
-    this.searchTerm.set(value);
-    if (!this.isSearching()) {
-      this.resetListPreservingSelection();
-      return;
-    }
-    if (!this.collapsedResolved) this.expandAllForSearch(); // solo en expandido
-  }
-  clearSearch(): void {
-    this.searchTerm.set('');
-    this.resetListPreservingSelection();
-  }
-
-  private expandAllForSearch(): void {
-    this.openSet.clear();
-    this.forcedOpen.clear();
-    this.addOpenNodesRecursively(this.filteredItems(), null);
-  }
-  private addOpenNodesRecursively(
-    nodes: MenuNode[],
-    parentId: string | null
-  ): void {
-    nodes.forEach((node, index) => {
-      const nodeIdStr = this.nodeId(parentId, index);
-      if (this.hasChildren(node)) {
-        this.openSet.add(nodeIdStr);
-        this.addOpenNodesRecursively(node.children!, nodeIdStr);
-      }
-    });
-  }
-
-  // Para resaltar en el template con [innerHTML]
-  highlightSearchTerm(text: string, term: string): string {
-    const t = term.trim();
-    if (!t) return text;
-    const regex = new RegExp(`(${this.escapeRegex(t)})`, 'gi');
-    return text.replace(regex, '<span class="search-term">$1</span>');
-  }
-  private escapeRegex(str: string): string {
-    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   }
 
   // ------------------ Normalización + helpers ------------------
@@ -173,6 +183,7 @@ export class SidebarComponent {
       return { ...n, children: kids.length ? this.normalize(kids) : undefined };
     });
   }
+
   hasChildren = (n?: MenuNode | null): boolean => !!n && !!n.children?.length;
 
   get collapsedResolved(): boolean {
@@ -180,8 +191,8 @@ export class SidebarComponent {
   }
 
   // ------------------ Expandido (inline) ------------------
-  private openSet = new Set<string>(); // usuario/búsqueda
-  private forcedOpen = new Set<string>(); // ancestros de activo
+  private openSet = new Set<string>();
+  private forcedOpen = new Set<string>();
 
   nodeId(parentId: string | null, index: number): string {
     return parentId ? `${parentId}.${index}` : String(index);
@@ -194,11 +205,13 @@ export class SidebarComponent {
     if (this.openSet.has(id)) this.openSet.delete(id);
     else this.openSet.add(id);
   }
+
   private closeBranch(prefix: string): void {
     for (const k of Array.from(this.openSet)) {
       if (k === prefix || k.startsWith(prefix + '.')) this.openSet.delete(k);
     }
   }
+
   private collapseSiblings(id: string): void {
     if (!this.accordionPerLevel) return;
     const lastDot = id.lastIndexOf('.');
@@ -241,7 +254,6 @@ export class SidebarComponent {
       return;
     }
     if (this.collapsedResolved) this.closePanel();
-    if (this.isSearching()) this.clearSearch();
   }
 
   onItemClick(ev: MouseEvent, node: MenuNode, id: string): void {
@@ -259,7 +271,6 @@ export class SidebarComponent {
         }
       }
     } else {
-      if (this.isSearching()) this.clearSearch();
       if (this.collapsedResolved) this.closePanel();
     }
   }
@@ -268,13 +279,11 @@ export class SidebarComponent {
   panelOpenRootIndex: number | null = null;
   panelStack: MenuNode[] = [];
   panelStyle: Record<string, string> = {};
-
-  // 👇 NUEVO: modo búsqueda dentro del flypanel
   searchMode = false;
+
   get panelOpen(): boolean {
     return this.panelOpenRootIndex !== null;
   }
-
   get panelNodes(): MenuNode[] {
     const current = this.panelStack[this.panelStack.length - 1];
     return (current?.children ?? []) as MenuNode[];
@@ -284,9 +293,12 @@ export class SidebarComponent {
   }
 
   get panelTitle(): string {
-    return this.searchMode
-      ? 'Buscar en el menú.'
-      : this.panelStack[this.panelStack.length - 1]?.label ?? ''; // título normal
+    if (this.searchMode) {
+      return this.searchScope === 'root' && this.searchRoot
+        ? `Buscar en ${this.searchRoot.label}`
+        : 'Buscar en el menú.';
+    }
+    return this.panelStack[this.panelStack.length - 1]?.label ?? '';
   }
 
   openPanelForRoot(
@@ -295,19 +307,38 @@ export class SidebarComponent {
     rootIndex: number
   ): void {
     this.searchMode = false;
+    this.searchScope = 'all';
+    this.searchRoot = null;
+
     this.panelOpenRootIndex = rootIndex;
     this.panelStack = [rootNode];
     this.repositionPanel(anchorEl);
     this.lockScroll();
   }
 
-  // 👇 NUEVO: abrir el panel en modo búsqueda
+  /** Búsqueda GLOBAL (desde la lupa del sidebar colapsado) */
   openSearchPanel(anchorEl: HTMLElement): void {
     this.searchMode = true;
-    this.panelOpenRootIndex = null; // no estamos en un root concreto
+    this.searchScope = 'all';
+    this.searchRoot = null;
+    this.panelSearchTerm.set('');
+
+    this.panelOpenRootIndex = null;
     this.panelStack = [];
     this.repositionPanel(anchorEl);
     this.lockScroll();
+    queueMicrotask(() => this.searchInputEl?.nativeElement?.focus());
+  }
+
+  /** Búsqueda SOLO dentro del root actualmente abierto en el panel */
+  openRootSearch(): void {
+    const currentRoot = this.panelStack[0] ?? null;
+    if (!currentRoot) return;
+
+    this.searchMode = true;
+    this.searchScope = 'root';
+    this.searchRoot = currentRoot;
+    this.panelSearchTerm.set('');
     queueMicrotask(() => this.searchInputEl?.nativeElement?.focus());
   }
 
@@ -317,24 +348,41 @@ export class SidebarComponent {
       this.panelStack.push(node);
     } else {
       this.closePanel();
-      if (this.isSearching()) this.clearSearch();
     }
   }
 
-  // 👇 NUEVO: click en resultado del panel de búsqueda
   onSearchNodeClick(ev: MouseEvent, node: MenuNode): void {
     if (this.hasChildren(node)) {
       ev.preventDefault();
-      // saltamos a panel "normal" con el nodo como raíz
       this.searchMode = false;
-      this.panelOpenRootIndex = -1; // marcador (no se usa visualmente)
+      this.searchScope = 'all';
+      this.searchRoot = null;
+      this.panelOpenRootIndex = -1;
       this.panelStack = [node];
     } else {
       this.onPanelItemClick(ev, node);
     }
   }
 
+  onPanelSearchResultClick(ev: MouseEvent, node: MenuNode): void {
+    if (this.hasChildren(node)) {
+      ev.preventDefault();
+      // En resultados: si es padre, entra al panel normal con ese nodo
+      this.onSearchNodeClick(ev, node);
+    } else {
+      // Hoja: navega y cierra el panel
+      this.onPanelItemClick(ev, node);
+    }
+  }
+
   panelBack(): void {
+    if (this.searchMode) {
+      this.searchMode = false;
+      this.searchScope = 'all';
+      this.searchRoot = null;
+      this.panelSearchTerm.set('');
+      return;
+    }
     if (this.panelStack.length > 1) this.panelStack.pop();
     else this.closePanel();
   }
@@ -344,14 +392,18 @@ export class SidebarComponent {
   }
 
   closePanel(): void {
-    if (!this.panelOpen && !this.searchMode) return; // ya cerrado
+    if (!this.panelOpen && !this.searchMode) return;
     this.panelOpenRootIndex = null;
     this.panelStack = [];
     this.panelStyle = {};
     this.searchMode = false;
+    this.searchScope = 'all';
+    this.searchRoot = null;
+    this.panelSearchTerm.set('');
     this.unlockScroll();
   }
 
+  /** Posiciona el panel al lado del sidebar, alineado al item clickeado */
   private repositionPanel(anchorEl: HTMLElement): void {
     const li =
       (anchorEl.closest('li.item, button, a') as HTMLElement) ?? anchorEl;
@@ -374,18 +426,15 @@ export class SidebarComponent {
   @HostListener('window:keydown.escape')
   onEsc() {
     if (this.collapsedResolved) this.closePanel();
-    else if (this.isSearching()) this.clearSearch();
   }
 
   @HostListener('window:resize')
   onResize() {
-    if (
-      this.collapsedResolved &&
-      (this.panelOpenRootIndex !== null || this.searchMode)
-    ) {
-      const btn = this.host.nativeElement.querySelector(
-        '.collapsed-search .btn, li.item > .link'
-      );
+    if (this.collapsedResolved && (this.panelOpen || this.searchMode)) {
+      const btn =
+        this.host.nativeElement.querySelector(
+          '.collapsed-search .link, li.item > .link'
+        ) || undefined;
       if (btn) this.repositionPanel(btn as HTMLElement);
     }
   }
@@ -397,6 +446,7 @@ export class SidebarComponent {
     const path = this.findActiveIndexPath(this._originalItems);
     if (path) this.openIndexPath(path);
   }
+
   private openIndexPath(path: number[]) {
     let pid: string | null = null;
     for (const idx of path.slice(0, -1)) {
@@ -404,6 +454,7 @@ export class SidebarComponent {
       this.forcedOpen.add(pid);
     }
   }
+
   private findActiveIndexPath(
     nodes: MenuNode[],
     trail: number[] = []
@@ -411,6 +462,7 @@ export class SidebarComponent {
     for (let i = 0; i < nodes.length; i++) {
       const n = nodes[i];
       const here = [...trail, i];
+
       if (this.isItemActive(n)) return here;
       if (n.children?.length) {
         const found = this.findActiveIndexPath(n.children, here);
@@ -419,6 +471,7 @@ export class SidebarComponent {
     }
     return null;
   }
+
   private isItemActive(n: MenuNode): boolean {
     if (!n.link) return false;
     const current = this.router.url.split('?')[0];
@@ -441,8 +494,8 @@ export class SidebarComponent {
         const kids = (it.submenu ?? undefined) as AnyItem[] | undefined;
         return {
           label: it.text ?? '',
-          link: it.link as RouteLink | undefined,
-          icon: it.icon as string | undefined,
+          link: (it.link ?? undefined) as RouteLink | undefined,
+          icon: (it.icon ?? undefined) as string | undefined,
           children: kids?.length ? kids.map(mapOne) : undefined,
         };
       }
@@ -450,8 +503,8 @@ export class SidebarComponent {
         const kids = (it.children ?? undefined) as AnyItem[] | undefined;
         return {
           label: it.label ?? '',
-          link: it.link as RouteLink | undefined,
-          icon: it.icon as string | undefined,
+          link: (it.link ?? undefined) as RouteLink | undefined,
+          icon: (it.icon ?? undefined) as string | undefined,
           children: kids?.length ? kids.map(mapOne) : undefined,
         };
       }
@@ -460,7 +513,7 @@ export class SidebarComponent {
     return (items ?? []).map(mapOne);
   }
 
-  // ====== Lock/unlock scroll del body para el modo colapsado ======
+  // ====== Lock/unlock scroll del body ======
   private lockScroll(): void {
     this.savedScrollY =
       window.scrollY || document.documentElement.scrollTop || 0;
@@ -480,6 +533,7 @@ export class SidebarComponent {
       capture: true,
     });
   }
+
   private unlockScroll(): void {
     const wasLocked = document.body.classList.contains('sidebar-flypanel-open');
     document.documentElement.classList.remove('sidebar-flypanel-open');
@@ -496,5 +550,32 @@ export class SidebarComponent {
       capture: true,
     } as any);
     if (wasLocked) window.scrollTo(0, this.savedScrollY);
+  }
+
+  // Utilidad: resaltar términos
+  highlightSearchTerm(text: string, term: string): string {
+    const t = term.trim();
+    if (!t) return text;
+    const regex = new RegExp(`(${this.escapeRegex(t)})`, 'gi');
+    return text.replace(regex, '<mark class="search-highlight">$1</mark>');
+  }
+  private escapeRegex(str: string): string {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
+  // ====== Helpers para expandir todo al buscar (sidebar expandido) ======
+  private expandAllForSearch(): void {
+    this.openSet.clear();
+    this.forcedOpen.clear();
+    this.addOpenNodesRecursively(this.sidebarFilteredItems(), null);
+  }
+  private addOpenNodesRecursively(nodes: MenuNode[], parentId: string | null) {
+    nodes.forEach((node, index) => {
+      const id = this.nodeId(parentId, index);
+      if (this.hasChildren(node)) {
+        this.openSet.add(id);
+        this.addOpenNodesRecursively(node.children!, id);
+      }
+    });
   }
 }

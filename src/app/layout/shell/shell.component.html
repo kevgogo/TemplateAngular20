@@ -4,6 +4,8 @@
     class="sidebar"
     [items]="menuItems()"
     [style.display]="sidebarHidden() ? 'none' : null"
+    [compactSearchInPanel]="true"
+    [compactHideIconsInPanel]="false"
   />
   <main class="main">
     <app-breadcrumbs class="app-breadcrumbs" />

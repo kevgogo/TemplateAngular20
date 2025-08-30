@@ -349,3 +349,142 @@ aside.sidebar {
 .search-area {
   height: 50px;
 }
+/* Hace que el bloque collapsed-search luzca como un item de menú */
+.collapsed-search {
+  padding: 0;
+  border-bottom: 1px solid var(--sb-border);
+
+  .link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    height: 50px; /* mismo alto que tus filas */
+    width: 100%;
+    padding: 0 1rem; /* equivalente a .px-3 */
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    color: var(--sb-fg);
+    text-decoration: none;
+
+    &:hover {
+      background: var(--sb-hover-bg);
+      color: var(--sb-fg);
+    }
+
+    .fa {
+      width: 1.125rem;
+      min-width: 1.125rem;
+      text-align: center;
+    }
+  }
+}
+
+/* === Lupa (collapsed-search): activo PERMANENTE sin hover === */
+aside.sidebar .collapsed-search {
+  /* si algún selector pinta el contenedor en :hover */
+  background: transparent !important;
+}
+aside.sidebar .collapsed-search:hover {
+  background: transparent !important;
+}
+
+/* estado activo fijo */
+aside.sidebar .collapsed-search .link.active-static {
+  background: var(--sb-active-bg) !important;
+  color: var(--sb-active-fg) !important;
+  box-shadow: none !important;
+  outline: 0 !important;
+}
+
+/* no cambiar al pasar mouse / focus / active */
+aside.sidebar .collapsed-search .link.active-static:hover,
+aside.sidebar .collapsed-search:hover .link.active-static,
+aside.sidebar .collapsed-search .link.active-static:focus,
+aside.sidebar .collapsed-search .link.active-static:active {
+  background: var(--sb-active-bg) !important;
+  color: var(--sb-active-fg) !important;
+  text-decoration: none !important;
+  box-shadow: none !important;
+  outline: 0 !important;
+}
+
+/* por si hay decoradores de pseudo-elemento en tus enlaces */
+aside.sidebar .collapsed-search .link.active-static::before,
+aside.sidebar .collapsed-search .link.active-static::after {
+  content: none !important;
+}
+
+/* (opcional) asegurar la misma altura que los ítems del menú */
+aside.sidebar .collapsed-search .link {
+  height: 50px; /* ajusta si tu fila usa otro alto */
+}
+
+/* =========================
+   Flypanel: modo compacto
+   ========================= */
+.flypanel.compact {
+  /* ancho igual; solo densidad */
+  .flypanel-header {
+    min-height: 36px;
+    padding-top: 0.25rem !important;
+    padding-bottom: 0.25rem !important;
+
+    .title {
+      font-size: 0.875rem; /* 14px aprox */
+      line-height: 1.15;
+    }
+
+    .btn {
+      padding: 0 0.25rem !important;
+      line-height: 1;
+    }
+  }
+
+  /* input de búsqueda más bajo */
+  .form-control.form-control-sm {
+    height: 28px;
+    padding: 0.15rem 0.5rem;
+    font-size: 0.8125rem; /* 13px aprox */
+    line-height: 1.1;
+  }
+
+  /* lista más apretada */
+  .panel-list {
+    padding: 0.25rem 0;
+  }
+
+  .panel-item {
+    margin: 0; /* sin gaps verticales extra */
+  }
+
+  .dropdown-like {
+    padding: 0.375rem 0.75rem; /* 6px 12px */
+    gap: 0.5rem;
+    font-size: 0.8125rem; /* 13px aprox */
+    line-height: 1.15;
+  }
+
+  /* íconos más pequeños y estrechos */
+  .fa {
+    font-size: 0.95rem;
+    width: 1rem;
+    min-width: 1rem;
+    text-align: center;
+  }
+
+  /* resaltado más discreto para que no “salte” tanto */
+  .search-highlight {
+    padding: 0 0.1rem;
+    background: color-mix(
+      in srgb,
+      var(--bs-warning-bg-subtle, #fff3cd) 70%,
+      transparent
+    );
+  }
+}
+
+/* Ocultar iconos en modo compacto si se usa la bandera */
+.flypanel.compact.hide-icons .fa {
+  display: none;
+}
