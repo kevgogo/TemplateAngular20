@@ -83,8 +83,8 @@ export const DEMO_ROUTES: Routes = [
     path: 'icons-explorer/icons',
     title: 'Selector de Iconos',
     loadComponent: () =>
-      import('@pages/demo/icons/icons-explorer/fa-icons-explorer.page').then(
-        (m) => m.FaIconsExplorerPage,
+      import('@pages/demo/fa4-search/fa4-search.component').then(
+        (m) => m.Fa4SearchComponent,
       ),
   },
   {
