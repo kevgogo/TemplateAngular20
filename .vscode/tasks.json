@@ -1,5 +1,4 @@
 {
-  // For more information, visit: https://go.microsoft.com/fwlink/?LinkId=733558
   "version": "2.0.0",
   "tasks": [
     {
@@ -11,32 +10,116 @@
         "pattern": "$tsc",
         "background": {
           "activeOnStart": true,
-          "beginsPattern": {
-            "regexp": "(.*?)"
-          },
-          "endsPattern": {
-            "regexp": "bundle generation complete"
-          }
+          "beginsPattern": { "regexp": "(.*?)" },
+          "endsPattern": { "regexp": "bundle generation complete" }
         }
       }
     },
     {
       "type": "npm",
       "script": "test",
-      "isBackground": true,
-      "problemMatcher": {
-        "owner": "typescript",
-        "pattern": "$tsc",
-        "background": {
-          "activeOnStart": true,
-          "beginsPattern": {
-            "regexp": "(.*?)"
-          },
-          "endsPattern": {
-            "regexp": "bundle generation complete"
-          }
-        }
-      }
+      "label": "jest:test",
+      "isBackground": false
+    },
+    {
+      "label": "eslint: lint whole folder",
+      "type": "shell",
+      "command": "npx",
+      "args": ["eslint", ".", "--ext", ".ts,.html"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": ["$eslint-stylish"],
+      "group": { "kind": "test", "isDefault": true }
+    },
+    {
+      "label": "eslint:watch",
+      "type": "shell",
+      "command": "npx",
+      "args": ["eslint", ".", "--ext", ".ts,.html", "--cache"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": ["$eslint-stylish"]
+    },
+    {
+      "label": "ng lint",
+      "type": "npm",
+      "script": "lint"
+    },
+    {
+      "label": "ng lint:fix",
+      "type": "npm",
+      "script": "lint:fix"
+    },
+    {
+      "label": "lint-staged:run",
+      "type": "shell",
+      "command": "npx",
+      "args": ["lint-staged", "--concurrent", "true"],
+      "options": { "cwd": "${workspaceFolder}" }
+    },
+    {
+      "label": "prettier:check",
+      "type": "shell",
+      "command": "npx",
+      "args": ["prettier", "--check", "."],
+      "options": { "cwd": "${workspaceFolder}" }
+    },
+    {
+      "label": "prettier:write",
+      "type": "shell",
+      "command": "npx",
+      "args": ["prettier", "--write", "."],
+      "options": { "cwd": "${workspaceFolder}" }
+    },
+
+    /* ===== Serve por entorno ===== */
+    {
+      "label": "serve:local",
+      "type": "npm",
+      "script": "start:local",
+      "isBackground": true
+    },
+    {
+      "label": "serve:dev",
+      "type": "npm",
+      "script": "start:dev",
+      "isBackground": true
+    },
+    {
+      "label": "serve:qa",
+      "type": "npm",
+      "script": "start:qa",
+      "isBackground": true
+    },
+    {
+      "label": "serve:prod",
+      "type": "npm",
+      "script": "start:production",
+      "isBackground": true
+    },
+
+    /* ===== Build por entorno ===== */
+    { "label": "build:local", "type": "npm", "script": "build:local" },
+    { "label": "build:dev", "type": "npm", "script": "build:dev" },
+    { "label": "build:qa", "type": "npm", "script": "build:qa" },
+    { "label": "build:prod", "type": "npm", "script": "build:prod" },
+
+    /* ===== Tests ===== */
+    { "label": "jest:watch", "type": "npm", "script": "test:watch" },
+
+    /* ===== Compuestas útiles ===== */
+    {
+      "label": "code:quality:check",
+      "dependsOrder": "sequence",
+      "dependsOn": ["eslint: lint whole folder", "prettier:check", "ng lint"]
+    },
+    {
+      "label": "ci:local",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "build:local",
+        "eslint: lint whole folder",
+        "prettier:check",
+        "jest:test"
+      ]
     }
   ]
 }

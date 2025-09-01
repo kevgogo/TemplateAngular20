@@ -1,0 +1,27 @@
+{
+  // === Prettier como formateador por defecto ===
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+
+  // === ESLint con flat config y ejecución al guardar ===
+  "eslint.useFlatConfig": true,
+  "eslint.run": "onSave",
+  "eslint.validate": ["javascript", "typescript", "html"],
+
+  // === Acciones al guardar ===
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "always",
+    "source.organizeImports": "explicit" // organiza imports solo cuando lo pides
+  },
+
+  // === Desactivar formateador HTML nativo (dejamos todo a Prettier) ===
+  "html.format.enable": false,
+
+  // === Mostrar qué archivos/carpetas tienen problemas ===
+  "problems.decorations.enabled": true,
+  "explorer.decorations.badges": true,
+  "workbench.editor.decorations.colors": true,
+
+  // === Tarea integrada del plugin ESLint (para correr todo el workspace desde Tasks) ===
+  "eslint.lintTask.enable": true
+}

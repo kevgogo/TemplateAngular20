@@ -2,7 +2,8 @@
   "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
   "version": 1,
   "cli": {
-    "packageManager": "npm"
+    "packageManager": "npm",
+    "schematicCollections": ["angular-eslint"]
   },
   "newProjectRoot": "projects",
   "projects": {
@@ -25,10 +26,21 @@
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
             "assets": [
-              { "glob": "**/*", "input": "public" },
+              {
+                "glob": "**/*",
+                "input": "public"
+              },
               "src/assets",
-              { "glob": "favicon.ico", "input": "src", "output": "/" },
-              { "glob": "web.config", "input": "src", "output": "/" }
+              {
+                "glob": "favicon.ico",
+                "input": "src",
+                "output": "/"
+              },
+              {
+                "glob": "web.config",
+                "input": "src",
+                "output": "/"
+              }
             ],
             "styles": [
               "node_modules/bootstrap/dist/css/bootstrap.min.css",
@@ -127,8 +139,14 @@
         "test": {
           "builder": "@angular-builders/jest:run",
           "options": {
-            "configPath": "jest.config.mjs",
+            "configPath": "jest.config.ts",
             "passWithNoTests": true
+          }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": ["src/**/*.ts", "src/**/*.html"]
           }
         }
       }
