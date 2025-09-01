@@ -1,9 +1,13 @@
 // src/app/features/demo/modals/modal-inject-demo.page.ts
-import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { BsModalService, ModalOptions } from 'ngx-bootstrap/modal';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  Input,
+} from '@angular/core';
 import { SHARED_IMPORTS } from '@shared/app-shared-imports';
-import { BsModalRef } from 'ngx-bootstrap/modal';
+import { BsModalRef, BsModalService, ModalOptions } from 'ngx-bootstrap/modal';
 
 @Component({
   selector: 'app-modal-inject-demo',
@@ -13,30 +17,34 @@ import { BsModalRef } from 'ngx-bootstrap/modal';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ModalInjectDemoPage {
-  constructor(private modal: BsModalService) {}
+  private readonly modal: BsModalService = inject(BsModalService);
 
-  openUserCard() {
-    const initialState = {
+  openUserCard(): void {
+    const initialState: Partial<UserCardComponent> = {
       user: {
         name: 'Ada Lovelace',
         role: 'Mathematician',
         email: 'ada@lovelace.org',
       },
     };
-    this.modal.show(UserCardComponent, {
+
+    const opts: ModalOptions = {
       initialState,
       class: 'modal-lg',
-    } as ModalOptions);
+    };
+
+    this.modal.show(UserCardComponent, opts);
   }
 }
 
-// Contenido a inyectar dinámicamente
-import { Input } from '@angular/core';
+// ================= Contenido inyectado dinámicamente =================
+
 @Component({
   standalone: true,
   selector: 'app-user-card',
-
-  template: ` <div class="modal-header">
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
+    <div class="modal-header">
       <h5 class="modal-title">Usuario</h5>
       <button
         type="button"
@@ -45,13 +53,14 @@ import { Input } from '@angular/core';
         (click)="bsModalRef.hide()"
       ></button>
     </div>
+
     <div class="modal-body">
       <div class="d-flex align-items-center gap-3">
         <div
           class="avatar rounded-circle bg-body-secondary d-inline-flex align-items-center justify-content-center"
           style="width:56px;height:56px"
         >
-          <i class="fa fa-person fs-4"></i>
+          <i class="fa fa-user fs-4"></i>
         </div>
         <div>
           <div class="fw-bold">{{ user?.name }}</div>
@@ -59,9 +68,10 @@ import { Input } from '@angular/core';
           <a [href]="'mailto:' + user?.email">{{ user?.email }}</a>
         </div>
       </div>
-    </div>`,
+    </div>
+  `,
 })
 export class UserCardComponent {
+  public readonly bsModalRef: BsModalRef = inject(BsModalRef);
   @Input() user?: { name: string; role: string; email: string };
-  constructor(public bsModalRef: BsModalRef) {}
 }

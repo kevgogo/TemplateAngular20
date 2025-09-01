@@ -1,28 +1,28 @@
+import { CommonModule } from '@angular/common';
 import {
-  Component,
   ChangeDetectionStrategy,
+  Component,
+  EventEmitter,
   Input,
   Output,
-  EventEmitter,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { BehaviorSubject, NEVER, interval } from 'rxjs';
 import {
+  distinctUntilChanged,
   map,
   startWith,
   switchMap,
-  distinctUntilChanged,
 } from 'rxjs/operators';
-import { toSignal } from '@angular/core/rxjs-interop';
 
 import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-import tz from 'dayjs/plugin/timezone';
+import 'dayjs/locale/en';
+import 'dayjs/locale/es';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
 import duration from 'dayjs/plugin/duration';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import customParseFormat from 'dayjs/plugin/customParseFormat';
-import 'dayjs/locale/es';
-import 'dayjs/locale/en';
+import tz from 'dayjs/plugin/timezone';
+import utc from 'dayjs/plugin/utc';
 
 dayjs.extend(utc);
 dayjs.extend(tz);
@@ -113,32 +113,32 @@ export class ChronoComponent {
   /** ====== Reloj interno ====== */
   private readonly ticks$ = this.paused$.pipe(
     switchMap((p) => (p ? NEVER : interval(this.tick))),
-    startWith(0)
+    startWith(0),
   );
   private readonly nowMs = toSignal(this.ticks$.pipe(map(() => Date.now())), {
     initialValue: Date.now(),
   });
 
   /** ====== API pública (control con #chrono) ====== */
-  public start() {
+  public start(): void {
     if ((this.mode === 'stopwatch' || this.mode === 'since') && !this.from)
       this.from = Date.now();
     this.resume();
   }
-  public pause() {
+  public pause(): void {
     this._paused = true;
     this.paused$.next(true);
   }
-  public resume() {
+  public resume(): void {
     this._paused = false;
     this.paused$.next(false);
   }
-  public reset() {
+  public reset(): void {
     if (this.mode === 'stopwatch') this.from = null;
     this.pause();
   }
 
-  public startTimer() {
+  public startTimer(): void {
     if (this.mode !== 'timer') return;
     const now = this.nowMs();
     if (this.until) {
@@ -149,7 +149,7 @@ export class ChronoComponent {
     }
     this.resume();
   }
-  public resetTimer() {
+  public resetTimer(): void {
     if (this.mode === 'timer') {
       this.pause();
       this.endAtMs = null;
@@ -188,8 +188,8 @@ export class ChronoComponent {
       this.rounding === 'floor'
         ? Math.floor
         : this.rounding === 'ceil'
-        ? Math.ceil
-        : Math.round;
+          ? Math.ceil
+          : Math.round;
     return op(v * f) / f;
   }
 
@@ -207,16 +207,23 @@ export class ChronoComponent {
     };
   }
 
-  private emitFromDiff(diffMs: number) {
-    const map = this.unitsFrom(diffMs);
+  private emitFromDiff(diffMs: number): void {
+    const u = this.unitsFrom(diffMs);
     if (this.emitUnits === 'all') {
-      const out: Record<ElapsedUnit, number> = { ...map } as any;
-      (Object.keys(out) as ElapsedUnit[]).forEach(
-        (k) => (out[k] = this.round(out[k]))
-      );
+      // Construimos el record tipado explícitamente, sin `any`
+      const out: Record<ElapsedUnit, number> = {
+        ms: this.round(u.ms),
+        seconds: this.round(u.seconds),
+        minutes: this.round(u.minutes),
+        hours: this.round(u.hours),
+        days: this.round(u.days),
+        weeks: this.round(u.weeks),
+        months: this.round(u.months),
+        years: this.round(u.years),
+      };
       this.elapsedChange.emit(out);
     } else {
-      this.elapsedChange.emit(this.round(map[this.emitUnits]));
+      this.elapsedChange.emit(this.round(u[this.emitUnits]));
     }
   }
 
@@ -224,7 +231,7 @@ export class ChronoComponent {
     days: number,
     hours: number,
     mins: number,
-    dirDown: boolean
+    dirDown: boolean,
   ): string {
     const en = this.lang() === 'en';
     const t = en
@@ -257,9 +264,9 @@ export class ChronoComponent {
   readonly label = toSignal(
     this.ticks$.pipe(
       map(() => this.computeLabel()),
-      distinctUntilChanged()
+      distinctUntilChanged(),
     ),
-    { initialValue: this.computeLabel() }
+    { initialValue: this.computeLabel() },
   );
 
   private computeLabel(): string {

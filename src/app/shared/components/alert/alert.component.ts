@@ -1,3 +1,4 @@
+import { NgClass, NgIf } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -5,7 +6,6 @@ import {
   Input,
   Output,
 } from '@angular/core';
-import { NgClass, NgIf } from '@angular/common';
 
 @Component({
   selector: 'app-alert',
@@ -34,13 +34,13 @@ export class AlertComponent {
   @Input() message = '';
 
   /** Evento emitido al cerrar */
-  @Output() close = new EventEmitter<void>();
+  @Output() _close = new EventEmitter<void>();
 
   /** Estado interno para ocultar el alert al cerrar */
   isOpen = true;
 
-  _close(): void {
+  close(): void {
     this.isOpen = false;
-    this.close.emit();
+    this._close.emit();
   }
 }

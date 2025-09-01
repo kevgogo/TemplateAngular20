@@ -1,7 +1,7 @@
-import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ConfirmService } from '@shared/components/dialogs/confirm/confirm.service';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { ConfirmService } from '@shared/components/dialogs/confirm/confirm.service';
 import { ToastrService } from 'ngx-toastr';
 import Swal from 'sweetalert2';
 
@@ -10,17 +10,16 @@ import Swal from 'sweetalert2';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './messages-demo.page.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DemoMessagesPage {
-  constructor(
-    private confirm: ConfirmService,
-    private sanitizer: DomSanitizer,
-    private toastr: ToastrService
-  ) {}
+  private readonly confirm: ConfirmService = inject(ConfirmService);
+  private readonly sanitizer: DomSanitizer = inject(DomSanitizer);
+  private readonly toastr: ToastrService = inject(ToastrService);
 
   // === CONFIRM ===
 
-  async confirmarBasico() {
+  async confirmarBasico(): Promise<void> {
     const ok = await this.confirm.confirm({
       title: 'Confirmación',
       message: '¿Deseas continuar?',
@@ -31,24 +30,29 @@ export class DemoMessagesPage {
     else this.toastr.info('Cancelado');
   }
 
-  async confirmarLgStatic() {
+  async confirmarLgStatic(): Promise<void> {
     const ok = await this.confirm.confirm({
       title: 'Acción sensible',
       message: 'Esta acción no se puede deshacer.',
       okText: 'Entiendo',
       cancelText: 'Volver',
-      size: 'lg', // <— tamaño 'lg'
-      backdrop: 'static', // <— no cierra por clic fuera
-      ignoreBackdropClick: true, // redundante pero explícito
-      keyboard: false, // <— no cierra con ESC
-      modalClass: 'shadow-lg', // <— clases extra si quieres
+      size: 'lg',
+      backdrop: 'static',
+      ignoreBackdropClick: true,
+      keyboard: false,
+      modalClass: 'shadow-lg',
     });
-    ok ? this.toastr.success('Ejecutado') : this.toastr.warning('Abortado');
+
+    if (ok) {
+      this.toastr.success('Ejecutado');
+    } else {
+      this.toastr.warning('Abortado');
+    }
   }
 
-  async confirmarConHtml() {
+  async confirmarConHtml(): Promise<void> {
     const html: SafeHtml = this.sanitizer.bypassSecurityTrustHtml(
-      `<div>Vas a <b>reemplazar</b> la configuración.<br><small>Revisa antes de confirmar.</small></div>`
+      `<div>Vas a <b>reemplazar</b> la configuración.<br><small>Revisa antes de confirmar.</small></div>`,
     );
     const ok = await this.confirm.confirm({
       title: 'Reemplazar configuración',
@@ -63,7 +67,7 @@ export class DemoMessagesPage {
 
   // === MESSAGE ===
 
-  infoMessage() {
+  infoMessage(): void {
     this.confirm.message({
       title: 'Información',
       message: 'Proceso en curso…',
@@ -74,9 +78,9 @@ export class DemoMessagesPage {
     });
   }
 
-  warningMessageHtml() {
+  warningMessageHtml(): void {
     const html = this.sanitizer.bypassSecurityTrustHtml(
-      `<div class="text-warning"><i class="fa fa-warning me-1"></i> ¡Cuidado! Validaciones pendientes.</div>`
+      `<div class="text-warning"><i class="fa fa-warning me-1"></i> ¡Cuidado! Validaciones pendientes.</div>`,
     );
     this.confirm.message({
       title: 'Advertencia',
@@ -87,7 +91,7 @@ export class DemoMessagesPage {
     });
   }
 
-  successMessageLgAnimOff() {
+  successMessageLgAnimOff(): void {
     this.confirm.message({
       title: 'Listo',
       message: 'Se guardó correctamente.',
@@ -99,24 +103,26 @@ export class DemoMessagesPage {
 
   // === SWEETALERT2 ARRIBA CENTRADO ===
 
-  swalArriba() {
-    Swal.fire({
+  swalArriba(): void {
+    // evita promesa flotante
+    void Swal.fire({
       title: 'Hecho',
       text: 'SweetAlert centrado arriba',
       icon: 'success',
-      position: 'top', // <— centrado arriba
+      position: 'top',
       showConfirmButton: false,
       timer: 1800,
       backdrop: true,
     });
   }
 
-  swalToastArriba() {
-    Swal.fire({
+  swalToastArriba(): void {
+    // evita promesa flotante
+    void Swal.fire({
       toast: true,
       icon: 'info',
       title: 'Guardado',
-      position: 'top', // <— arriba centrado (toast)
+      position: 'top',
       showConfirmButton: false,
       timer: 2000,
     });
@@ -124,7 +130,7 @@ export class DemoMessagesPage {
 
   // === TOASTR OVERRIDES ===
 
-  toastrCentro() {
+  toastrCentro(): void {
     this.toastr.success('Operación OK', 'Listo', {
       positionClass: 'toast-top-center',
       timeOut: 6000,
@@ -133,10 +139,10 @@ export class DemoMessagesPage {
     });
   }
 
-  toastrErrorSticky() {
+  toastrErrorSticky(): void {
     this.toastr.error('No se pudo completar', 'Error', {
       positionClass: 'toast-bottom-right',
-      disableTimeOut: true, // queda fijo hasta cerrar
+      disableTimeOut: true,
       closeButton: true,
       tapToDismiss: false,
     });

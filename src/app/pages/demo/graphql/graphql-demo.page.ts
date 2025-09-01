@@ -1,11 +1,13 @@
+import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
   inject,
   signal,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Observable } from 'rxjs';
+import { finalize, take } from 'rxjs/operators';
 
 import { GraphQLClientService } from '@core/graphql/graphql-client.service';
 import { FARMS_QUERY } from './queries';
@@ -21,6 +23,32 @@ export interface FarmsQueryResult {
   farms: Farm[];
 }
 
+// ===== Helpers de tipos seguros =====
+interface GqlPayload {
+  query: string;
+  variables?: Record<string, unknown>;
+}
+type GqlCallable<T> = (payload: GqlPayload) => Observable<T>;
+
+function isFunction(x: unknown): x is (...args: unknown[]) => unknown {
+  return typeof x === 'function';
+}
+function bindRunner<T>(
+  svc: unknown,
+  key: 'request' | 'run' | 'query',
+): GqlCallable<T> | null {
+  const obj = svc as Record<string, unknown>;
+  const fn = obj?.[key];
+  return isFunction(fn) ? (fn.bind(svc) as GqlCallable<T>) : null;
+}
+function pickRunner<T>(svc: unknown): GqlCallable<T> | null {
+  return (
+    bindRunner<T>(svc, 'request') ??
+    bindRunner<T>(svc, 'run') ??
+    bindRunner<T>(svc, 'query')
+  );
+}
+
 @Component({
   selector: 'app-graphql-demo',
   standalone: true,
@@ -30,12 +58,12 @@ export interface FarmsQueryResult {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GraphqlDemoPage {
-  private gql = inject(GraphQLClientService);
+  private readonly gql = inject(GraphQLClientService);
 
   // Estado UI
-  loading = signal(false);
-  errorMsg = signal<string | null>(null);
-  data = signal<FarmsQueryResult | null>(null);
+  readonly loading = signal(false);
+  readonly errorMsg = signal<string | null>(null);
+  readonly data = signal<FarmsQueryResult | null>(null);
 
   // Parámetros
   onlyCO = true;
@@ -46,44 +74,32 @@ export class GraphqlDemoPage {
     this.errorMsg.set(null);
     this.data.set(null);
 
-    const vars = { co: this.onlyCO };
+    const payload: GqlPayload = {
+      query: this.query,
+      variables: { co: this.onlyCO },
+    };
 
-    // ⚠️ IMPORTANTE:
-    // Tu servicio tiene un método PÚBLICO que recibe UN SOLO objeto { query, variables }.
-    // En distintos proyectos lo hemos llamado request / run / query.
-    // Debajo intento resolverlo sin tocar tu servicio:
-    const svc: any = this.gql as any;
-    const payload = { query: this.query, variables: vars };
-
-    let call:
-      | ((p: { query: string; variables?: Record<string, unknown> }) => any)
-      | undefined;
-
-    call =
-      (typeof svc.request === 'function' && svc.request.bind(svc)) ||
-      (typeof svc.run === 'function' && svc.run.bind(svc)) ||
-      (typeof svc.query === 'function' && svc.query.bind(svc));
-
-    if (!call) {
-      // Último recurso si el wrapper tiene otro nombre.
+    const run = pickRunner<FarmsQueryResult>(this.gql);
+    if (!run) {
       console.error(
-        'No encontré un método público en GraphQLClientService. Esperaba request/run/query(payload).'
+        'No encontré un método público en GraphQLClientService. Esperaba request/run/query(payload).',
       );
       this.loading.set(false);
       this.errorMsg.set('No se encontró método público del cliente GraphQL.');
       return;
     }
 
-    (call(payload) as import('rxjs').Observable<FarmsQueryResult>).subscribe({
-      next: (resp) => {
-        this.data.set(resp);
-        this.loading.set(false);
-      },
-      error: (e: unknown) => {
-        console.error('GQL error:', e);
-        this.errorMsg.set('Error consultando GraphQL.');
-        this.loading.set(false);
-      },
-    });
+    run(payload)
+      .pipe(
+        take(1), // asume una sola respuesta por request
+        finalize(() => this.loading.set(false)),
+      )
+      .subscribe({
+        next: (resp) => this.data.set(resp),
+        error: (e: unknown) => {
+          console.error('GQL error:', e);
+          this.errorMsg.set('Error consultando GraphQL.');
+        },
+      });
   }
 }

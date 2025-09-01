@@ -1,19 +1,21 @@
-import {
-  Component,
-  EventEmitter,
-  Output,
-  computed,
-  ChangeDetectionStrategy,
-  inject,
-} from '@angular/core';
+// src/app/layout/navbar/navbar.component.ts
 import { CommonModule } from '@angular/common';
-import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  EventEmitter,
+  inject,
+  Output,
+  Signal,
+} from '@angular/core';
 import { LayoutService } from '@core/services/layout.service';
 import {
-  SkinOption,
   SKIN_OPTIONS,
+  SkinOption,
   ThemeService,
 } from '@core/services/theme.service';
+import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
 
 type FixedPart = 'nav' | 'breadcrumbs' | 'headbar' | 'sidebar';
 
@@ -26,20 +28,37 @@ type FixedPart = 'nav' | 'breadcrumbs' | 'headbar' | 'sidebar';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NavbarComponent {
-  @Output() toggleSidebar = new EventEmitter<void>(); // colapsar/expandir
-  @Output() toggleSidebarHidden = new EventEmitter<void>(); // ocultar/mostrar
+  @Output() readonly toggleSidebar = new EventEmitter<void>(); // colapsar/expandir
+  @Output() readonly toggleSidebarHidden = new EventEmitter<void>(); // ocultar/mostrar
 
-  // (lo de localStorage lo dejo intacto como lo tenías)
-  isSidebarCollapsed = JSON.parse(
-    localStorage.getItem('sidebarCollapsed') ?? 'false'
-  );
+  private readonly layout = inject(LayoutService);
+  readonly theme = inject(ThemeService);
+  readonly SKINS: SkinOption[] = SKIN_OPTIONS;
 
-  private layout = inject(LayoutService);
-  public theme = inject(ThemeService);
-  SKINS: SkinOption[] = SKIN_OPTIONS;
+  // ---- lectura segura de localStorage, sin JSON.parse(any) ----
+  private readSidebarCollapsed(): boolean {
+    // SSR-safe
+    if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
+      return false;
+    }
+    const v = localStorage.getItem('sidebarCollapsed');
+    if (v === null) return false;
+    if (v === 'true' || v === '1') return true;
+    if (v === 'false' || v === '0') return false;
+
+    // fallback: intenta parsear si guardaron un boolean JSON
+    try {
+      const parsed: unknown = JSON.parse(v);
+      return typeof parsed === 'boolean' ? parsed : false;
+    } catch {
+      return false;
+    }
+  }
+
+  readonly isSidebarCollapsed: boolean = this.readSidebarCollapsed();
 
   // Orden de dependencia
-  private readonly ORDER: FixedPart[] = [
+  private readonly ORDER: readonly FixedPart[] = [
     'nav',
     'breadcrumbs',
     'headbar',
@@ -47,23 +66,25 @@ export class NavbarComponent {
   ];
 
   // ===== Lecturas =====
-  isNavFixed() {
+  isNavFixed(): boolean {
     return this.layout.isFixed('nav');
   }
-  isBreadcrumbsFixed() {
+  isBreadcrumbsFixed(): boolean {
     return this.layout.isFixed('breadcrumbs');
   }
-  isHeadbarFixed() {
+  isHeadbarFixed(): boolean {
     return this.layout.isFixed('headbar');
   }
-  isSidebarFixed() {
+  isSidebarFixed(): boolean {
     return this.layout.isSidebarFixed();
   }
 
-  sidebarCollapsed = computed(() => this.layout.isSidebarCollapsed());
+  readonly sidebarCollapsed: Signal<boolean> = computed(() =>
+    this.layout.isSidebarCollapsed(),
+  );
 
   // ===== Setters asegurando estado deseado =====
-  private setPart(part: FixedPart, on: boolean) {
+  private setPart(part: FixedPart, on: boolean): void {
     switch (part) {
       case 'nav':
         if (this.isNavFixed() !== on) this.layout.toggleFixed('nav');
@@ -82,7 +103,7 @@ export class NavbarComponent {
   }
 
   /** Al encender X, enciende todos sus predecesores (incluyéndolo). */
-  private enforceTurnOn(target: FixedPart) {
+  private enforceTurnOn(target: FixedPart): void {
     for (const part of this.ORDER) {
       this.setPart(part, true);
       if (part === target) break;
@@ -90,7 +111,7 @@ export class NavbarComponent {
   }
 
   /** Al apagar X, apaga X y todos sus sucesores. */
-  private enforceTurnOff(target: FixedPart) {
+  private enforceTurnOff(target: FixedPart): void {
     let hit = false;
     for (const part of this.ORDER) {
       if (part === target) hit = true;
@@ -99,37 +120,39 @@ export class NavbarComponent {
   }
 
   // ===== Botones sidebar (mostrar/ocultar y colapso visual) =====
-  onToggleSidebar() {
+  onToggleSidebar(): void {
     this.toggleSidebar.emit();
   }
-  onToggleSidebarHiddenClick() {
+  onToggleSidebarHiddenClick(): void {
     this.toggleSidebarHidden.emit();
   }
 
   // ===== Toggles fijos con reglas de orden =====
   /** 1) NAVBAR */
-  onToggleNavFixed() {
+  onToggleNavFixed(): void {
     const next = !this.isNavFixed();
-    next ? this.enforceTurnOn('nav') : this.enforceTurnOff('nav'); // apagar navbar apaga todo
+    if (next) this.enforceTurnOn('nav');
+    else this.enforceTurnOff('nav'); // apagar navbar apaga todo
   }
 
   /** 2) BREADCRUMBS */
-  onToggleBreadcrumbsFixed() {
+  onToggleBreadcrumbsFixed(): void {
     const next = !this.isBreadcrumbsFixed();
-    next
-      ? this.enforceTurnOn('breadcrumbs')
-      : this.enforceTurnOff('breadcrumbs');
+    if (next) this.enforceTurnOn('breadcrumbs');
+    else this.enforceTurnOff('breadcrumbs');
   }
 
   /** 3) PAGE HEADER (headbar) */
-  onToggleHeadbarFixed() {
+  onToggleHeadbarFixed(): void {
     const next = !this.isHeadbarFixed();
-    next ? this.enforceTurnOn('headbar') : this.enforceTurnOff('headbar');
+    if (next) this.enforceTurnOn('headbar');
+    else this.enforceTurnOff('headbar');
   }
 
   /** 4) SIDEBAR */
-  onToggleSidebarFixed() {
+  onToggleSidebarFixed(): void {
     const next = !this.isSidebarFixed();
-    next ? this.enforceTurnOn('sidebar') : this.enforceTurnOff('sidebar');
+    if (next) this.enforceTurnOn('sidebar');
+    else this.enforceTurnOff('sidebar');
   }
 }

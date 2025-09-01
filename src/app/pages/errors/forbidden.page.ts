@@ -1,5 +1,5 @@
-import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CommonService } from '@core/services/common.service';
 
@@ -9,6 +9,21 @@ interface ErrorState {
   message?: string;
   from?: string;
   ts?: number;
+}
+
+interface HasGetLastErrorState {
+  getLastErrorState<T extends ErrorState>(): T;
+}
+
+function hasGetLastErrorState(obj: unknown): obj is HasGetLastErrorState {
+  return (
+    !!obj &&
+    typeof (obj as { getLastErrorState?: unknown }).getLastErrorState ===
+      'function'
+  );
+}
+function isErrorState(x: unknown): x is ErrorState {
+  return typeof x === 'object' && x !== null;
 }
 
 @Component({
@@ -44,31 +59,38 @@ interface ErrorState {
       </div>
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ForbiddenPage {
-  private s: ErrorState;
-  constructor(private common: CommonService) {
-    // Si más adelante agregas common.getLastErrorState(), se usará; si no, usa history.state
-    this.s =
-      (this.common as any).getLastErrorState?.() ??
-      (history.state as ErrorState) ??
-      {};
+  private readonly common = inject(CommonService);
+  private readonly s: ErrorState;
+
+  constructor() {
+    // 1) Preferimos el estado que pasa CommonService (si expone el helper)
+    if (hasGetLastErrorState(this.common)) {
+      this.s = this.common.getLastErrorState<ErrorState>() ?? {};
+    } else {
+      // 2) Fallback seguro a history.state
+      const st: unknown = window.history.state as unknown;
+      this.s = isErrorState(st) ? st : {};
+    }
   }
 
-  get code() {
-    return this.s?.code ?? '403';
+  get code(): string {
+    return this.s.code ?? '403';
   }
-  get title() {
-    return this.s?.error ?? 'Acceso denegado';
+  get title(): string {
+    return this.s.error ?? 'Acceso denegado';
   }
-  get msg() {
-    return this.s?.message ?? 'No tienes permisos para ver esta sección.';
+  get msg(): string {
+    return this.s.message ?? 'No tienes permisos para ver esta sección.';
   }
-  get from() {
-    return this.s?.from ?? '';
+  get from(): string {
+    return this.s.from ?? '';
   }
 
-  historyBack() {
-    history.length > 1 ? history.back() : location.assign('/');
+  historyBack(): void {
+    if (window.history.length > 1) window.history.back();
+    else window.location.assign('/');
   }
 }

@@ -1,5 +1,5 @@
-import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CommonService } from '@core/services/common.service';
 
@@ -11,10 +11,26 @@ interface ErrorState {
   ts?: number;
 }
 
+interface HasGetLastErrorState {
+  getLastErrorState<T extends ErrorState>(): T;
+}
+
+function hasGetLastErrorState(obj: unknown): obj is HasGetLastErrorState {
+  return (
+    !!obj &&
+    typeof (obj as { getLastErrorState?: unknown }).getLastErrorState ===
+      'function'
+  );
+}
+function isErrorState(x: unknown): x is ErrorState {
+  return typeof x === 'object' && x !== null;
+}
+
 @Component({
   selector: 'app-not-found',
   standalone: true,
   imports: [CommonModule, RouterLink],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="container py-5">
       <div class="row justify-content-center">
@@ -45,30 +61,35 @@ interface ErrorState {
   `,
 })
 export class NotFoundPage {
-  private s: ErrorState;
-  constructor(private common: CommonService) {
-    this.s =
-      (this.common as any).getLastErrorState?.() ??
-      (history.state as ErrorState) ??
-      {};
+  private readonly common = inject(CommonService);
+  private readonly s: ErrorState;
+
+  constructor() {
+    if (hasGetLastErrorState(this.common)) {
+      this.s = this.common.getLastErrorState<ErrorState>() ?? {};
+    } else {
+      const st: unknown = window.history.state as unknown;
+      this.s = isErrorState(st) ? st : {};
+    }
   }
 
-  get code() {
-    return this.s?.code ?? '404';
+  get code(): string {
+    return this.s.code ?? '404';
   }
-  get title() {
-    return this.s?.error ?? 'Página no encontrada';
+  get title(): string {
+    return this.s.error ?? 'Página no encontrada';
   }
-  get msg() {
+  get msg(): string {
     return (
-      this.s?.message ?? 'La ruta que intentaste abrir no existe o fue movida.'
+      this.s.message ?? 'La ruta que intentaste abrir no existe o fue movida.'
     );
   }
-  get from() {
-    return this.s?.from ?? '';
+  get from(): string {
+    return this.s.from ?? '';
   }
 
-  historyBack() {
-    history.length > 1 ? history.back() : location.assign('/');
+  historyBack(): void {
+    if (window.history.length > 1) window.history.back();
+    else window.location.assign('/');
   }
 }

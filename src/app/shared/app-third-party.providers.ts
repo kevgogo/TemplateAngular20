@@ -4,14 +4,14 @@ import {
   importProvidersFrom,
   makeEnvironmentProviders,
 } from '@angular/core';
-import { BsDropdownConfig, BsDropdownModule } from 'ngx-bootstrap/dropdown';
-import { CollapseModule } from 'ngx-bootstrap/collapse';
-import { ModalModule, ModalOptions } from 'ngx-bootstrap/modal';
-import { TooltipConfig, TooltipModule } from 'ngx-bootstrap/tooltip';
-import { PopoverModule } from 'ngx-bootstrap/popover';
-import { ToastrModule, ToastrService } from 'ngx-toastr';
-import { provideSweetAlert2 } from '@sweetalert2/ngx-sweetalert2';
 import { provideAnimations } from '@angular/platform-browser/animations';
+import { provideSweetAlert2 } from '@sweetalert2/ngx-sweetalert2';
+import { CollapseModule } from 'ngx-bootstrap/collapse';
+import { BsDropdownConfig, BsDropdownModule } from 'ngx-bootstrap/dropdown';
+import { ModalModule, ModalOptions } from 'ngx-bootstrap/modal';
+import { PopoverModule } from 'ngx-bootstrap/popover';
+import { TooltipConfig, TooltipModule } from 'ngx-bootstrap/tooltip';
+import { ToastrModule } from 'ngx-toastr';
 
 import { provideTranslateService } from '@ngx-translate/core';
 import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
@@ -31,7 +31,7 @@ export function provideThirdParty(): EnvironmentProviders {
         timeOut: 4000,
         positionClass: 'toast-bottom-right',
         preventDuplicates: true,
-      })
+      }),
     ),
 
     {

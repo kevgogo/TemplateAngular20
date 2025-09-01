@@ -1,31 +1,41 @@
+import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
-  Input,
-  inject,
-  HostListener,
-  ElementRef,
-  signal,
   computed,
   DestroyRef,
+  ElementRef,
+  HostListener,
+  inject,
+  Input,
+  signal,
+  Signal,
   ViewChild,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { Router, RouterModule } from '@angular/router';
+import { AnyItem, MenuNode, SidebarItem } from '@core/models/menu.types';
 import { LayoutService } from '@core/services/layout.service';
 import { DEMO_MENU } from '@shared/mock/fake-menu';
-import {
-  AnyItem,
-  MenuNode,
-  SidebarItem,
-  RouteLink,
-} from '@core/models/menu.types';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
 
 type SearchScope = 'all' | 'root';
-interface FlatResult { node: MenuNode; depth: number }
+interface FlatResult {
+  node: MenuNode;
+  depth: number;
+}
+
+/* ===================== Helpers de tipos ===================== */
+function isRecord(x: unknown): x is Record<string, unknown> {
+  return typeof x === 'object' && x !== null;
+}
+function getComposedPath(e: Event): EventTarget[] | undefined {
+  const anyEv = e as unknown as { composedPath?: () => EventTarget[] };
+  return typeof anyEv.composedPath === 'function'
+    ? anyEv.composedPath()
+    : undefined;
+}
 
 @Component({
   selector: 'app-sidebar',
@@ -53,11 +63,20 @@ export class SidebarComponent {
   @Input() compactHideIconsInPanel = false;
 
   /** Entrada de datos (acepta SidebarItem[] o MenuNode[]) */
-  @Input() set items(value: AnyItem[]) {
-    const coerced = this.coerceToMenuNodes(value ?? []);
+  @Input() set items(value: AnyItem[] | null | undefined) {
+    const coerced = this.coerceToMenuNodes(value);
     this._originalItems = this.normalize(coerced);
     this.resetListPreservingSelection();
   }
+  /** Getter para la lista que se pinta en el sidebar (expandidos) */
+  get items(): MenuNode[] {
+    // Solo filtra en modo expandido y cuando se está buscando
+    if (!this.collapsedResolved && this.isSearching()) {
+      return this.sidebarFilteredItems();
+    }
+    return this._originalItems;
+  }
+
   // ====== OPCIONES ======
   @Input() rememberFlypanelScroll = true; // recuerda scroll entre vistas del flypanel
   @Input() scrollToTopOnNewSearch = true; // al cambiar término de búsqueda, sube al top
@@ -72,15 +91,14 @@ export class SidebarComponent {
   @Input() showSearchFooter = true; // poder ocultarlo si no lo quieres
 
   /** Límite actual visible (se resetea al abrir búsqueda o cambiar término) */
-  panelLimit = signal(this.panelInitialLimit ?? 15);
+  readonly panelLimit = signal(this.panelInitialLimit ?? 15);
 
   /** Colección “plana” de resultados (respeta searchHideParentsInPanel) */
-  panelResultsFlat = computed<FlatResult[]>(() => {
+  readonly panelResultsFlat = computed<FlatResult[]>(() => {
     const out: FlatResult[] = [];
     const walk = (nodes: MenuNode[], depth: number) => {
       for (const n of nodes) {
         const has = this.hasChildren(n);
-        // omitir fila del padre si la bandera está activa
         if (!(this.searchHideParentsInPanel && has))
           out.push({ node: n, depth });
         if (has) walk(n.children!, depth + 1);
@@ -91,57 +109,54 @@ export class SidebarComponent {
   });
 
   /** Resultados visibles según límite actual */
-  visiblePanelResults = computed(() =>
+  readonly visiblePanelResults = computed(() =>
     this.panelResultsFlat().slice(0, this.panelLimit()),
   );
 
   /** Cuántos faltan por mostrar */
-  remainingPanelResults = computed(() =>
+  readonly remainingPanelResults = computed(() =>
     Math.max(0, this.panelResultsFlat().length - this.panelLimit()),
   );
 
-  totalPanelResults = computed(() => this.panelResultsFlat().length);
+  readonly totalPanelResults = computed(() => this.panelResultsFlat().length);
 
-  showMorePanel() {
+  showMorePanel(): void {
     this.panelLimit.update((v) => v + this.panelLoadStep);
   }
-  showAllPanel() {
+  showAllPanel(): void {
     this.panelLimit.set(this.panelResultsFlat().length);
   }
 
   // ====== ESTADO DE SCROLL DEL FLYPANEL ======
   private panelScrollPos = new Map<string, number>();
   private flypanelScrollHandler?: (e: Event) => void;
+
   /** El menú lateral base (no filtrado) */
   private _originalItems: MenuNode[] = this.normalize(
-    this.coerceToMenuNodes(DEMO_MENU as any),
+    this.coerceToMenuNodes(DEMO_MENU as unknown),
   );
 
-  /** Getter para la lista que se pinta en el sidebar (expandidos) */
-  get items(): MenuNode[] {
-    // Solo filtra en modo expandido y cuando se está buscando
-    if (!this.collapsedResolved && this.isSearching()) {
-      return this.sidebarFilteredItems();
-    }
-    return this._originalItems;
-  }
+  private readonly layout = inject(LayoutService);
+  private readonly host = inject(ElementRef<HTMLElement>);
+  private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
 
-  private layout = inject(LayoutService);
-  private host = inject(ElementRef<HTMLElement>);
-  private router = inject(Router);
-  private destroyRef = inject(DestroyRef);
+  /** Garantiza tipo `HTMLElement` (evita any en `nativeElement`) */
+  private get hostElement(): HTMLElement {
+    return this.host.nativeElement as unknown as HTMLElement;
+  }
 
   // ====== Bloqueo/desbloqueo de scroll del body (panel abierto) ======
   private savedScrollY = 0;
-  private preventScroll = (e: Event) => {
+  private preventScroll = (e: Event): void => {
     const t = (e.target as HTMLElement) || null;
-    const path = (e as any).composedPath?.() as EventTarget[] | undefined;
+    const path = getComposedPath(e);
 
     const insideFlypanel =
       !!this._flypanelEl &&
       (this._flypanelEl === t ||
         (t && this._flypanelEl.contains(t)) ||
-        (path?.includes(this._flypanelEl)));
+        (path?.includes(this._flypanelEl) ?? false));
 
     if (insideFlypanel) return; // ✅ deja que el panel haga scroll
     e.preventDefault(); // ⛔️ bloquea scroll del body/fondo
@@ -149,7 +164,7 @@ export class SidebarComponent {
 
   // ====== Hook para cerrar si hay scroll dentro del flypanel ======
   private flypanelScrollSub?: Subscription;
-  // Reemplaza tu setter actual de @ViewChild('flypanelEl') por este:
+
   @ViewChild('flypanelEl')
   set flypanelElSetter(ref: ElementRef<HTMLElement> | undefined) {
     // limpia subs anteriores
@@ -161,38 +176,34 @@ export class SidebarComponent {
       this._flypanelEl.removeEventListener(
         'scroll',
         this.flypanelScrollHandler,
-        { capture: false } as any,
       );
     }
 
     this._flypanelEl = ref?.nativeElement ?? null;
 
     if (this._flypanelEl) {
-      // // autocierre al scrollear DENTRO del panel
-      // this.flypanelScrollSub = this.layout.enableAutoCloseOnElement(
-      //   this._flypanelEl,
-      //   { direction: 'any' }
-      // );
-
       // guarda scroll en cada evento
       this.flypanelScrollHandler = () => this.saveCurrentScroll();
-      this._flypanelEl.addEventListener('scroll', this.flypanelScrollHandler, {
-        passive: true,
-      });
+      // passive true (mejor perf.), capture false (por defecto)
+      const opts: AddEventListenerOptions = { passive: true };
+      this._flypanelEl.addEventListener(
+        'scroll',
+        this.flypanelScrollHandler,
+        opts,
+      );
 
       // restaura si tenemos record
       queueMicrotask(() => this.restoreCurrentScroll());
     }
   }
   private _flypanelEl: HTMLElement | null = null;
+
   // ====== HELPERS DE SCROLL ======
   private currentScrollKey(): string {
     if (this.searchMode) {
-      // búsqueda global o por root
       const root = this.searchRoot?.label ?? '';
       return this.searchScope === 'root' ? `search:root:${root}` : 'search:all';
     }
-    // clave por ruta de drill-down
     const path = this.panelStack.map((n) => n.label || '').join(' > ');
     return `stack:${path || 'root'}`;
   }
@@ -220,14 +231,17 @@ export class SidebarComponent {
       this.panelScrollPos.set(this.currentScrollKey(), 0);
     }
   }
+
   // ====== Refs de input en el panel (para focus) ======
   @ViewChild('searchInputEl') searchInputEl?: ElementRef<HTMLInputElement>;
 
   // ------------------ BÚSQUEDA EN SIDEBAR EXPANDIDO ------------------
-  searchTerm = signal('');
-  isSearching = computed(() => this.searchTerm().trim().length > 0);
+  readonly searchTerm = signal('');
+  readonly isSearching: Signal<boolean> = computed(
+    () => this.searchTerm().trim().length > 0,
+  );
 
-  private sidebarFilteredItems = computed(() => {
+  private readonly sidebarFilteredItems = computed(() => {
     const term = this.searchTerm().toLowerCase().trim();
     if (!term) return this._originalItems;
     return this.filterMenuItems(this._originalItems, term);
@@ -250,8 +264,10 @@ export class SidebarComponent {
   }
 
   // ------------------ BÚSQUEDA EN FLYPANEL (COLAPSADO) ------------------
-  panelSearchTerm = signal('');
-  panelIsSearching = computed(() => this.panelSearchTerm().trim().length > 0);
+  readonly panelSearchTerm = signal('');
+  readonly panelIsSearching: Signal<boolean> = computed(
+    () => this.panelSearchTerm().trim().length > 0,
+  );
 
   private searchScope: SearchScope = 'all';
   private searchRoot: MenuNode | null = null;
@@ -263,19 +279,19 @@ export class SidebarComponent {
     return this._originalItems;
   }
 
-  panelFilteredItems = computed(() => {
+  readonly panelFilteredItems = computed(() => {
     const term = this.panelSearchTerm().toLowerCase().trim();
     if (!term) return this.searchBaseNodes();
     return this.filterMenuItems(this.searchBaseNodes(), term);
   });
 
-  onPanelSearchChange(v: string) {
+  onPanelSearchChange(v: string): void {
     this.panelSearchTerm.set(v);
-    this.panelLimit.set(this.panelInitialLimit); // +++
+    this.panelLimit.set(this.panelInitialLimit);
     if (this.scrollToTopOnNewSearch) this.resetCurrentScroll();
   }
 
-  clearPanelSearch() {
+  clearPanelSearch(): void {
     this.panelSearchTerm.set('');
   }
 
@@ -314,7 +330,8 @@ export class SidebarComponent {
     });
   }
 
-  hasChildren = (n?: MenuNode | null): boolean => !!n && !!n.children?.length;
+  readonly hasChildren = (n?: MenuNode | null): boolean =>
+    !!n && !!n.children?.length;
 
   get collapsedResolved(): boolean {
     return this.collapsed ?? this.layout.isSidebarCollapsed();
@@ -416,7 +433,7 @@ export class SidebarComponent {
   }
   get panelNodes(): MenuNode[] {
     const current = this.panelStack[this.panelStack.length - 1];
-    return (current?.children ?? []);
+    return current?.children ?? [];
   }
   get canGoBack(): boolean {
     return this.panelStack.length > 1;
@@ -474,7 +491,7 @@ export class SidebarComponent {
     this.searchScope = 'root';
     this.searchRoot = currentRoot;
     this.panelSearchTerm.set('');
-    this.panelLimit.set(this.panelInitialLimit); // +++
+    this.panelLimit.set(this.panelInitialLimit);
     queueMicrotask(() => {
       if (this.scrollToTopOnNewSearch) this.resetCurrentScroll();
       this.searchInputEl?.nativeElement?.focus();
@@ -508,10 +525,8 @@ export class SidebarComponent {
   onPanelSearchResultClick(ev: MouseEvent, node: MenuNode): void {
     if (this.hasChildren(node)) {
       ev.preventDefault();
-      // En resultados: si es padre, entra al panel normal con ese nodo
       this.onSearchNodeClick(ev, node);
     } else {
-      // Hoja: navega y cierra el panel
       this.onPanelItemClick(ev, node);
     }
   }
@@ -531,7 +546,7 @@ export class SidebarComponent {
     } else this.closePanel();
   }
 
-  closeFlypanel() {
+  closeFlypanel(): void {
     this.closePanel();
   }
 
@@ -550,12 +565,13 @@ export class SidebarComponent {
 
   /** Posiciona el panel al lado del sidebar, alineado al item clickeado */
   private repositionPanel(anchorEl: HTMLElement): void {
-    const li =
-      (anchorEl.closest('li.item, button, a')!) ?? anchorEl;
+    const li = anchorEl.closest('li.item, button, a') ?? anchorEl;
     const r = li.getBoundingClientRect();
-    const aside = this.host.nativeElement.querySelector(
-      'aside.sidebar',
-    ) as HTMLElement;
+
+    const hostEl = this.hostElement;
+    const aside = hostEl.querySelector('aside.sidebar');
+    if (!aside) return;
+
     const a = aside.getBoundingClientRect();
     const maxTop = Math.max(8, Math.min(r.top, window.innerHeight - 16 - 320));
     this.panelStyle = {
@@ -563,36 +579,38 @@ export class SidebarComponent {
       top: `${Math.round(maxTop)}px`,
       left: `${Math.round(a.right)}px`,
       minWidth: '260px',
-      // maxHeight: 'calc(100vh - 24px)',
-      // overflowY: 'auto',
     };
   }
 
   @HostListener('window:keydown.escape')
-  onEsc() {
+  onEsc(): void {
     if (this.collapsedResolved) this.closePanel();
   }
 
   @HostListener('window:resize')
-  onResize() {
+  onResize(): void {
     if (this.collapsedResolved && (this.panelOpen || this.searchMode)) {
-      const btn =
-        this.host.nativeElement.querySelector(
-          '.collapsed-search .link, li.item > .link',
-        ) || undefined;
-      if (btn) this.repositionPanel(btn as HTMLElement);
+      const hostEl = this.hostElement;
+
+      const found = hostEl.querySelector(
+        '.collapsed-search .link, li.item > .link',
+      );
+      const btn: HTMLElement | undefined =
+        found instanceof HTMLElement ? found : undefined;
+
+      if (btn) this.repositionPanel(btn);
     }
   }
 
   // ------------------ Reset + mantener selección ------------------
-  private resetListPreservingSelection() {
+  private resetListPreservingSelection(): void {
     this.openSet.clear();
     this.forcedOpen.clear();
     const path = this.findActiveIndexPath(this._originalItems);
     if (path) this.openIndexPath(path);
   }
 
-  private openIndexPath(path: number[]) {
+  private openIndexPath(path: number[]): void {
     let pid: string | null = null;
     for (const idx of path.slice(0, -1)) {
       pid = this.nodeId(pid, idx);
@@ -620,48 +638,55 @@ export class SidebarComponent {
   private isItemActive(n: MenuNode): boolean {
     if (!n.link) return false;
     const current = this.router.url.split('?')[0];
+
     const toUrl = Array.isArray(n.link)
       ? '/' + n.link.filter(Boolean).join('/')
-      : String(n.link);
-    return current === toUrl;
+      : typeof n.link === 'string'
+        ? n.link
+        : '';
+
+    return toUrl !== '' && current === toUrl;
   }
 
   // ================== Conversión SidebarItem -> MenuNode ==================
-  private isSidebarItem(o: AnyItem): o is SidebarItem {
-    return !!o && (o as any)?.text !== undefined;
+  private isSidebarItem(o: unknown): o is SidebarItem {
+    return isRecord(o) && 'text' in o;
   }
-  private isMenuNode(o: AnyItem): o is MenuNode {
-    return !!o && (o as any)?.label !== undefined;
+  private isMenuNode(o: unknown): o is MenuNode {
+    return isRecord(o) && 'label' in o;
   }
-  private coerceToMenuNodes(items: AnyItem[]): MenuNode[] {
-    const mapOne = (it: AnyItem): MenuNode => {
+  private coerceToMenuNodes(items: unknown): MenuNode[] {
+    if (!Array.isArray(items)) return [];
+
+    const mapOne = (it: unknown): MenuNode => {
       if (this.isSidebarItem(it)) {
-        const kids = (it.submenu ?? undefined) as AnyItem[] | undefined;
+        const kids = Array.isArray(it.submenu) ? it.submenu : undefined;
         return {
           label: it.text ?? '',
-          link: (it.link ?? undefined),
-          icon: (it.icon ?? undefined),
+          link: it.link ?? undefined,
+          icon: it.icon ?? undefined,
           children: kids?.length ? kids.map(mapOne) : undefined,
         };
       }
       if (this.isMenuNode(it)) {
-        const kids = (it.children ?? undefined) as AnyItem[] | undefined;
+        const kids = Array.isArray(it.children) ? it.children : undefined;
         return {
           label: it.label ?? '',
-          link: (it.link ?? undefined),
-          icon: (it.icon ?? undefined),
+          link: it.link ?? undefined,
+          icon: it.icon ?? undefined,
           children: kids?.length ? kids.map(mapOne) : undefined,
         };
       }
       return { label: '' };
     };
-    return (items ?? []).map(mapOne);
+
+    return items.map(mapOne);
   }
 
   // ====== Lock/unlock scroll del body ======
   private lockScroll(): void {
     this.savedScrollY =
-      window.scrollY || document.documentElement.scrollTop || 0;
+      window.scrollY ?? document.documentElement.scrollTop ?? 0;
     document.documentElement.classList.add('sidebar-flypanel-open');
     document.body.classList.add('sidebar-flypanel-open');
     document.body.style.position = 'fixed';
@@ -669,14 +694,10 @@ export class SidebarComponent {
     document.body.style.left = '0';
     document.body.style.right = '0';
     document.body.style.width = '100%';
-    window.addEventListener('wheel', this.preventScroll, {
-      passive: false,
-      capture: true,
-    });
-    window.addEventListener('touchmove', this.preventScroll, {
-      passive: false,
-      capture: true,
-    });
+
+    const opts: AddEventListenerOptions = { passive: false, capture: true };
+    window.addEventListener('wheel', this.preventScroll, opts);
+    window.addEventListener('touchmove', this.preventScroll, opts);
   }
 
   private unlockScroll(): void {
@@ -688,12 +709,12 @@ export class SidebarComponent {
     document.body.style.left = '';
     document.body.style.right = '';
     document.body.style.width = '';
-    window.removeEventListener('wheel', this.preventScroll, {
-      capture: true,
-    } as any);
-    window.removeEventListener('touchmove', this.preventScroll, {
-      capture: true,
-    } as any);
+
+    // Debe coincidir el flag capture con el registro
+    const rmOpts: EventListenerOptions = { capture: true };
+    window.removeEventListener('wheel', this.preventScroll, rmOpts);
+    window.removeEventListener('touchmove', this.preventScroll, rmOpts);
+
     if (wasLocked) window.scrollTo(0, this.savedScrollY);
   }
 
@@ -714,7 +735,10 @@ export class SidebarComponent {
     this.forcedOpen.clear();
     this.addOpenNodesRecursively(this.sidebarFilteredItems(), null);
   }
-  private addOpenNodesRecursively(nodes: MenuNode[], parentId: string | null) {
+  private addOpenNodesRecursively(
+    nodes: MenuNode[],
+    parentId: string | null,
+  ): void {
     nodes.forEach((node, index) => {
       const id = this.nodeId(parentId, index);
       if (this.hasChildren(node)) {

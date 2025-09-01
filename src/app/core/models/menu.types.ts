@@ -1,4 +1,4 @@
-import { RouterLink } from '@angular/router';
+import { UrlTree } from '@angular/router';
 
 export interface ApiMenuResponse {
   typeResult: number;
@@ -37,7 +37,7 @@ export interface SidebarNode extends RawMenuItem {
 /** ---------------- UI: tipos que consume el Sidebar ---------------- */
 
 // Links aceptados por Angular Router: string ('/ruta') o array (['/ruta', id])
-export type RouteLink = string | RouterLink;
+export type RouteLink = string | readonly unknown[] | UrlTree;
 
 /** Forma antigua usada por algunas plantillas */
 export interface SidebarItem {

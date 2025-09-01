@@ -1,12 +1,12 @@
 // src/app/layout/shell/shell.component.ts
 import {
-  Component,
-  inject,
-  computed,
-  signal,
   ChangeDetectionStrategy,
-  OnInit,
+  Component,
+  computed,
+  inject,
   OnDestroy,
+  OnInit,
+  signal,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 
@@ -27,7 +27,6 @@ export class ShellComponent implements OnInit, OnDestroy {
   private layout = inject(LayoutService);
   private menu = inject(MenuService);
 
-  // Menú en el shape ACTUAL (text/submenu)
   menuItems = toSignal(this.menu.getSidebarItems$(), { initialValue: [] });
 
   collapsed = computed(() => this.layout.isSidebarCollapsed());
@@ -41,17 +40,11 @@ export class ShellComponent implements OnInit, OnDestroy {
     this.sidebarHidden.update((v) => !v);
   }
 
-  // Conecta con tu LayoutService o flags existentes:
   get isCompact() {
     return this.layout.isSidebarCollapsed?.() ?? false;
   }
-  get isFixed() {
-    return false;
-  }
 
-  // >>>>>>>>>>>>> NUEVO <<<<<<<<<<<<<<
   ngOnInit(): void {
-    // Cierra el flypanel del sidebar al scrollear el window/body
     this.layout.enableAutoCloseOnScroll({ throttleMs: 150, direction: 'any' });
   }
   ngOnDestroy(): void {

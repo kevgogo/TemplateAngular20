@@ -1,17 +1,17 @@
+import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
-  inject,
   computed,
+  inject,
   signal,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ToastrService } from 'ngx-toastr';
 import { TranslatorService } from '@core/services/translator.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { SHARED_IMPORTS } from '@shared/app-shared-imports';
 import { SwalPortalTargets } from '@sweetalert2/ngx-sweetalert2';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-shared-showcase',
@@ -41,10 +41,10 @@ export class SharedShowcasePage {
 
   langs = this.translator.getAvailableLanguages();
   current = signal<string>(
-    (localStorage.getItem('i18n.lang')!) ||
+    (localStorage.getItem('i18n.lang')! ||
       this.t.currentLang ||
-      this.t.getDefaultLang() ||
-      'es_CO'
+      this.t.getDefaultLang()) ??
+      'es_CO',
   );
 
   chronoLocale = computed(() => this.mapChronoLocale(this.current()));

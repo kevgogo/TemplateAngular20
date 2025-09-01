@@ -1,19 +1,19 @@
+import { CommonModule, Location } from '@angular/common';
 import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   EventEmitter,
-  Input,
-  Output,
-  OnInit,
-  OnDestroy,
-  ChangeDetectionStrategy,
   inject,
-  ChangeDetectorRef,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output,
 } from '@angular/core';
-import { CommonModule, Location } from '@angular/common';
+import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { APP_NAME_TOKEN } from '@core/tokens/app-tokens';
-import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
-import { filter } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-headbar',
@@ -89,9 +89,9 @@ export class HeadbarComponent implements OnInit, OnDestroy {
 
   onFullscreenToggle() {
     if (document.fullscreenElement) {
-      document.exitFullscreen?.();
+      void document.exitFullscreen?.();
     } else {
-      document.documentElement.requestFullscreen?.();
+      void document.documentElement.requestFullscreen?.();
     }
   }
 }
