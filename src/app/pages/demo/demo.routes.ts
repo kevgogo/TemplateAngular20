@@ -47,7 +47,7 @@ export const DEMO_ROUTES: Routes = [
     path: 'devextreme/calendar',
     title: 'DevExtreme Calendar',
     loadComponent: () =>
-      import('@pages/demo/devextreme/calendar-demo.page').then(
+      import('@pages/demo/devextreme/calendar/calendar-demo.page').then(
         (m) => m.CalendarDemoPage,
       ),
   },
@@ -55,7 +55,7 @@ export const DEMO_ROUTES: Routes = [
     path: 'devextreme/treeview',
     title: 'DevExtreme TreeView',
     loadComponent: () =>
-      import('@pages/demo/devextreme/treeview-demo.page').then(
+      import('@pages/demo/devextreme/treeview/treeview-demo.page').then(
         (m) => m.TreeviewDemoPage,
       ),
   },
@@ -91,7 +91,7 @@ export const DEMO_ROUTES: Routes = [
     path: 'icons/fa4',
     title: 'Buscador FA 4.7.0',
     loadComponent: () =>
-      import('@pages/demo/icons/fa4-search/fa4-search.component').then(
+      import('@pages/demo/fa4-search/fa4-search.component').then(
         (m) => m.Fa4SearchComponent,
       ),
   },

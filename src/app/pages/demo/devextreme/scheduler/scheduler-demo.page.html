@@ -1,0 +1,77 @@
+<div class="demo-head d-flex align-items-center justify-content-between mb-3">
+  <h2 class="h5 m-0">
+    <i class="fa fa-calendar me-2" aria-hidden="true"></i>
+    Scheduler (DevExtreme)
+  </h2>
+
+  <div
+    class="view-pills btn-group btn-group-sm"
+    role="group"
+    aria-label="Cambiar vista"
+  >
+    <button
+      *ngFor="let v of views"
+      type="button"
+      class="btn btn-outline-primary"
+      [class.active]="currentView() === v"
+      (click)="currentView.set(v)"
+    >
+      {{ v }}
+    </button>
+  </div>
+</div>
+
+<dx-scheduler
+  [dataSource]="appointments()"
+  [views]="views"
+  [currentView]="currentView()"
+  [currentDate]="currentDate()"
+  [startDayHour]="7"
+  [endDayHour]="20"
+  [cellDuration]="30"
+  [height]="height()"
+  timeZone="America/Bogota"
+  [showAllDayPanel]="false"
+  [crossScrollingEnabled]="true"
+  [resources]="resources"
+  appointmentTemplate="apptTpl"
+  appointmentTooltipTemplate="tooltipTpl"
+>
+  <!-- Cita (template) -->
+  <ng-template
+    #apptTpl
+    let-model="model"
+    let-targetedAppointmentData="targetedAppointmentData"
+  >
+    <div class="appt d-flex align-items-center">
+      <i class="fa fa-wrench me-2" aria-hidden="true"></i>
+      <div class="text-truncate">
+        <div class="appt-title text-truncate">
+          {{ targetedAppointmentData.text }}
+        </div>
+        <div class="appt-sub small">
+          {{ targetedAppointmentData.startDate | date: "shortTime" }} -
+          {{ targetedAppointmentData.endDate | date: "shortTime" }}
+        </div>
+      </div>
+    </div>
+  </ng-template>
+
+  <!-- Tooltip (template) -->
+  <ng-template
+    #tooltipTpl
+    let-model="model"
+    let-targetedAppointmentData="targetedAppointmentData"
+  >
+    <div class="appt-tooltip">
+      <div class="fw-semibold mb-1">
+        <i class="fa fa-calendar me-2" aria-hidden="true"></i
+        >{{ targetedAppointmentData.text }}
+      </div>
+      <div class="small text-muted">
+        {{ targetedAppointmentData.startDate | date: "MMM d, h:mm a" }} —
+        {{ targetedAppointmentData.endDate | date: "MMM d, h:mm a" }}
+      </div>
+    </div>
+  </ng-template>
+</dx-scheduler>

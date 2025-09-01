@@ -187,4 +187,22 @@ export const DEMO_MENU: RawMenuItem[] = [
     moduleName: null,
     permission: null,
   },
+  {
+    id: -208,
+    fatherId: -200, // padre: "Demos"
+    moduleId: null,
+    name: 'PDF / Excel / ZIP',
+    nameSpanish: null,
+    controller: null,
+    action: null,
+    description: 'Descargas y exportaciones (PDF, Excel y ZIP)',
+    description2: null,
+    path: '/demo/files',
+    icon: 'fa fa-file-archive-o',
+    order: 8,
+    status: 1,
+    menuName: null,
+    moduleName: null,
+    permission: null,
+  },
 ];
