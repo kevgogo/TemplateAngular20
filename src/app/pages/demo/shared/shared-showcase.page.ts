@@ -41,7 +41,7 @@ export class SharedShowcasePage {
 
   langs = this.translator.getAvailableLanguages();
   current = signal<string>(
-    (localStorage.getItem('i18n.lang') as string) ||
+    (localStorage.getItem('i18n.lang')!) ||
       this.t.currentLang ||
       this.t.getDefaultLang() ||
       'es_CO'

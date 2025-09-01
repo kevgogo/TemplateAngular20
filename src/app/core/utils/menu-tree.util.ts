@@ -1,31 +1,36 @@
+// src/app/core/utils/menu-tree.util.ts
 import { RawMenuItem, SidebarNode } from '@core/models/menu.types';
 
 export interface BuildTreeOptions {
-  baseHref?: string; // ej: '/plantilla-colibri-app-20' si aplicara
-  filterStatus?: number | null; // 1 para activos, null: no filtrar
-  allowedPermissions?: Set<string> | string[]; // opcional
+  /** Prefijo de rutas (ej: '/plantilla-colibri-app-20') */
+  baseHref?: string;
+  /** 1 = activos; null = no filtrar por estado */
+  filterStatus?: number | null;
+  /** Permisos permitidos para filtrar ítems del árbol */
+  allowedPermissions?: Set<string> | string[];
 }
 
 export function buildSidebarTree(
   items: RawMenuItem[],
-  opts: BuildTreeOptions = {}
+  opts: BuildTreeOptions = {},
 ): SidebarNode[] {
   const baseHref = opts.baseHref ?? '';
   const filterStatus = opts.filterStatus ?? 1;
-  const hasPerms =
-    !!opts.allowedPermissions &&
-    ((opts.allowedPermissions as any).size ||
-      (opts.allowedPermissions as any).length);
-  const permSet = Array.isArray(opts.allowedPermissions)
+
+  const permSet: Set<string> | undefined = Array.isArray(
+    opts.allowedPermissions,
+  )
     ? new Set(opts.allowedPermissions)
-    : (opts.allowedPermissions as Set<string> | undefined);
+    : opts.allowedPermissions instanceof Set
+      ? opts.allowedPermissions
+      : undefined;
 
   const filtered = items.filter((it) => {
-    const statusOk = filterStatus == null ? true : it.status === filterStatus;
+    const statusOk = filterStatus == null || it.status === filterStatus;
+
     const permOk =
-      !hasPerms ||
-      !it.permission ||
-      (permSet?.has(it.permission.trim()) ?? true);
+      !permSet || !it.permission || permSet.has(it.permission.trim());
+
     return statusOk && permOk;
   });
 
@@ -34,7 +39,7 @@ export function buildSidebarTree(
     const node: SidebarNode = {
       ...it,
       key: it.id,
-      text: (it.nameSpanish?.trim() || it.name?.trim() || '').trim(),
+      text: (it.nameSpanish ?? it.name ?? '').trim(),
       link: computeLink(it, baseHref),
       isLeaf: false,
       children: [],
@@ -51,7 +56,7 @@ export function buildSidebarTree(
     }
   }
 
-  const sortRec = (arr: SidebarNode[]) => {
+  const sortRec = (arr: SidebarNode[]): void => {
     arr.sort((a, b) => {
       const byOrder = (a.order ?? 0) - (b.order ?? 0);
       return byOrder !== 0 ? byOrder : a.text.localeCompare(b.text);
@@ -66,23 +71,28 @@ export function buildSidebarTree(
   return roots;
 }
 
+/* ========= Links ========= */
 function computeLink(it: RawMenuItem, baseHref = ''): string | null {
-  const p = (it.path || '').trim();
-  if (p) return joinUrl(baseHref, p);
+  const p = (it.path ?? '').trim();
+  if (p) return ensureAbs(joinUrl(baseHref, p));
 
-  const c = (it.controller || '').trim();
-  const a = (it.action || '').trim();
+  const c = (it.controller ?? '').trim();
+  const a = (it.action ?? '').trim();
   const segments = [c, a].filter(Boolean);
 
-  return segments.length ? joinUrl(baseHref, ...segments) : null;
+  return segments.length ? ensureAbs(joinUrl(baseHref, ...segments)) : null;
 }
 
 function joinUrl(...parts: string[]): string {
   return parts
     .filter(Boolean)
     .map((s, i) =>
-      i === 0 ? s.replace(/\/+$/g, '') : s.replace(/^\/+|\/+$/g, '')
+      i === 0 ? s.replace(/\/+$/g, '') : s.replace(/^\/+|\/+$/g, ''),
     )
     .join('/')
     .replace(/\/{2,}/g, '/');
+}
+
+function ensureAbs(url: string): string {
+  return url.startsWith('/') ? url : `/${url}`;
 }

@@ -25,7 +25,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
 
 type SearchScope = 'all' | 'root';
-type FlatResult = { node: MenuNode; depth: number };
+interface FlatResult { node: MenuNode; depth: number }
 
 @Component({
   selector: 'app-sidebar',
@@ -141,7 +141,7 @@ export class SidebarComponent {
       !!this._flypanelEl &&
       (this._flypanelEl === t ||
         (t && this._flypanelEl.contains(t)) ||
-        (path && path.includes(this._flypanelEl)));
+        (path?.includes(this._flypanelEl)));
 
     if (insideFlypanel) return; // ✅ deja que el panel haga scroll
     e.preventDefault(); // ⛔️ bloquea scroll del body/fondo
@@ -416,7 +416,7 @@ export class SidebarComponent {
   }
   get panelNodes(): MenuNode[] {
     const current = this.panelStack[this.panelStack.length - 1];
-    return (current?.children ?? []) as MenuNode[];
+    return (current?.children ?? []);
   }
   get canGoBack(): boolean {
     return this.panelStack.length > 1;
@@ -551,7 +551,7 @@ export class SidebarComponent {
   /** Posiciona el panel al lado del sidebar, alineado al item clickeado */
   private repositionPanel(anchorEl: HTMLElement): void {
     const li =
-      (anchorEl.closest('li.item, button, a') as HTMLElement) ?? anchorEl;
+      (anchorEl.closest('li.item, button, a')!) ?? anchorEl;
     const r = li.getBoundingClientRect();
     const aside = this.host.nativeElement.querySelector(
       'aside.sidebar',
@@ -639,8 +639,8 @@ export class SidebarComponent {
         const kids = (it.submenu ?? undefined) as AnyItem[] | undefined;
         return {
           label: it.text ?? '',
-          link: (it.link ?? undefined) as RouteLink | undefined,
-          icon: (it.icon ?? undefined) as string | undefined,
+          link: (it.link ?? undefined),
+          icon: (it.icon ?? undefined),
           children: kids?.length ? kids.map(mapOne) : undefined,
         };
       }
@@ -648,8 +648,8 @@ export class SidebarComponent {
         const kids = (it.children ?? undefined) as AnyItem[] | undefined;
         return {
           label: it.label ?? '',
-          link: (it.link ?? undefined) as RouteLink | undefined,
-          icon: (it.icon ?? undefined) as string | undefined,
+          link: (it.link ?? undefined),
+          icon: (it.icon ?? undefined),
           children: kids?.length ? kids.map(mapOne) : undefined,
         };
       }

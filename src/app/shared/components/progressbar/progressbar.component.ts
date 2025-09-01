@@ -3,7 +3,7 @@ import {
   Component,
   Input,
   computed,
-  signal,
+  signal, OnChanges,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
@@ -36,7 +36,7 @@ export interface ProgressSegment {
   styleUrls: ['./progressbar.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ProgressbarComponent {
+export class ProgressbarComponent implements OnChanges {
   // --- Modo simple ---
   @Input() value = 0;
   @Input() min = 0;

@@ -1,21 +1,20 @@
 // src/app/core/graphql/graphql-client.service.ts
-import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { inject, Injectable } from '@angular/core';
 import { API_URLS } from '@core/constants/api-urls';
 import {
-  GraphQLResponse,
   GqlOptions,
   GqlVariables,
+  GraphQLResponse,
 } from '@core/models/graphql.types';
 
-import { Observable, of, throwError } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { catchError, map, timeout } from 'rxjs/operators';
 
 @Injectable({ providedIn: 'root' })
 export class GraphQLClientService {
   private readonly urls = API_URLS();
-
-  constructor(private http: HttpClient) {}
+  private http: HttpClient = inject(HttpClient);
 
   /**
    * Health-check ultra barato por GET sin headers "no simples".
@@ -29,7 +28,7 @@ export class GraphQLClientService {
     return this.http.get<GraphQLResponse<{ __typename: string }>>(url).pipe(
       timeout(timeoutMs),
       map((res) => !!res?.data?.__typename && !res?.errors?.length),
-      catchError(() => of(false))
+      catchError(() => of(false)),
     );
   }
 
@@ -38,7 +37,7 @@ export class GraphQLClientService {
    * Nota: el interceptor añadirá Authorization si hay token almacenado.
    */
   query<T = unknown, V extends GqlVariables = GqlVariables>(
-    options: GqlOptions<V>
+    options: GqlOptions<V>,
   ): Observable<T> {
     return this.execute<T, V>(options);
   }
@@ -48,7 +47,7 @@ export class GraphQLClientService {
    * Igual que query, lo separamos por semántica.
    */
   mutate<T = unknown, V extends GqlVariables = GqlVariables>(
-    options: GqlOptions<V>
+    options: GqlOptions<V>,
   ): Observable<T> {
     return this.execute<T, V>(options);
   }
@@ -62,7 +61,7 @@ export class GraphQLClientService {
     context?: {
       headers?: HttpHeaders | Record<string, string>;
       withCredentials?: boolean;
-    }
+    },
   ): Observable<GraphQLResponse<T>> {
     const headers = this.buildHeaders(context?.headers);
     return this.http.post<GraphQLResponse<T>>(
@@ -71,24 +70,22 @@ export class GraphQLClientService {
       {
         headers,
         withCredentials: context?.withCredentials ?? false,
-      }
+      },
     );
   }
 
   // -------------------- privados --------------------
 
   private execute<T, V extends GqlVariables>(
-    options: GqlOptions<V>
+    options: GqlOptions<V>,
   ): Observable<T> {
     const { query, variables, operationName, context } = options ?? {};
     const headers = this.buildHeaders(context?.headers);
 
     return this.http
-      .post<GraphQLResponse<T>>(
-        this.urls.GRAPHQL.ENDPOINT,
-        { query, variables, operationName },
-        { headers, withCredentials: context?.withCredentials ?? false }
-      )
+      .post<
+        GraphQLResponse<T>
+      >(this.urls.GRAPHQL.ENDPOINT, { query, variables, operationName }, { headers, withCredentials: context?.withCredentials ?? false })
       .pipe(
         map((res) => {
           if (res.errors?.length) {
@@ -101,12 +98,11 @@ export class GraphQLClientService {
           }
           return res.data as T;
         }),
-        catchError((err) => throwError(() => err))
       );
   }
 
   private buildHeaders(
-    custom?: HttpHeaders | Record<string, string>
+    custom?: HttpHeaders | Record<string, string>,
   ): HttpHeaders {
     let headers =
       custom instanceof HttpHeaders ? custom : new HttpHeaders(custom ?? {});

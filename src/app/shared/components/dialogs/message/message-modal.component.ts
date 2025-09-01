@@ -1,7 +1,7 @@
-import { Component, Input } from '@angular/core';
+import { Component, inject, Input } from '@angular/core';
+import { SHARED_IMPORTS } from '@shared/app-shared-imports';
 import { BsModalRef } from 'ngx-bootstrap/modal';
 import { ConfirmOptions } from '../confirm/confirm.service'; // ajusta la ruta
-import { SHARED_IMPORTS } from '@shared/app-shared-imports';
 
 @Component({
   selector: 'app-message-modal',
@@ -11,8 +11,7 @@ import { SHARED_IMPORTS } from '@shared/app-shared-imports';
 })
 export class MessageModalComponent {
   @Input() options!: ConfirmOptions;
-
-  constructor(public bsModalRef: BsModalRef) {}
+  public bsModalRef: BsModalRef = inject(BsModalRef);
 
   get iconClass() {
     const t = this.options?.type_message ?? 'info';

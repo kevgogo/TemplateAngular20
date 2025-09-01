@@ -2,25 +2,25 @@ import { RouterLink } from '@angular/router';
 import { RawMenuItem, SidebarNode } from '@core/models/menu.types';
 import { buildSidebarTree, BuildTreeOptions } from '@core/utils/menu-tree.util';
 
-export type MenuNodesItem = {
+export interface MenuNodesItem {
   label: string;
   link?: string;
   icon?: string;
   children?: MenuNodesItem[];
-};
+}
 
-export type MenuUsrItem = {
+export interface MenuUsrItem {
   text: string;
   link?: string | RouterLink;
   icon?: string;
   submenu?: MenuUsrItem[];
-};
+}
 
 /** Convierte SidebarNode -> shape de menu_nodes */
 export function toMenuNodes(nodes: SidebarNode[]): MenuNodesItem[] {
   const map = (n: SidebarNode): MenuNodesItem => ({
     label: n.text || n.name || '',
-    link: n.link || undefined,
+    link: n.link ?? undefined,
     icon: mapIcon(n.icon),
     children: (n.children ?? []).map(map),
   });
@@ -31,7 +31,7 @@ export function toMenuNodes(nodes: SidebarNode[]): MenuNodesItem[] {
 export function toMenuUsr(nodes: SidebarNode[]): MenuUsrItem[] {
   const map = (n: SidebarNode): MenuUsrItem => ({
     text: n.text || n.name || '',
-    link: n.link || undefined,
+    link: n.link ?? undefined,
     icon: mapIcon(n.icon),
     submenu: (n.children ?? []).map(map),
   });
@@ -41,7 +41,7 @@ export function toMenuUsr(nodes: SidebarNode[]): MenuUsrItem[] {
 /** Guarda ambas estructuras usando las llaves que ya tienes */
 export function persistMenusToSession(
   tree: SidebarNode[],
-  storage: Storage = sessionStorage
+  storage: Storage = sessionStorage,
 ) {
   try {
     storage.setItem('menu_nodes', JSON.stringify(toMenuNodes(tree)));
@@ -112,7 +112,7 @@ function mapIcon(icon?: string | null): string | undefined {
 export function buildAndPersistMenus(
   raw: RawMenuItem[],
   opts: BuildTreeOptions = {},
-  storage: Storage = sessionStorage
+  storage: Storage = sessionStorage,
 ) {
   const tree = buildSidebarTree(raw, { filterStatus: 1, ...opts });
   persistMenusToSession(tree, storage);

@@ -1,27 +1,27 @@
 // src/app/core/services/layout.service.ts
-import { Injectable, effect, inject, signal, NgZone } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
-import { fromEvent, Subscription, Subject } from 'rxjs';
-import { throttleTime, map, pairwise, filter } from 'rxjs/operators';
+import { effect, inject, Injectable, NgZone, signal } from '@angular/core';
+import { fromEvent, Subject, Subscription } from 'rxjs';
+import { filter, map, pairwise, throttleTime } from 'rxjs/operators';
 
 type Area = 'nav' | 'breadcrumbs' | 'headbar' | 'sidebar';
 
-type LayoutState = {
+interface LayoutState {
   navFixed: boolean;
   breadcrumbsFixed: boolean;
   headbarFixed: boolean;
   sidebarCollapsed: boolean;
   sidebarFixed: boolean;
-};
+}
 
-type AutoCloseOnScrollOptions = {
+interface AutoCloseOnScrollOptions {
   /** Intervalo mínimo entre manejos de scroll (ms) */
   throttleMs?: number;
   /** 'any' = cualquier scroll; 'down' = solo cuando el usuario baja */
   direction?: 'any' | 'down';
   /** Delta mínima (px) para considerar que hubo scroll “real” */
   minDelta?: number;
-};
+}
 
 const LS_KEY = 'layout-state-v1';
 
@@ -68,8 +68,8 @@ export class LayoutService {
       (s) =>
         ({
           ...s,
-          [`${area}Fixed`]: (force ?? !s[`${area}Fixed` as const]) as boolean,
-        } as LayoutState)
+          [`${area}Fixed`]: force ?? !s[`${area}Fixed` as const],
+        }) as LayoutState,
     );
   }
 
@@ -109,7 +109,9 @@ export class LayoutService {
   private persist() {
     try {
       localStorage.setItem(LS_KEY, JSON.stringify(this.state()));
-    } catch {}
+    } catch {
+      /* no-op */
+    }
   }
 
   private restore(): LayoutState {
@@ -156,7 +158,7 @@ export class LayoutService {
           map(() => win.scrollY || 0),
           pairwise(),
           filter(([prev, curr]) => Math.abs(curr - prev) >= minDelta),
-          filter(([prev, curr]) => (direction === 'any' ? true : curr > prev)) // 'down' => solo al bajar
+          filter(([prev, curr]) => (direction === 'any' ? true : curr > prev)), // 'down' => solo al bajar
         )
         .subscribe(() => {
           this.zone.run(() => this._closeSidebarPanel$.next());
@@ -173,7 +175,7 @@ export class LayoutService {
   /** Variante para escuchar el scroll de un contenedor específico (opcional) */
   enableAutoCloseOnElement(
     el: HTMLElement,
-    opts: AutoCloseOnScrollOptions = {}
+    opts: AutoCloseOnScrollOptions = {},
   ): Subscription {
     const { throttleMs = 150, direction = 'any', minDelta = 4 } = opts;
     let sub!: Subscription;
@@ -184,7 +186,7 @@ export class LayoutService {
           map(() => el.scrollTop || 0),
           pairwise(),
           filter(([a, b]) => Math.abs(b - a) >= minDelta),
-          filter(([a, b]) => (direction === 'any' ? true : b > a))
+          filter(([a, b]) => (direction === 'any' ? true : b > a)),
         )
         .subscribe(() => {
           this.zone.run(() => this._closeSidebarPanel$.next());

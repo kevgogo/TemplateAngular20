@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 import { ShellComponent } from '@layout/shell/shell.component';
-import { accessControlGuard } from '@core/guards/access-control.guard';
+// import { accessControlGuard } from '@core/guards/access-control.guard';
 
 export const routes: Routes = [
   {
@@ -37,7 +37,7 @@ export const routes: Routes = [
         // canActivate: [accessControlGuard],
         loadComponent: () =>
           import('@pages/dashboard/dashboard.page').then(
-            (m) => m.DashboardPage
+            (m) => m.DashboardPage,
           ),
       },
 
@@ -48,7 +48,7 @@ export const routes: Routes = [
         data: { breadcrumb: '401' },
         loadComponent: () =>
           import('@pages/errors/unauthorized.page').then(
-            (m) => m.UnauthorizedPage
+            (m) => m.UnauthorizedPage,
           ),
       },
       {
@@ -71,7 +71,7 @@ export const routes: Routes = [
         data: { breadcrumb: '500' },
         loadComponent: () =>
           import('@pages/errors/server-error.page').then(
-            (m) => m.ServerErrorPage
+            (m) => m.ServerErrorPage,
           ),
       },
 

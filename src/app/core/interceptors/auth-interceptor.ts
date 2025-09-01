@@ -1,31 +1,69 @@
+// src/app/core/interceptors/auth.interceptor.ts
+import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
-import { SettingsService } from '@core/services/settings.service';
 import { CommonService } from '@core/services/common.service';
+import { SettingsService } from '@core/services/settings.service';
 import { catchError, throwError } from 'rxjs';
 
-// --- helpers añadidos ---
-function hasQueryParam(url: string, name: string, value?: string) {
+/* ===================== Helpers de tipos seguros ===================== */
+
+function hasQueryParam(url: string, name: string, value?: string): boolean {
   const v = value != null ? `=${value}` : '(=|&|$)';
   const re = new RegExp(`[?&]${name}${v}`);
   return re.test(url);
 }
+
 function isObject(x: unknown): x is Record<string, unknown> {
   return typeof x === 'object' && x !== null;
 }
+
+/** Lee una propiedad string de un objeto desconocido de forma segura */
+function readStringProp(obj: unknown, key: string): string | undefined {
+  if (!isObject(obj)) return undefined;
+  const v = obj[key];
+  return typeof v === 'string' ? v : undefined;
+}
+
+/** Detecta si el body de GraphQL corresponde a la mutación de token */
 function isTokenMutationBody(body: unknown): boolean {
-  if (!isObject(body)) return false;
-  const op = (body as any).operationName;
-  if (typeof op === 'string' && op === 'GetToken') return true;
-  const q = (body as any).query;
+  const op = readStringProp(body, 'operationName');
+  if (op === 'GetToken') return true;
+
+  const q = readStringProp(body, 'query');
   return typeof q === 'string' && /\bmutation\s+GetToken\b/.test(q);
 }
+
+/** Normaliza y obtiene un token desde SettingsService */
+function getTokenFromSettings(settings: SettingsService): string | undefined {
+  // 1) Intento directo: settings.getUserSetting('token') === string
+  const tkRaw = settings.getUserSetting('token');
+  if (typeof tkRaw === 'string') return tkRaw;
+
+  // 2) A veces guardan un objeto { value: '...' }
+  if (isObject(tkRaw)) {
+    const v = readStringProp(tkRaw, 'value');
+    if (v) return v;
+  }
+
+  // 3) Fallback: dentro del usuario persistido
+  const usr = settings.getUserSetting();
+  if (isObject(usr)) {
+    const t1 = readStringProp(usr, 'token');
+    if (t1) return t1;
+    const t2 = readStringProp(usr, 'Token');
+    if (t2) return t2;
+  }
+
+  return undefined;
+}
+
+/* ===================== Interceptor ===================== */
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const settings = inject(SettingsService);
   const common = inject(CommonService);
 
-  // --- NUEVO: detectar pings/skip/token ---
+  // Detectores de bypass
   const isHealthPing =
     req.method === 'GET' && hasQueryParam(req.urlWithParams, 'hc', '1');
   const hasSkipHeader =
@@ -34,15 +72,15 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const isTokenMutation =
     isGraphQL && req.method === 'POST' && isTokenMutationBody(req.body);
 
-  // --- NUEVO: no inyectar Authorization en estos casos ---
+  // No inyectar Authorization si es ping/skip/mutación de token
   let finalReq = req;
   if (isHealthPing || hasSkipHeader || isTokenMutation) {
     finalReq = req.clone({
       headers: req.headers.delete('X-Skip-Auth').delete('X-Skip-GraphQL-Auth'),
-      withCredentials: false, // evita cookies que algunos LB/WAF bloquean
+      withCredentials: false,
     });
   } else {
-    const token: string | undefined = settings.getUserSetting('token');
+    const token = getTokenFromSettings(settings); // string | undefined
     finalReq = token
       ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } })
       : req;
@@ -50,42 +88,41 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(finalReq).pipe(
     catchError((err: HttpErrorResponse) => {
-      // --- NUEVO: no redirigir si fue ping/skip/token ---
+      // Si era un ping/skip/mutación de token, no redirigimos
       if (isHealthPing || hasSkipHeader || isTokenMutation) {
         return throwError(() => err);
       }
 
       const is5xx = err.status >= 500 && err.status < 600;
-      console.table(err);
 
       if (err.status === 401) {
-        common.redirecToUnauthorized({
+        void common.redirecToUnauthorized({
           code: '401',
           error: 'No autorizado',
           message: 'Su token ha caducado o no es válido',
         });
       } else if (err.status === 403) {
-        common.redirecToError({
+        void common.redirecToError({
           code: '403',
           error: 'Acceso denegado',
           message: 'No tienes permisos para acceder a este recurso',
         });
       } else if (err.status === 400) {
-        common.redirecToError({
+        void common.redirecToError({
           code: '400',
           error: 'Credenciales',
           message: 'Credenciales vencidas, vuelva a hacer login',
         });
       } else if (err.status === 503 || err.status === 0) {
         if (!err.url) {
-          common.redirecToError({
+          void common.redirecToError({
             code: '503',
             error: 'Error',
             message: 'Servicio no disponible',
           });
         }
       } else if (is5xx && err.status !== 503) {
-        common.redirecToError({
+        void common.redirecToError({
           code: String(err.status || '500'),
           error: 'Error del servidor',
           message: 'Ocurrió un error interno al procesar su solicitud',
@@ -93,6 +130,6 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
       }
 
       return throwError(() => err);
-    })
+    }),
   );
 };

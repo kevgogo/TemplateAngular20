@@ -2,13 +2,13 @@ import { Component } from '@angular/core';
 import { CommonService } from '@core/services/common.service';
 import { SHARED_IMPORTS } from '@shared/app-shared-imports';
 
-type ErrorState = {
+interface ErrorState {
   code?: string;
   error?: string;
   message?: string;
   from?: string;
   ts?: number;
-};
+}
 
 @Component({
   selector: 'app-unauthorized',

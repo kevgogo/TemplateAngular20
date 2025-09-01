@@ -1,6 +1,11 @@
 import { Injectable, inject } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 
+type NavigatorLegacy = Navigator & {
+  userLanguage?: string;
+  browserLanguage?: string;
+};
+
 @Injectable({ providedIn: 'root' })
 export class TranslatorService {
   private readonly translate = inject(TranslateService);
@@ -9,7 +14,7 @@ export class TranslatorService {
   private readonly fallbackLanguage = 'es_AR';
 
   // Idiomas soportados por tus archivos en assets/i18n/
-  private readonly availablelangs: Array<{ code: string; text: string }> = [
+  private readonly availablelangs: { code: string; text: string }[] = [
     { code: 'es_CO', text: 'Español (Colombia)' },
     { code: 'es_EC', text: 'Español (Ecuador)' },
     { code: 'en_US', text: 'English (US)' },
@@ -28,7 +33,7 @@ export class TranslatorService {
     // 3) fallbackLang
     // 4) fallbackLanguage local
     // 5) idioma del navegador
-    const stored = this.normalize(localStorage.getItem(this.STORAGE_KEY) || '');
+    const stored = this.normalize(localStorage.getItem(this.STORAGE_KEY) ?? '');
     const browser = this.normalize(this.detectBrowserLang());
     const current = this.normalize(this.translate.getCurrentLang());
     const fallback =
@@ -61,25 +66,31 @@ export class TranslatorService {
 
     // Coincidencia exacta
     const exact = this.availablelangs.find(
-      (l) => l.code.toLowerCase() === c.toLowerCase()
+      (l) => l.code.toLowerCase() === c.toLowerCase(),
     )?.code;
     if (exact) return exact;
 
     // Coincidencia por idioma base (es, en, etc.)
     const base = c.split(/[-_]/)[0];
     const byBase = this.availablelangs.find((l) =>
-      l.code.toLowerCase().startsWith(base.toLowerCase())
+      l.code.toLowerCase().startsWith(base.toLowerCase()),
     )?.code;
     return byBase ?? null;
   }
 
   /** Intenta detectar el idioma del navegador */
   private detectBrowserLang(): string {
-    // p.ej. 'es-CO', 'en-US', 'es'
     const nav =
-      (navigator.languages && navigator.languages[0]) ||
-      navigator.language ||
-      '';
-    return nav || '';
+      typeof navigator !== 'undefined'
+        ? (navigator as NavigatorLegacy)
+        : undefined;
+
+    return (
+      nav?.languages?.[0] ??
+      nav?.language ??
+      nav?.userLanguage ?? // fallback IE/legacy
+      nav?.browserLanguage ?? // fallback IE/legacy
+      ''
+    );
   }
 }

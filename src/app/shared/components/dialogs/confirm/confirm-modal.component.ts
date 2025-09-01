@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, inject, Input } from '@angular/core';
 import { BsModalRef } from 'ngx-bootstrap/modal';
 import { ConfirmOptions } from './confirm.service';
 @Component({
@@ -7,13 +7,12 @@ import { ConfirmOptions } from './confirm.service';
   standalone: true,
 })
 export class ConfirmModalComponent {
+  public bsModalRef: BsModalRef = inject(BsModalRef);
   @Input() options!: ConfirmOptions;
 
   // Callbacks inyectadas vía initialState desde el servicio
   onYes?: () => void;
   onNo?: () => void;
-
-  constructor(public bsModalRef: BsModalRef) {}
 
   yes() {
     this.onYes?.();

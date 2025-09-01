@@ -1,17 +1,21 @@
-export class User {
-  name: string = '';
-  job: string = '';
-  picture: string = '';
-  keylogin: string = '';
-  peronalId: string = '';
-  userId: string = '';
-  dateBegin: string = '';
-  dateEnd: string = '';
-  status: string = '';
-  land: string = '';
-  email: string = '';
-  fullName: string = '';
-  farmIdPrefered: string = '';
-  country_id: string = '';
-  token: string = '';
+export interface User {
+  name?: string;
+  job?: string;
+  picture?: string;
+  country_id?: number;
+  dateBegin?: string;
+  dateEnd?: string;
+  email?: string;
+  farmIdPrefered?: number;
+  fullName?: string;
+  identificationNumber?: string;
+  keylogin?: string;
+  land?: string;
+  peronalId?: number;
+  status?: string;
+  token?: string;
+  user?: string;
+  userId?: number;
+  roles?: string[]; // opcional para guards
+  rol?: string; // compat legado "rol" como string con comas
 }

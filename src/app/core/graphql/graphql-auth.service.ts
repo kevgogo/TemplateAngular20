@@ -1,17 +1,17 @@
-import { Injectable } from '@angular/core';
 import {
   HttpClient,
-  HttpHeaders,
   HttpErrorResponse,
+  HttpHeaders,
 } from '@angular/common/http';
+import { inject, Injectable } from '@angular/core';
 import { API_URLS } from '@core/constants/api-urls';
 import {
   catchError,
   map,
   Observable,
   retryWhen,
-  timer,
   throwError,
+  timer,
 } from 'rxjs';
 import { mergeMap } from 'rxjs/operators';
 
@@ -36,17 +36,20 @@ function backoff503(maxRetries = 3, initialMs = 500) {
                 initialMs * Math.pow(2, i) + Math.floor(Math.random() * 150);
               return timer(delay);
             }
-            return throwError(() => err);
-          })
-        )
-      )
+            return throwError(() => {
+              const error: Error = new Error(`This is an error`);
+              return error;
+            });
+          }),
+        ),
+      ),
     );
 }
 
 @Injectable({ providedIn: 'root' })
 export class GraphQLAuthService {
   private urls = API_URLS();
-  constructor(private http: HttpClient) {}
+  private http = inject(HttpClient);
 
   /** Obtiene el token via mutación GetToken */
   getGraphQLToken(username?: string, password?: string) {
@@ -76,12 +79,12 @@ export class GraphQLAuthService {
       >(
         this.urls.GRAPHQL.ENDPOINT,
         { query, variables, operationName: 'GetToken' },
-        { headers, withCredentials: false } // evita cookies en el LB/WAF
+        { headers, withCredentials: false }, // evita cookies en el LB/WAF
       )
       .pipe(
         backoff503(3, 600),
         map((res) => {
-          if (res.errors?.length) throw res.errors[0];
+          if (res.errors?.length) throw Error(res.errors[0].message);
           const token = res.data?.auth.accessToken;
           if (!token) throw new Error('Token vacío');
           return token;
@@ -95,13 +98,16 @@ export class GraphQLAuthService {
               'url:',
               err.url,
               'body:',
-              err.error
+              err.error,
             );
           } else {
             console.error('[GraphQLAuth] error:', err);
           }
-          return throwError(() => err);
-        })
+          return throwError(() => {
+            const error: Error = new Error(`This is an error`);
+            return error;
+          });
+        }),
       );
   }
 }

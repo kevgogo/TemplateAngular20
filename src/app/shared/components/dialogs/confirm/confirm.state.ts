@@ -1,14 +1,16 @@
-import { Injectable, TemplateRef } from '@angular/core';
-import { BsModalRef } from 'ngx-bootstrap/modal';
-import { ConfirmOptions } from './confirm.service'; // re-usa el modelo
+import { Injectable, TemplateRef, Type } from '@angular/core';
+import type { BsModalRef } from 'ngx-bootstrap/modal';
+import type { ConfirmOptions } from './confirm.service';
 
 @Injectable({ providedIn: 'root' })
 export class ConfirmState {
-  options!: ConfirmOptions;
-  modal!: BsModalRef;
-  template!: TemplateRef<void>;
-  templateMessage!: TemplateRef<void>;
-  result!: Promise<boolean>;
+  template?: Type<unknown> | TemplateRef<unknown>;
+  templateMessage?: TemplateRef<unknown>;
+
+  modal?: BsModalRef;
+  result?: Promise<boolean>;
   _resolve?: (v: boolean) => void;
   _reject?: (v: boolean) => void;
+
+  options?: ConfirmOptions;
 }

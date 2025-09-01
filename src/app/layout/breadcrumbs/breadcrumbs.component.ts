@@ -17,7 +17,7 @@ import { filter } from 'rxjs/operators';
 import { MenuService } from '@core/services/menu.service';
 import { SidebarNode } from '@core/models/menu.types';
 
-type Crumb = { label: string; url: string };
+interface Crumb { label: string; url: string }
 
 @Component({
   selector: 'app-breadcrumbs',
@@ -42,12 +42,12 @@ export class BreadcrumbsComponent {
       .pipe(filter((e) => e instanceof NavigationEnd))
       .subscribe(() => {
         this.currentUrl.set(this.cleanUrl(this.router.url));
-        const root = this.router.routerState.root as ActivatedRoute;
+        const root = this.router.routerState.root;
         this.routeTrail.set(this.buildRouteTrail(root));
       });
 
     // Primera evaluación
-    const root = this.router.routerState.root as ActivatedRoute;
+    const root = this.router.routerState.root;
     this.routeTrail.set(this.buildRouteTrail(root));
 
     // Árbol del sidebar (mismos rótulos que ves en el menú)
@@ -123,7 +123,7 @@ export class BreadcrumbsComponent {
     // routeConfig.title puede ser string o función; aquí solo usamos string
     const fromRouteConfig =
       typeof snap?.routeConfig?.title === 'string'
-        ? (snap!.routeConfig!.title as string)
+        ? (snap.routeConfig.title)
         : undefined;
 
     return fromData ?? fromRouteConfig;

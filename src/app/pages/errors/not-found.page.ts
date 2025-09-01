@@ -3,13 +3,13 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { CommonService } from '@core/services/common.service';
 
-type ErrorState = {
+interface ErrorState {
   code?: string;
   error?: string;
   message?: string;
   from?: string;
   ts?: number;
-};
+}
 
 @Component({
   selector: 'app-not-found',

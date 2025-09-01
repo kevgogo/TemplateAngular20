@@ -1,26 +1,92 @@
 import {
   Directive,
   Input,
+  OnChanges,
+  OnInit,
   TemplateRef,
   ViewContainerRef,
   inject,
-  OnInit,
 } from '@angular/core';
-import { SettingsService } from '@core/services/settings.service';
+import { CommonService } from '@core/services/common.service';
+
+/* ===================== Tipos y helpers seguros ===================== */
+
+type PermItem =
+  | string
+  | {
+      name?: string;
+      permission?: string;
+      code?: string;
+      permission_name?: string;
+      Permission?: string;
+      Name?: string;
+    };
+
+function isObject(x: unknown): x is Record<string, unknown> {
+  return typeof x === 'object' && x !== null;
+}
+
+function readStringField(obj: unknown, key: string): string | null {
+  if (!isObject(obj)) return null;
+  const v = obj[key];
+  return typeof v === 'string' ? v : null;
+}
+
+/** Convierte el arreglo de permisos crudos a un Set<string> en minúsculas */
+function normalizePermissions(raw: unknown): Set<string> {
+  const out = new Set<string>();
+  if (!Array.isArray(raw)) return out;
+
+  for (const it of raw as unknown[]) {
+    if (typeof it === 'string') {
+      const v = it.trim().toLowerCase();
+      if (v) out.add(v);
+    } else if (isObject(it)) {
+      const cand =
+        readStringField(it, 'name') ??
+        readStringField(it, 'permission') ??
+        readStringField(it, 'code') ??
+        readStringField(it, 'permission_name') ??
+        readStringField(it, 'Permission') ??
+        readStringField(it, 'Name');
+
+      if (cand) out.add(cand.trim().toLowerCase());
+    }
+  }
+  return out;
+}
+
+/* ===================== Directiva ===================== */
 
 @Directive({
   selector: '[appHasPermission]',
   standalone: true,
 })
-export class HasPermissionDirective implements OnInit {
-  private vcr = inject(ViewContainerRef);
-  private tpl = inject(TemplateRef<unknown>);
-  private settings = inject(SettingsService);
+export class HasPermissionDirective implements OnInit, OnChanges {
+  private readonly vcr = inject(ViewContainerRef);
+  private readonly tpl = inject(TemplateRef<unknown>);
+  private readonly common = inject(CommonService);
 
+  /** Código de permiso requerido */
   @Input('appHasPermission') code?: string;
 
+  private permSet: Set<string> = new Set<string>();
+
   ngOnInit(): void {
+    this.loadPermissionsFromSession();
     this.render();
+  }
+
+  ngOnChanges(): void {
+    this.render();
+  }
+
+  private loadPermissionsFromSession(): void {
+    const raw = this.common.obtenerElementoSession<PermItem[]>(
+      'permission_menu',
+      [],
+    );
+    this.permSet = normalizePermissions(raw);
   }
 
   private render(): void {
@@ -30,20 +96,16 @@ export class HasPermissionDirective implements OnInit {
   }
 
   private check(code?: string): boolean {
+    // Sin código => no filtra (muestra)
     if (!code) return true;
 
-    // Usa tu método si existe
-    const svcHas = (this.settings as any).hasPermission?.bind(this.settings);
-    if (svcHas) return svcHas(code);
+    // normaliza entrada a minúsculas
+    const wanted = code.trim().toLowerCase();
+    if (!wanted) return true;
 
-    // Fallback suave por si no lo tienes
-    const user: any =
-      (this.settings as any).getUser?.() ?? (this.settings as any).user ?? null;
-    const perms: string[] =
-      user?.permissions ??
-      user?.permisos ??
-      (this.settings as any).getPermissions?.() ??
-      [];
-    return Array.isArray(perms) && perms.includes(code);
+    // si no hay set (aún no cargado), intenta recargar una vez
+    if (this.permSet.size === 0) this.loadPermissionsFromSession();
+
+    return this.permSet.size === 0 || this.permSet.has(wanted);
   }
 }

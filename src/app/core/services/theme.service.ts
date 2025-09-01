@@ -90,7 +90,9 @@ export class ThemeService {
   private _write(s: ThemeState): void {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
-    } catch {}
+    } catch {
+      /* no-op */
+    }
   }
 
   private _read(): ThemeState | null {
@@ -117,8 +119,8 @@ export class ThemeService {
         'teal',
       ] as const;
 
-      const skin: SkinName = validSkins.includes(parsed.skin as SkinName)
-        ? (parsed.skin as SkinName)
+      const skin: SkinName = validSkins.includes(parsed.skin!)
+        ? parsed.skin!
         : 'colibri'; // fallback seguro
 
       return { theme, skin };
@@ -136,7 +138,7 @@ export class ThemeService {
     // Para compatibilidad con estilos legacy basados en clases:
     const body = document.body;
     [...body.classList].forEach(
-      (c) => c.startsWith('skin-') && body.classList.remove(c)
+      (c) => c.startsWith('skin-') && body.classList.remove(c),
     );
     body.classList.add(`skin-${s.skin}`);
   }

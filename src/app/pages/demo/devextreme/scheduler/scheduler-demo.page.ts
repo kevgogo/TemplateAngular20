@@ -7,7 +7,7 @@ import {
 } from '@angular/core';
 import { DxSchedulerModule } from 'devextreme-angular';
 
-type Appt = {
+interface Appt {
   id: number;
   text: string;
   startDate: Date;
@@ -15,14 +15,14 @@ type Appt = {
   allDay?: boolean;
   ownerId?: number;
   statusId?: number;
-};
+}
 
-type Resource = {
+interface Resource {
   fieldExpr: string; // propiedad de la cita (ej: ownerId)
   label: string; // etiqueta que muestra el scheduler
   allowMultiple?: boolean;
   dataSource: { id: number; text: string; color?: string }[];
-};
+}
 
 @Component({
   standalone: true,
@@ -38,7 +38,7 @@ export default class SchedulerDemoPage {
   currentView = signal<'day' | 'week' | 'workWeek' | 'month' | 'agenda'>(
     'week',
   );
-  views: Array<'day' | 'week' | 'workWeek' | 'month' | 'agenda'> = [
+  views: ('day' | 'week' | 'workWeek' | 'month' | 'agenda')[] = [
     'day',
     'week',
     'workWeek',
