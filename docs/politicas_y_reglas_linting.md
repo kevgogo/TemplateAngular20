@@ -311,14 +311,92 @@ jobs:
 
 ---
 
-## 15) Anexo: listado completo de reglas (referencia)
+## 15) Anexo: reglas con explicación breve
 
-**TS (`@angular-eslint/eslint-plugin`)**
-`contextual-lifecycle`, `no-async-lifecycle-method`, `no-attribute-decorator`, `no-developer-preview`, `no-experimental`, `require-lifecycle-on-prototype`, `sort-lifecycle-methods`, `component-class-suffix`, `component-max-inline-declarations`, `component-selector`, `consistent-component-styles`, `contextual-decorator`, `directive-class-suffix`, `directive-selector`, `no-conflicting-lifecycle`, `no-duplicates-in-metadata-arrays`, `no-empty-lifecycle-method`, `no-forward-ref`, `no-input-prefix`, `no-input-rename`, `no-inputs-metadata-property`, `no-lifecycle-call`, `no-output-native`, `no-output-on-prefix`, `no-output-rename`, `no-outputs-metadata-property`, `no-pipe-impure`, `no-queries-metadata-property`, `no-uncalled-signals`, `pipe-prefix`, `prefer-inject`, `prefer-on-push-component-change-detection`, `prefer-output-emitter-ref`, `prefer-output-readonly`, `prefer-signals`, `prefer-standalone`, `relative-url-prefix`, `require-localize-metadata`, `runtime-localize`, `sort-keys-in-type-decorator`, `use-component-selector`, `use-component-view-encapsulation`, `use-injectable-provided-in`, `use-lifecycle-interface`, `use-pipe-transform-interface`.
+> **Objetivo:** referencia rápida para saber qué hace cada regla y cuándo conviene subirla a `error`.
 
-**Templates (`@angular-eslint/eslint-plugin-template`)**
-`no-duplicate-attributes`, `no-nested-tags`, `alt-text`, `banana-in-box`, `button-has-type`, `click-events-have-key-events`, `conditional-complexity`, `cyclomatic-complexity`, `elements-content`, `eqeqeq`, `i18n`, `interactive-supports-focus`, `label-has-associated-control`, `mouse-events-have-key-events`, `no-any`, `no-autofocus`, `no-call-expression`, `no-distracting-elements`, `no-empty-control-flow`, `no-inline-styles`, `no-interpolation-in-attributes`, `no-negated-async`, `no-positive-tabindex`, `prefer-at-empty`, `prefer-contextual-for-variables`, `prefer-control-flow`, `prefer-ngsrc`, `prefer-template-literal`, `role-has-required-aria`, `table-scope`, `use-track-by-function`, `valid-aria`.
+### 15.1 TypeScript — `@angular-eslint/eslint-plugin`
 
----
+- **contextual-lifecycle** — Usa _lifecycle hooks_ solo donde aplican (componentes/directivas), no en clases arbitrarias.
+- **no-async-lifecycle-method** — Los hooks no deben ser `async`; si necesitas async, llama funciones async _desde_ el hook.
+- **no-attribute-decorator** — Evita `@Attribute()` (confunde responsabilidades); prefiere `@Input()` u otras alternativas de DI.
+- **no-developer-preview** — No uses APIs marcadas como _developer preview_ (inestables y sujetas a cambio).
+- **no-experimental** — Evita APIs experimentales (lo mismo que arriba, pero para marca _experimental_).
+- **require-lifecycle-on-prototype** — Declara hooks como **métodos** de clase (en el prototipo), no como campos/arrow functions.
+- **sort-lifecycle-methods** — Ordena los hooks de acuerdo con su secuencia de ejecución (consistencia y legibilidad).
+- **component-class-suffix** — Las clases de componentes terminan en `Component` (si tu guía lo exige).
+- **component-max-inline-declarations** — Limita el tamaño de `template`/`styles` inline para fomentar archivos dedicados.
+- **component-selector** — Forza prefijo/estilo de selector (`kebab-case`, `app-…`, etc.) para componentes.
+- **consistent-component-styles** — Usa una sola convención (`styles` vs `styleUrl(s)`) y sé consistente.
+- **contextual-decorator** — Decoradores de Angular (`@Input`, `@Output`, `@HostListener`, etc.) solo en clases que los soportan.
+- **directive-class-suffix** — Las clases de directivas terminan en `Directive` (si tu guía lo exige).
+- **directive-selector** — Forza prefijo/estilo de selector de directivas (normalmente atributo en `camelCase`).
+- **no-conflicting-lifecycle** — No mezclar hooks que se contradicen o que generan comportamientos inesperados.
+- **no-duplicates-in-metadata-arrays** — Evita entradas duplicadas en arrays de metadatos (`imports`, `providers`, `animations`, …).
+- **no-empty-lifecycle-method** — Quita hooks vacíos; o implementa su lógica o elimínalos.
+- **no-forward-ref** — Evita `forwardRef`; prefiere referencias directas o reestructura para no necesitarlo.
+- **no-input-prefix** — No uses prefijos problemáticos en `@Input()` (evita colisiones o semántica confusa).
+- **no-input-rename** — No cambies el nombre público del `@Input()` con alias; mantén un único nombre.
+- **no-inputs-metadata-property** — No declares `inputs: []` en metadatos; usa `@Input()` en el miembro.
+- **no-lifecycle-call** — No invoques hooks manualmente (`ngOnInit()`…); Angular los gestiona.
+- **no-output-native** — No declares `@Output()` con nombres de eventos nativos (`click`, `change`, …).
+- **no-output-on-prefix** — No inicies nombres de `@Output()` con `on…` (evita confusiones con handlers).
+- **no-output-rename** — No cambies el nombre público del `@Output()` con alias; un solo nombre claro.
+- **no-outputs-metadata-property** — No declares `outputs: []` en metadatos; usa `@Output()`.
+- **no-pipe-impure** — Evita _pipes_ impuros (re-render costoso); prefiere _pure pipes_ o lógica en componentes.
+- **no-queries-metadata-property** — No uses `queries` en metadatos; usa decoradores (`@ViewChild`, `@ContentChild`, …).
+- **no-uncalled-signals** — No “operes” el _signal_ sin invocarlo/actualizarlo (lee con `sig()`; escribe con `set/update`).
+- **pipe-prefix** — Define un prefijo coherente para el nombre de _pipes_ (p. ej., `app…`).
+- **prefer-inject** — Prefiere `inject()` en lugar de inyección por constructor cuando aporta claridad/simplicidad.
+- **prefer-on-push-component-change-detection** — Usa `ChangeDetectionStrategy.OnPush` para mejorar performance.
+- **prefer-output-emitter-ref** — Prefiere `OutputEmitterRef`/`OutputRef` sobre `EventEmitter` en código nuevo.
+- **prefer-output-readonly** — Declara los outputs como `readonly` para evitar reasignaciones.
+- **prefer-signals** — Prefiere APIs basadas en _signals_ para estado/inputs cuando estén disponibles.
+- **prefer-standalone** — Prioriza componentes _standalone_ (menos NgModules, mejor tree‑shaking).
+- **relative-url-prefix** — Prefiere rutas relativas con `./` o `../` en URLs de recursos.
+- **require-localize-metadata** — Añade metadatos (significado/descripcion) a mensajes con `$localize`.
+- **runtime-localize** — Asegura que las cadenas `$localize` están preparadas para traducción en _runtime_.
+- **sort-keys-in-type-decorator** — Orden consistente de propiedades dentro de los decoradores (`Component`, `Directive`, …).
+- **use-component-selector** — Todo `@Component` debe declarar `selector`.
+- **use-component-view-encapsulation** — Evita `ViewEncapsulation.None` o documenta explícitamente su uso.
+- **use-injectable-provided-in** — Servicios con `providedIn` para DI _tree‑shakeable_.
+- **use-lifecycle-interface** — Si implementas un hook, implementa también su **interfaz** (`OnInit`, `OnDestroy`, …).
+- **use-pipe-transform-interface** — Toda clase `@Pipe` implementa `PipeTransform`.
 
-**Fin del documento.**
+### 15.2 Templates — `@angular-eslint/eslint-plugin-template`
+
+- **no-duplicate-attributes** — No repitas atributos ni _bindings_ en el mismo elemento.
+- **no-nested-tags** — Evita anidar `<a>` dentro de `<a>` o `<button>` dentro de `<button>`.
+- **alt-text** — Imágenes y equivalentes con texto alternativo adecuado (o `aria-*`).
+- **banana-in-box** — Sintaxis correcta de _two‑way binding_: `[()]`.
+- **button-has-type** — Todo `<button>` debe declarar `type` (`button`, `submit`, `reset`).
+- **click-events-have-key-events** — Elementos con `click` deben responder al teclado (accesibilidad).
+- **conditional-complexity** — Limita la complejidad de condiciones en plantillas (legibilidad/mantenibilidad).
+- **cyclomatic-complexity** — Controla complejidad ciclomática en expresiones del template.
+- **elements-content** — Ciertos elementos deben tener contenido válido (encabezados, enlaces, botones, …).
+- **eqeqeq** — Usa `===/!==` en vez de `==/!=` dentro de plantillas.
+- **i18n** — Reglas para marcas de internacionalización: faltantes, duplicadas o mal definidas.
+- **interactive-supports-focus** — Elementos interactivos deben poder enfocarse.
+- **label-has-associated-control** — Cada `<label>` vinculado correctamente a su control.
+- **mouse-events-have-key-events** — Si hay eventos de mouse, agrega alternativa de teclado.
+- **no-any** — Evita `$any(...)`; pierde verificación de tipos.
+- **no-autofocus** — No fuerces foco automático (accesibilidad/usabilidad).
+- **no-call-expression** — No ejecutes funciones directamente en el template (impacto en _change detection_).
+- **no-distracting-elements** — Evita elementos distractores/obsoletos (`<marquee>`, etc.).
+- **no-empty-control-flow** — Bloques `@if/@for/@switch` no deben quedar vacíos.
+- **no-inline-styles** — Evita `style="…"` inline; usa clases/estilos externos.
+- **no-interpolation-in-attributes** — No interpoles en atributos; usa _property binding_ (`[attr.foo]`).
+- **no-negated-async** — No niegues directamente resultados del `async` pipe.
+- **no-positive-tabindex** — Evita `tabindex` positivo (rompe el orden natural de tabulación).
+- **prefer-at-empty** — Usa `@empty` con `@for` en lugar de `@if` auxiliares para colecciones vacías.
+- **prefer-contextual-for-variables** — Usa variables contextuales de `@for` (`index`, `count`, etc.).
+- **prefer-control-flow** — Prefiere `@if/@for/@switch` sobre sintaxis `*ngIf/*ngFor/*ngSwitch`.
+- **prefer-ngsrc** — Usa `ngSrc` en `<img>` para carga más segura y performante.
+- **prefer-template-literal** — Prefiere _template literals_ en expresiones de texto.
+- **role-has-required-aria** — Si usas un `role`, incluye los atributos ARIA requeridos.
+- **table-scope** — El atributo `scope` solo en `<th>` y correctamente definido.
+- **use-track-by-function** — Siempre define `trackBy` en `@for`/`*ngFor` para listas.
+- **valid-aria** — Atributos ARIA válidos y con valores correctos.
+- **attributes-order** — Ordena atributos y _bindings_ de manera consistente.
+- **prefer-self-closing-tags** — Etiquetas autocontenidas cuando no hay contenido.
+- **prefer-static-string-properties** — Valores **estáticos** como strings directos (no _bindings_ innecesarios).
