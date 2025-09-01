@@ -1,0 +1,2 @@
+export const licenseKey =
+  'ewogICJmb3JtYXQiOiAxLAogICJjdXN0b21lcklkIjogIjM0N2QyMmRkLTYyMDMtMTFlNS04MGNjLTAwMTU1ZDYyNDcwMSIsCiAgIm1heFZlcnNpb25BbGxvd2VkIjogMjUxCn0=.eYuYrCpinOCodHDthCP8GA64FpF9GkpRGGZ9DE+NI89Es+DgD2eT3e9BZVpsaLGTetNmmoCnlhgNNZBZjSPfn1pFN2zliZjJklhZb5NIOWNTasTqliCwolAR0XY/cU+uP2QmUg==';
