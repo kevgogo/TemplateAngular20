@@ -13,6 +13,7 @@
  * - GitHub Desktop:
  *   · Título mínimo 5 chars: si no, se genera uno objetivo desde staged.
  *   · Si no hay body, autodescripción objetiva (≥20) desde staged.
+ *   · Fuerza el subject del header a minúsculas (evita subject-case).
  * - VS Code:
  *   · Descripción obligatoria por el usuario. Se agrega un resumen automático comentado (#) de referencia.
  * - Inserta "Descripción:" (línea siguiente), "Corregido:" (opcional), "# ITEMS_AUTO" y "Refs:".
@@ -137,6 +138,13 @@ function decapAllCapsSubject(header) {
   return header;
 }
 
+// Desktop: fuerza subject del header a minúsculas (evita subject-case)
+function forceLowercaseHeaderSubject(header) {
+  const m = String(header || "").match(/^([^:]+:\s*)(.+)$/);
+  if (!m) return header;
+  return m[1] + m[2].toLowerCase();
+}
+
 // ---- Resúmenes desde staged ----
 function getNameStatus() {
   const out = run("git diff --cached --name-status -M");
@@ -146,7 +154,7 @@ function classifyFiles() {
   const rows = getNameStatus();
   const stat = { A: [], M: [], D: [], R: [] };
   for (const r of rows) {
-    // Formatos: "A\tpath", "M\tpath", "D\tpath", "R100\told\tnew"
+    // "A\tpath", "M\tpath", "D\tpath", "R100\told\tnew"
     const parts = r.split("\t");
     const tag = parts[0];
     if (tag.startsWith("R")) {
@@ -180,11 +188,9 @@ function autoSubjectFromStaged() {
     const r = s.R[0];
     return `renombra ${r.old} → ${r.n}`;
   }
-  // Por defecto, "actualiza" + conteo
   const total = s.A.length + s.M.length + s.D.length + s.R.length;
   if (total > 0)
     return total === 1 ? "actualiza 1 archivo" : `actualiza ${total} archivos`;
-  // fallback
   return "actualiza archivos";
 }
 
@@ -260,7 +266,7 @@ if (firstIdx === -1) {
     }
   }
   first = first.replace(/\s+$/, "");
-  first = decapAllCapsSubject(first);
+  first = decapAllCapsSubject(first); // normaliza TODO-MAYÚSCULAS
   lines[firstIdx] = first;
 }
 
@@ -269,10 +275,14 @@ if (isDesktop) {
   let subj = getHeaderSubject(lines[firstIdx]);
   if (subj.length < 5) {
     const autoSubj = autoSubjectFromStaged();
-    // reconstruye header manteniendo type/scope actuales
     const m = lines[firstIdx].match(/^([^:]+:\s*)(.*)$/);
     if (m) lines[firstIdx] = m[1] + autoSubj;
   }
+}
+
+// 1.c) Desktop: fuerza subject en minúsculas para pasar commitlint subject-case
+if (isDesktop) {
+  lines[firstIdx] = forceLowercaseHeaderSubject(lines[firstIdx]);
 }
 
 // 2) Cuerpo: mover body de Desktop; si no hay body, usar subject o autodescripción
@@ -325,7 +335,7 @@ if (!hasDescripcion) {
       descRest = bodyUserLines.slice(firstBodyIdx + 1);
     } else {
       descFirst = headerSubject || "[Reemplaza el texto aqui]";
-      // Agrega una referencia comentada con el resumen (no cuenta para el guard)
+      // Referencia comentada con el resumen (no cuenta para el guard)
       const ref = autoDescriptionFromStaged();
       descRest.push("");
       descRest.push(`# Referencia (no se incluye en validación): ${ref}`);
