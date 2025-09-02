@@ -83,9 +83,49 @@ function isComment(l) {
     t.startsWith("-->")
   );
 }
+function removeEmptyCorregido(lines) {
+  const i = lines.findIndex((l) => /^Corregido:/i.test(l.trim()));
+  if (i === -1) return lines;
+
+  // bloque hasta el siguiente encabezado típico
+  let j = i + 1;
+  const block = [];
+  for (; j < lines.length; j++) {
+    const s = lines[j].trim();
+    if (!s) {
+      block.push(lines[j]);
+      continue;
+    }
+    if (
+      /^Refs:/i.test(s) ||
+      /^Items:/i.test(s) ||
+      /^[A-ZÁÉÍÓÚÑ][\w\s()\/.-]+:\s*$/i.test(s)
+    )
+      break;
+    block.push(lines[j]);
+  }
+
+  const content = block
+    .map((l) => l.replace(/^\s*[-*]\s+/, "").trim())
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+
+  const isPlaceholder =
+    !content ||
+    /describe.*soluci[oó]n aplicada/.test(content) ||
+    /reemplaza/.test(content) ||
+    /\bno aplica\b/.test(content);
+
+  if (isPlaceholder) {
+    lines.splice(i, block.length + 1); // quita "Corregido:" + su bloque
+  }
+  return lines;
+}
 
 const raw = fs.readFileSync(msgFile, "utf8");
-const lines = raw.split(/\r?\n/);
+let lines = raw.split(/\r?\n/);
+lines = removeEmptyCorregido(lines);
 
 // 1) Construir bloque Items (si no hay nada staged, igual lo insertamos vacío)
 const items = buildItems();

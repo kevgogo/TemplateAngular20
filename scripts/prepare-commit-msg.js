@@ -1,17 +1,20 @@
 #!/usr/bin/env node
 /**
  * prepare-commit-msg
- * - Usa lo que escribas en VS Code como subject y antepone un type según la rama.
+ * - Usa lo que escribas (VS Code / GitHub Desktop) como subject y antepone un type según la rama.
  * - Tipo por defecto: chore. Reglas por rama:
- *   - bug/*, hotfix/*, fix/*  -> fix
- *   - feature/*, feat/*       -> feat
- *   - dev, qa, main           -> chore
- *   - feature/bug_*           -> fix (prioriza "bug_" en el path)
+ *   - bug/*, hotfix/*, fix/*        -> fix
+ *   - feature/*, feat/*             -> feat
+ *   - feature/bug_* (en el path)    -> fix (prioridad)
+ *   - dev, qa, main                 -> chore
+ * - Scope automático desde la rama (si hay "grupo/slug", usa el slug como scope).
  * - Normaliza alias: feature->feat, bug/hotfix->fix.
  * - Arregla "type subject" -> "type: subject" (si olvidas los dos puntos).
- * - Inserta "Descripción:" (obligatoria), "Corregido:" (opcional),
- *   y un marcador "# ITEMS_AUTO" para que otro hook agregue Items.
- * - Añade Refs con ticket detectado por nombre de rama (ABC-123) como footer.
+ * - Inserta:
+ *   - "Descripción:" en una línea y el texto en la siguiente (obligatoria, validada por otro hook)
+ *   - "Corregido:" en una línea y el texto en la siguiente (opcional)
+ *   - Marcador "# ITEMS_AUTO" para que otro hook agregue Items.
+ *   - "Refs:" con ticket detectado por nombre de rama (ABC-123) como footer.
  * - Hace fallback a .git/COMMIT_EDITMSG si $1 no llega (VS Code / GitHub Desktop).
  * - Se salta commits de merge.
  */
@@ -22,7 +25,6 @@ const { execSync } = require("child_process");
 const msgFile =
   process.argv[2] || path.join(process.cwd(), ".git/COMMIT_EDITMSG");
 const source = (process.argv[3] || "").toLowerCase();
-
 if (source === "merge") process.exit(0);
 
 // -------- Helpers --------
@@ -41,10 +43,9 @@ function detectTicket(str) {
   return m ? m[0] : "";
 }
 
-// Detección de tipo por rama
+// Type por rama
 function inferTypeFromBranch(branchRaw) {
   const b = (branchRaw || "").toLowerCase();
-  // Cualquier segmento "bug_" tras un slash indica fix
   if (/\/bug[_-]/.test(b)) return "fix";
   if (/^(bug|hotfix|fix)\//.test(b)) return "fix";
   if (/^(feature|feat)\//.test(b)) return "feat";
@@ -52,9 +53,22 @@ function inferTypeFromBranch(branchRaw) {
   return "chore";
 }
 
-const DEFAULT_TYPE = "chore";
+// Scope desde la rama (usa el slug después del "/")
+function inferScopeFromBranch(branchRaw) {
+  const b = (branchRaw || "").toLowerCase();
+  if (!b.includes("/")) return "";
+  const afterSlash = b.split("/")[1] || "";
+  const cleaned = afterSlash
+    .replace(/^bug[_/-]/, "")
+    .replace(/^feat(ure)?[_/-]/, "")
+    .replace(/[^a-z0-9._-]/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return cleaned || "";
+}
+
 const BRANCH = getBranch();
 const EFFECTIVE_TYPE = inferTypeFromBranch(BRANCH);
+const SCOPE = inferScopeFromBranch(BRANCH);
 
 // Tipos y normalización
 const allowedTypes = [
@@ -79,21 +93,21 @@ const normalize = new Map([
   ["bug", "fix"],
   ["hotfix", "fix"],
 ]);
+const canon = (t) =>
+  normalize.get(String(t || "").toLowerCase()) || String(t || "").toLowerCase();
 
-function canon(t) {
-  const low = (t || "").toLowerCase();
-  return normalize.get(low) || low;
-}
 function validHeader(line) {
   const types = Array.from(new Set(allowedTypes.map(canon))).join("|");
   return new RegExp(`^(${types})(\\([\\w./-]+\\))?:\\s?.+`, "i").test(line);
 }
+// Arregla "type scope? subject" -> "type(scope)?: subject"
 function autofixHeader(line) {
-  // "chore mi cambio" -> "chore: mi cambio"
-  const m = line.match(/^(\w+)\s+(.*)$/);
+  const m = line.match(/^(\w+)(\([^)]+\))?\s+(.*)$/);
   if (m) {
     const t = canon(m[1]);
-    if (allowedTypes.map(canon).includes(t)) return `${t}: ${m[2].trim()}`;
+    const scope = m[2] || "";
+    if (allowedTypes.map(canon).includes(t))
+      return `${t}${scope}: ${m[3].trim()}`;
   }
   return line;
 }
@@ -102,78 +116,106 @@ function autofixHeader(line) {
 const original = fs.readFileSync(msgFile, "utf8");
 const lines = original.split(/\r?\n/);
 
-// 1) Header: usar lo escrito en la 1ª línea como subject; anteponer type por rama
+// 1) Header: subject + type/scope
 let firstIdx = lines.findIndex(
   (l) => l.trim() !== "" && !l.trim().startsWith("#"),
 );
 if (firstIdx === -1) {
-  // No escribiste nada en la primera línea
-  lines.unshift(`${EFFECTIVE_TYPE}:`); // sin espacio si no hay subject
+  const head = SCOPE ? `${EFFECTIVE_TYPE}(${SCOPE}):` : `${EFFECTIVE_TYPE}:`;
+  lines.unshift(head);
   firstIdx = 0;
 } else {
   let first = autofixHeader(lines[firstIdx]);
-
   if (!validHeader(first)) {
-    // ¿Es un header con otro type + scope?
     const m = first.match(/^(\w+)(\([^)]+\))?:\s*(.*)$/);
     if (m) {
       const t = canon(m[1]);
-      const scope = m[2] || "";
+      const givenScope = m[2] || "";
       const rest = (m[3] || "").trim();
       if (allowedTypes.map(canon).includes(t)) {
-        first = rest ? `${t}${scope}: ${rest}` : `${t}${scope}:`;
+        first = rest ? `${t}${givenScope}: ${rest}` : `${t}${givenScope}:`;
       } else {
-        const subject = first.replace(/^(\s*:?)/, "").trim();
-        first = subject
-          ? `${EFFECTIVE_TYPE}: ${subject}`
-          : `${EFFECTIVE_TYPE}:`;
+        const head = givenScope
+          ? `${EFFECTIVE_TYPE}${givenScope}:`
+          : SCOPE
+            ? `${EFFECTIVE_TYPE}(${SCOPE}):`
+            : `${EFFECTIVE_TYPE}:`;
+        first = rest ? `${head} ${rest}` : head;
       }
     } else {
-      // Tomamos todo como subject
       const subject = first.replace(/^(\s*:?)/, "").trim();
-      first = subject ? `${EFFECTIVE_TYPE}: ${subject}` : `${EFFECTIVE_TYPE}:`;
+      const head = SCOPE
+        ? `${EFFECTIVE_TYPE}(${SCOPE}):`
+        : `${EFFECTIVE_TYPE}:`;
+      first = subject ? `${head} ${subject}` : head;
     }
   }
-
-  // Evitar error de commitlint "header-trim"
-  first = first.replace(/\s+$/, "");
+  first = first.replace(/\s+$/, ""); // sin espacio de cola
   lines[firstIdx] = first;
 }
 
-// 2) Cuerpo: asegurar "Descripción:", "Corregido:" (opcional) y marcador Items
-const hasDescripcion = lines.some((l) => /^Descripción:/i.test(l.trim()));
-const hasCorregido = lines.some((l) => /^Corregido:/i.test(l.trim()));
+// 2) Cuerpo: asegurar "Descripción:" en línea siguiente, mover body de Desktop si existe
+const DESC_RE = /^\s*Descripci(?:ó|o)n:\s*$/i; // con/sin acento
+const hasDescripcion = lines.some((l) => DESC_RE.test(l.trim()));
+const hasCorregido = lines.some((l) => /^Corregido:\s*$/i.test(l.trim()));
 const hasItemsMark = lines.some((l) => /ITEMS_AUTO/.test(l));
 
 if (!hasDescripcion) {
   const ticket = detectTicket(BRANCH);
-  // Descripción opcional con placeholder útil
-  lines.push("", "Descripción:", "[Reemplaza el texto aqui]", "");
-  // Corregido opcional con placeholder útil
-  lines.push("", "Corregido:", "[Reemplaza el texto aqui]", "");
 
-  // Marcador para que el hook commit-msg inserte automáticamente Items
+  // Captura body actual (VS Code/CLI/ GitHub Desktop) que esté después del header
+  const tail = lines.slice(firstIdx + 1);
+  const bodyUserLines = [];
+  for (const l of tail) {
+    const t = l.trim();
+    if (t.startsWith("#")) continue; // ignora comentarios
+    // no traigas bloques propios si ya existieran por algún motivo
+    if (
+      DESC_RE.test(t) ||
+      /^Corregido:\s*$/i.test(t) ||
+      /^Refs:\s*/i.test(t) ||
+      /ITEMS_AUTO/.test(t)
+    )
+      break;
+    bodyUserLines.push(l);
+  }
+
+  // limpiamos el resto del mensaje para reinyectar nuestra estructura
+  lines.splice(firstIdx + 1);
+
+  // Primera línea de la descripción = primera línea no vacía del body del usuario
+  const firstBodyIdx = bodyUserLines.findIndex((l) => l.trim().length > 0);
+  const descFirst =
+    firstBodyIdx >= 0
+      ? bodyUserLines[firstBodyIdx].trim()
+      : "[Reemplaza el texto aqui]";
+  const descRest =
+    firstBodyIdx >= 0 ? bodyUserLines.slice(firstBodyIdx + 1) : [];
+
+  // Inserción estructurada
   lines.push(
+    "",
+    "Descripción:",
+    descFirst,
+    ...descRest,
+    "",
+    "Corregido:",
+    "[Reemplaza el texto aqui]",
+    "",
     "# ITEMS_AUTO (los ítems se autogenerarán al confirmar el commit)",
     "",
+    `Refs: ${ticket || BRANCH}`,
+    "",
   );
-
-  // Footer Refs (estándar)
-  lines.push(`Refs: ${ticket || BRANCH}`, "");
 } else {
-  // Asegura "Corregido:" si no existe
+  // Asegura Corregido
   if (!hasCorregido) {
     const refsIdx = lines.findIndex((l) => /^Refs:/i.test(l.trim()));
-    const block = [
-      "",
-      "Corregido:",
-      "  - (Describe brevemente el problema y la solución aplicada si aplica el caso)",
-      "",
-    ];
+    const block = ["", "Corregido:", "[Reemplaza el texto aqui]", ""];
     if (refsIdx !== -1) lines.splice(refsIdx, 0, ...block);
     else lines.push(...block);
   }
-  // Asegura marcador Items
+  // Asegura marcador de Items
   if (!hasItemsMark) {
     const refsIdx = lines.findIndex((l) => /^Refs:/i.test(l.trim()));
     const mark = [
@@ -185,5 +227,5 @@ if (!hasDescripcion) {
   }
 }
 
-// 3) Guardar mensaje
+// 3) Guardar
 fs.writeFileSync(msgFile, lines.join("\n"), "utf8");
