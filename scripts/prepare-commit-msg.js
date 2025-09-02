@@ -105,17 +105,15 @@ if (!lines.some((l) => /^Descripción:/i.test(l.trim()))) {
   const tk = ticket(br);
   lines.push(
     "",
+    `Refs: ${tk || br}`,
     "Descripción:",
-    "",
     "- ¿Qué se hizo?",
-    "- ¿Por qué se hizo?",
+    "-- [Escribe aqui lo que hiciste  ]",
     "",
     "Corregido:",
-    "  - (Describe brevemente el problema y la solución aplicada)",
+    "  - (Describe brevemente el problema y la solución aplicada si aplica el caso)",
     "",
     "# ITEMS_AUTO (los ítems se autogenerarán al confirmar el commit)",
-    `Refs: ${tk || br}`,
-    "",
   );
 } else {
   // Asegura bloque Corregido si no existe
