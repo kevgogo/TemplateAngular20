@@ -77,7 +77,7 @@ let firstIdx = lines.findIndex(
   (l) => l.trim() !== "" && !l.trim().startsWith("#"),
 );
 if (firstIdx === -1) {
-  lines.unshift("task: ");
+  lines.unshift("task:"); // sin espacio
   firstIdx = 0;
 } else {
   let first = autofixHeader(lines[firstIdx]);
@@ -85,13 +85,17 @@ if (firstIdx === -1) {
     const m = first.match(/^(\w+)(\([^)]+\))?:\s*(.*)$/);
     if (m) {
       const t = canon(m[1]);
-      const rest = m[3] || "";
-      if (allowedTypes.map(canon).includes(t))
-        first = `${t}${m[2] || ""}: ${rest}`.trim();
+      const rest = (m[3] || "").trim();
+      if (allowedTypes.map(canon).includes(t)) {
+        first = rest ? `${t}${m[2] || ""}: ${rest}` : `${t}${m[2] || ""}:`;
+      }
     }
   }
-  if (!validHeader(first))
-    first = `task: ${first.replace(/^(\s*:?)/, "").trim()}`;
+  if (!validHeader(first)) {
+    const rest = first.replace(/^(\s*:?)/, "").trim();
+    first = rest ? `task: ${rest}` : "task:"; // sin trailing space si no hay subject
+  }
+  first = first.replace(/\s+$/, ""); // trim de cola
   lines[firstIdx] = first;
 }
 
