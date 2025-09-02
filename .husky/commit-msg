@@ -1,0 +1,2 @@
+MSG_FILE="${1:-.git/COMMIT_EDITMSG}"
+npx commitlint --edit "$MSG_FILE"

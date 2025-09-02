@@ -1,8 +1,6 @@
 
 ## Detalle
 - ¿Qué se hizo y por qué?
-- Impacto en usuarios/sistemas
-- Consideraciones de rollback
 
 ## Checklist
 - [ ] Cambios probados localmente
@@ -10,6 +8,6 @@
 - [ ] Cambios en API/versionado comunicados
 
 ## Notas
-- Referencias: JIRA/Ticket/Issue
+- Referencias: PBI/Ticket/Issue
 
 # La sección "Archivos staged" se añadirá automáticamente al confirmar.
