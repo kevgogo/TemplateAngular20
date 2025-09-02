@@ -1,0 +1,135 @@
+# Evitar abortar por comandos con exit≠0 (mejor UX en GitHub Desktop)
+set +e
+
+MSG_FILE="${1:-}"
+SOURCE="${2:-}"
+SHA="${3:-}"
+
+# No tocar mensajes de merge/squash/revert
+case "$SOURCE" in
+  merge|squash|revert) exit 0 ;;
+esac
+
+# -------- Contexto --------
+BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || printf '')"
+TICKET="$(printf '%s' "$BRANCH" | grep -Eo '[A-Z]{2,}-[0-9]+' | head -n1)"
+
+STAGED_LIST="$(git diff --name-only --cached 2>/dev/null)"
+CHANGES="$(git diff --cached --name-status -M -C --no-color 2>/dev/null)"
+
+HEADER="$(sed -n '1p' "$MSG_FILE" 2>/dev/null)"
+BODY_EXISTING="$(sed -n '2,$p' "$MSG_FILE" 2>/dev/null)"
+
+# -------- Detección tipo/scope --------
+detect_commit_type() {
+  # Por rama
+  printf '%s' "$BRANCH" | grep -E '^fix/|^hotfix/' >/dev/null && { echo fix; return; }
+  printf '%s' "$BRANCH" | grep -E '^feat/|^feature/' >/dev/null && { echo feat; return; }
+  printf '%s' "$BRANCH" | grep -E '^task/' >/dev/null && { echo task; return; }
+  printf '%s' "$BRANCH" | grep -E '^bug/' >/dev/null && { echo bug; return; }
+  printf '%s' "$BRANCH" | grep -E '^docs/' >/dev/null && { echo docs; return; }
+
+  # Por archivos
+  printf '%s' "$STAGED_LIST" | grep -E '\.(test|spec)\.|__tests__' >/dev/null && { echo test; return; }
+  printf '%s' "$STAGED_LIST" | grep -E '\.md$|(^|/)README'         >/dev/null && { echo docs; return; }
+  printf '%s' "$STAGED_LIST" | grep -E '\.(scss|css|html)$'        >/dev/null && { echo style; return; }
+
+  echo chore
+}
+
+detect_scope() {
+  printf '%s' "$STAGED_LIST" | grep -q '^src/components/'     && { echo "(components)"; return; }
+  printf '%s' "$STAGED_LIST" | grep -E -q '^src/(services|api)/' && { echo "(api)"; return; }
+  printf '%s' "$STAGED_LIST" | grep -q '^src/utils/'          && { echo "(utils)"; return; }
+  printf '%s' "$STAGED_LIST" | grep -q '^apps/'               && { echo "(apps)"; return; }
+  printf '%s' "$STAGED_LIST" | grep -q '^libs/'               && { echo "(libs)"; return; }
+  echo ""
+}
+
+TYPE="$(detect_commit_type)"
+SCOPE="$(detect_scope)"
+
+# -------- Normalizar encabezado --------
+if printf '%s' "$HEADER" | grep -Eq '^[a-z]+(\([^)]+\))?(!)?: .+' ; then
+  # Ya es CC: sólo adjunta ticket si falta
+  if [ -n "$TICKET" ] && ! printf '%s' "$HEADER" | grep -q "$TICKET" ; then
+    HEADER="$HEADER [$TICKET]"
+  fi
+else
+  SUBJECT_TRIMMED="$(printf '%s' "$HEADER" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
+  [ -z "$SUBJECT_TRIMMED" ] && SUBJECT_TRIMMED="actualizaciones varias"
+  if [ -n "$TICKET" ]; then
+    HEADER="${TYPE}${SCOPE}: [${TICKET}] ${SUBJECT_TRIMMED}"
+  else
+    HEADER="${TYPE}${SCOPE}: ${SUBJECT_TRIMMED}"
+  fi
+fi
+
+# -------- Construir secciones de cambios --------
+added=""; modified=""; deleted=""; renamed=""
+while IFS="$(printf '\t')" read -r status a b; do
+  case "$status" in
+    A)   added="${added}\n- ${a}" ;;
+    M|T) modified="${modified}\n- ${a}" ;;
+    D)   deleted="${deleted}\n- ${a}" ;;
+    R*)  renamed="${renamed}\n- ${a} ➜ ${b}" ;;
+    C*)  added="${added}\n- ${b:-$a}" ;;
+  esac
+done <<EOF
+$CHANGES
+EOF
+
+haveChanges() { [ -n "$added$modified$deleted$renamed" ]; }
+
+# -------- Ensamblar cuerpo --------
+FILES_BLOCK=""
+if haveChanges; then
+  FILES_BLOCK="## 📦 Archivos cambiados
+"
+  [ -n "$added"    ] && FILES_BLOCK="${FILES_BLOCK}
+### ✨ Agregados${added}
+"
+  [ -n "$modified" ] && FILES_BLOCK="${FILES_BLOCK}
+### 🔧 Modificados${modified}
+"
+  [ -n "$deleted"  ] && FILES_BLOCK="${FILES_BLOCK}
+### 🗑️  Eliminados${deleted}
+"
+  [ -n "$renamed"  ] && FILES_BLOCK="${FILES_BLOCK}
+### 🔁 Renombrados${renamed}
+"
+fi
+
+TEMPLATE="## ✍️ Descripción
+Agrega la descripción de lo realizado.
+
+## 🧪 Testing
+- [ ] Pruebas unitarias actualizadas
+- [ ] Probado manualmente
+"
+[ -n "$TICKET" ] && TEMPLATE="${TEMPLATE}
+Refs: ${TICKET}
+"
+
+FINAL_BODY=""
+if [ -n "$BODY_EXISTING" ] && ! printf '%s' "$BODY_EXISTING" | grep -q '^## ' ; then
+  # Conserva lo que escribió el usuario y añade archivos (si hay)
+  FINAL_BODY="${BODY_EXISTING}"
+  [ -n "$FILES_BLOCK" ] && FINAL_BODY="${FINAL_BODY}
+
+${FILES_BLOCK}"
+else
+  # Sin cuerpo o era una plantilla previa -> ponemos la nuestra y añadimos archivos
+  FINAL_BODY="${TEMPLATE}"
+  [ -n "$FILES_BLOCK" ] && FINAL_BODY="${FINAL_BODY}
+
+${FILES_BLOCK}"
+fi
+
+# -------- Escribir mensaje --------
+{
+  printf '%s\n\n' "$HEADER"
+  [ -n "$FINAL_BODY" ] && printf '%b\n" "$FINAL_BODY"
+} > "$MSG_FILE" 2>/dev/null || true
+
+exit 0

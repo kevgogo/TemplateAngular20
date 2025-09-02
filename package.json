@@ -50,6 +50,15 @@
       }
     ]
   },
+  "lint-staged": {
+    "*.{ts,tsx,js}": [
+      "eslint --max-warnings=0 --fix",
+      "prettier --write"
+    ],
+    "*.{html,scss,css,md,json}": [
+      "prettier --write"
+    ]
+  },
   "engines": {
     "node": ">=20"
   },
@@ -101,14 +110,5 @@
     "ts-jest": "^29.2.5",
     "typescript": "~5.8.2",
     "typescript-eslint": "^8.41.0"
-  },
-  "lint-staged": {
-    "*.{ts,tsx,js}": [
-      "eslint --max-warnings=0 --fix",
-      "prettier --write"
-    ],
-    "*.{html,scss,css,md,json}": [
-      "prettier --write"
-    ]
   }
 }

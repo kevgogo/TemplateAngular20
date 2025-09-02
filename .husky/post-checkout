@@ -1,0 +1,4 @@
+if [ ! -d node_modules ]; then
+  echo "Husky: post-checkout (instalando dependencias)"
+  npm ci || npm install
+fi

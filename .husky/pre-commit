@@ -1,1 +1,68 @@
-npx lint-staged
+# ========= Estilos bonitos (colores/emoji seguros) =========
+is_tty() { [ -t 1 ] && [ -n "$TERM" ]; }
+c() { is_tty && printf "\033[%sm" "$1"; }
+reset()  { is_tty && printf "\033[0m"; }
+blue()   { c "36"; }
+green()  { c "32"; }
+yellow() { c "33"; }
+red()    { c "31"; }
+
+info()  { printf "%sℹ️  %s%s\n"   "$(blue)"  "$1" "$(reset)"; }
+ok()    { printf "%s✅ %s%s\n"    "$(green)" "$1" "$(reset)"; }
+warn()  { printf "%s⚠️  %s%s\n"   "$(yellow)" "$1" "$(reset)"; }
+error() { printf "%s❌ %s%s\n"    "$(red)"   "$1" "$(reset)"; }
+
+box() {
+  printf "\n%s\n" "──────────────────────────────────────────────"
+  printf "  %s\n" "$1"
+  [ -n "$2" ] && printf "  %s\n" "$2"
+  [ -n "$3" ] && printf "  %s\n" "$3"
+  printf "%s\n\n" "──────────────────────────────────────────────"
+}
+
+# ========= Contexto del commit =========
+BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'desconocida')"
+STAGED_LIST="$(git diff --name-only --cached)"
+STAGED_COUNT="$(printf "%s" "$STAGED_LIST" | sed '/^$/d' | wc -l | tr -d ' ')"
+
+box "Pre-commit (lint only) ✨" "Rama: $BRANCH" "Archivos staged: ${STAGED_COUNT:-0}"
+
+if [ -z "$STAGED_LIST" ]; then
+  info "No hay archivos staged. Nada que hacer."
+  ok "Pre-commit OK"
+  exit 0
+fi
+
+# ========= Ejecutar SOLO lint-staged (sin validar Node/NPM) =========
+if command -v npx >/dev/null 2>&1; then
+  info "Ejecutando lint-staged…"
+  npx --no-install lint-staged
+  EXIT_CODE=$?
+else
+  if [ -x "./node_modules/.bin/lint-staged" ]; then
+    info "Ejecutando lint-staged local…"
+    ./node_modules/.bin/lint-staged
+    EXIT_CODE=$?
+  else
+    EXIT_CODE=127
+  fi
+fi
+
+case "$EXIT_CODE" in
+  0)
+    ok "Lint-staged pasó ✅"
+    exit 0
+    ;;
+  127)
+    error "lint-staged no está disponible en el proyecto."
+    warn  "Instala con: npm i -D lint-staged"
+    exit 1
+    ;;
+  *)
+    error "Lint-staged falló (código: $EXIT_CODE)"
+    printf "\nSugerencias rápidas:\n"
+    printf " • Revisa la salida anterior para ver qué archivo/regla falló.\n"
+    printf " • Ejecuta: npx lint-staged --debug\n\n"
+    exit "$EXIT_CODE"
+    ;;
+esac
