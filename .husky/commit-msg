@@ -1,2 +1,7 @@
 MSG_FILE="${1:-.git/COMMIT_EDITMSG}"
+
+# 1) Inyecta Items auto (A/M/D/R) DESPUÉS de "Corregido:" y ANTES de "Refs:"
+node scripts/commit-msg-augment.js "$MSG_FILE"
+
+# 2) Valida convencional (type, body, etc.)
 npx commitlint --edit "$MSG_FILE"
