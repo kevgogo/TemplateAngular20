@@ -1,4 +1,4 @@
-export type TypeResult = 0 | 1 | 2 | 3; // Ajusta si tu backend usa otros códigos
+export type TypeResult = 0 | 1 | 2 | 3;
 
 export interface ApiBase {
   typeResult: TypeResult;
@@ -6,16 +6,16 @@ export interface ApiBase {
 }
 
 export interface ApiObject<T> extends ApiBase {
-  objectResult?: T; // algunos endpoints pueden omitirlo
+  objectResult?: T;
 }
 
 export interface ApiArray<T> extends ApiBase {
-  objectResult?: T[]; // idem
+  objectResult?: T[];
 }
 
 export interface TokenPayload {
   token?: string;
-  Token?: string; // algunos backends lo devuelven capitalizado
+  Token?: string;
 }
 
 export type TokenResponse = ApiBase & TokenPayload;

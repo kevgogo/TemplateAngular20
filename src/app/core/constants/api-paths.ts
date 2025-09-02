@@ -23,7 +23,7 @@ export const API_PATHS = {
   },
 
   GRAPHQL: {
-    ENDPOINT: '/graphql/', // ← deja el slash final
+    ENDPOINT: '/graphql/',
     TOKEN: '/api/auth/token',
   },
 } as const;

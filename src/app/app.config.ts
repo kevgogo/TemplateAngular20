@@ -1,29 +1,25 @@
-import {
-  ApplicationConfig,
-  provideAppInitializer,
-  inject,
-} from '@angular/core';
-import { provideRouter, withInMemoryScrolling } from '@angular/router';
+import { APP_BASE_HREF } from '@angular/common';
 import {
   provideHttpClient,
   withFetch,
   withInterceptors,
 } from '@angular/common/http';
+import {
+  ApplicationConfig,
+  inject,
+  provideAppInitializer,
+} from '@angular/core';
 import { provideAnimations } from '@angular/platform-browser/animations';
-import { APP_BASE_HREF } from '@angular/common';
+import { provideRouter, withInMemoryScrolling } from '@angular/router';
 
-import { routes } from './app.routes';
 import { provideThirdParty } from '@shared/app-third-party.providers';
+import { routes } from './app.routes';
 
 import { authInterceptor } from '@core/interceptors/auth-interceptor';
 import { graphqlInterceptor } from '@core/interceptors/graphql-interceptor';
 
 import { API_BASE_URL, APP_BASE_HREF_TOKEN } from '@core/tokens/app-tokens';
 import { environment } from '@environments/environment';
-
-// (Opcional) si vas a hacer health-check async
-// import { firstValueFrom } from 'rxjs';
-// import { SystemService } from '@core/services/system.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -32,12 +28,12 @@ export const appConfig: ApplicationConfig = {
       withInMemoryScrolling({
         anchorScrolling: 'enabled',
         scrollPositionRestoration: 'enabled',
-      })
+      }),
     ),
 
     provideHttpClient(
       withFetch(),
-      withInterceptors([authInterceptor, graphqlInterceptor])
+      withInterceptors([authInterceptor, graphqlInterceptor]),
     ),
 
     provideAnimations(),
@@ -46,7 +42,6 @@ export const appConfig: ApplicationConfig = {
     // Base href desde token
     { provide: APP_BASE_HREF, useExisting: APP_BASE_HREF_TOKEN },
 
-    // Initializer SÍNCRONO: validar configuración en producción
     provideAppInitializer(() => {
       if (!environment.production) return;
       const base = inject(API_BASE_URL);
@@ -54,10 +49,5 @@ export const appConfig: ApplicationConfig = {
         console.error('[Config] API_BASE_URL vacío en producción');
       }
     }),
-
-    // Initializer ASÍNCRONO: esperar health-check antes de arrancar
-    // provideAppInitializer(() =>
-    //   firstValueFrom(inject(SystemService).health())
-    // ),
   ],
 };

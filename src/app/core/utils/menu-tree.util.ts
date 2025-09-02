@@ -1,12 +1,8 @@
-// src/app/core/utils/menu-tree.util.ts
 import { RawMenuItem, SidebarNode } from '@core/models/menu.types';
 
 export interface BuildTreeOptions {
-  /** Prefijo de rutas (ej: '/plantilla-colibri-app-20') */
   baseHref?: string;
-  /** 1 = activos; null = no filtrar por estado */
   filterStatus?: number | null;
-  /** Permisos permitidos para filtrar ítems del árbol */
   allowedPermissions?: Set<string> | string[];
 }
 
@@ -71,7 +67,6 @@ export function buildSidebarTree(
   return roots;
 }
 
-/* ========= Links ========= */
 function computeLink(it: RawMenuItem, baseHref = ''): string | null {
   const p = (it.path ?? '').trim();
   if (p) return ensureAbs(joinUrl(baseHref, p));

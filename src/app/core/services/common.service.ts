@@ -1,4 +1,3 @@
-// src/app/core/services/common.service.ts
 import { Injectable, TemplateRef, Type, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { BsModalRef, BsModalService, ModalOptions } from 'ngx-bootstrap/modal';
@@ -29,8 +28,6 @@ export class CommonService {
     DangerModal: undefined,
     WarningModal: undefined,
   };
-
-  /* ====================== Navegación de errores ====================== */
 
   private resolveErrorTarget(code: number): string {
     if (code === 401) return '/error/401';
@@ -68,8 +65,6 @@ export class CommonService {
     return (history.state ?? {}) as T;
   }
 
-  /* ====================== Redirecciones ====================== */
-
   redirecToError(data: {
     code: string;
     error: string;
@@ -99,8 +94,6 @@ export class CommonService {
     return this.router.navigateByUrl('/error/404', { state });
   }
 
-  /* ====================== Notificaciones ====================== */
-
   showNotification(type: ToastType, message: string, title: string): void {
     if (type === 'success') this.toastr.success(message, title);
     else if (type === 'warning') this.toastr.warning(message, title);
@@ -108,12 +101,6 @@ export class CommonService {
     else if (type === 'error') this.toastr.error(message, title);
   }
 
-  /* ====================== Session Storage Helpers ====================== */
-
-  /**
-   * Obtiene un elemento de localStorage parseado como JSON.
-   * @returns T o `fallback` si no existe o no es JSON válido.
-   */
   obtenerElementoSession<T = unknown>(
     nombre: string,
     fallback: T | null = null,
@@ -128,7 +115,6 @@ export class CommonService {
     }
   }
 
-  /** Guarda un objeto en localStorage (serializado) */
   registrarElementoSession(nombre: string, objeto: unknown): void {
     localStorage.setItem(nombre, JSON.stringify(objeto));
   }
@@ -137,10 +123,8 @@ export class CommonService {
     localStorage.removeItem(nombre);
   }
 
-  /* ====================== Loading (stubs) ====================== */
-
   showLoading(): void {
-    // TODO: Implementación de overlay/spinner centralizado (según tu proyecto)
+    // TODO: Implementación de overlay/spinner centralizado
   }
 
   hideLoading(): void {

@@ -47,11 +47,9 @@ export default class AuthCallbackComponent implements OnDestroy {
   };
 
   constructor() {
-    // 1) Aplica el tema ya guardado (ui.theme.v1) ANTES de pintar
     this.applyThemeFromStorage();
     window.addEventListener('storage', this.onStorage);
 
-    // 2) Soporta múltiples nombres de parámetro (según backend/redirección)
     const qp = this.route.snapshot.queryParamMap;
     const keyLogin =
       qp.get('KeyLoggin') ??
@@ -70,24 +68,20 @@ export default class AuthCallbackComponent implements OnDestroy {
       return;
     }
 
-    // 3) Flujo de autenticación
     this.auth.getUserContext(keyLogin).subscribe({
       next: (x) => {
         const RESPONSE = x as UserContextResponse;
         if (RESPONSE.typeResult === 1) {
-          // objectResult puede venir como objeto o arreglo:
           const payload = (x as ApiObject<UserRaw> | ApiArray<UserRaw>)
             .objectResult;
           const user: UserRaw =
             (Array.isArray(payload) ? payload?.[0] : payload) ??
             ({} as UserRaw);
 
-          // Persistir todo el contexto de usuario
           for (const [k, v] of Object.entries(user)) {
             this.setting.setUserSetting(k, v);
           }
 
-          // Token (soporta varias formas del backend)
           const bearer =
             user.token ??
             RESPONSE.messageResult ??
@@ -105,15 +99,12 @@ export default class AuthCallbackComponent implements OnDestroy {
           }
           this.setting.setUserSetting('token', bearer);
 
-          // Construir menú y navegar
           this.menu
             .loadAndBuildMenuTree$()
             .pipe(take(1))
             .subscribe({
               next: () => {
-                // Prefetch GraphQL (no bloquea)
                 this.prefetchGraphQLToken();
-                // Router.navigate devuelve Promise → prefijar con void
                 void this.router.navigate(['']);
               },
               error: () => {

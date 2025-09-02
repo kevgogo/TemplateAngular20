@@ -1,4 +1,3 @@
-// src/app/core/guards/access-control.guard.ts
 import { inject } from '@angular/core';
 import { CanActivateFn, Router, UrlTree } from '@angular/router';
 import type { User } from '@core/models/user.model';
@@ -6,11 +5,11 @@ import { CommonService } from '@core/services/common.service';
 import { SettingsService } from '@core/services/settings.service';
 
 export interface GuardData {
-  permission?: string; // permiso puntual requerido
-  anyPermissions?: string[]; // cumple al menos uno
-  allPermissions?: string[]; // cumple todos
-  role?: string; // rol puntual requerido
-  roles?: string[]; // cumple al menos uno
+  permission?: string;
+  anyPermissions?: string[];
+  allPermissions?: string[];
+  role?: string;
+  roles?: string[];
 }
 
 /** Lee un campo string de un objeto desconocido de forma segura */
@@ -32,7 +31,7 @@ function normalizePermissions(raw: unknown): Set<string> {
       out.add(it.trim().toLowerCase());
     } else if (it && typeof it === 'object') {
       const obj = it as Record<string, unknown>;
-      // intentamos distintos nombres comunes
+
       const candUnknown =
         obj['name'] ??
         obj['permission'] ??
@@ -72,13 +71,6 @@ function normalizeRoles(user: unknown): string[] {
   return roles;
 }
 
-/**
- * Guard de control de acceso:
- * - Requiere token de sesión (401 si falta).
- * - Valida permisos contra `permission_menu` en session.
- * - Valida roles contra `user.roles` o `user.rol` (compat).
- * - Retorna boolean o UrlTree.
- */
 export const accessControlGuard: CanActivateFn = (route): boolean | UrlTree => {
   const router = inject(Router);
   const common = inject(CommonService);
@@ -86,13 +78,11 @@ export const accessControlGuard: CanActivateFn = (route): boolean | UrlTree => {
 
   const data = (route.data ?? {}) as GuardData;
 
-  // === 1) Sesión / Token ===
   const user = (settings.getUserSetting() as User | null) ?? null;
 
-  // token puede estar guardado como setting o dentro del user
   const token =
     readStringField(user, 'token') ??
-    readStringField(settings.getUserSetting('token'), 'value') ?? // por si guardas {value: '...'}
+    readStringField(settings.getUserSetting('token'), 'value') ??
     ((): string | null => {
       const t = settings.getUserSetting('token');
       return typeof t === 'string' ? t : null;
@@ -107,7 +97,6 @@ export const accessControlGuard: CanActivateFn = (route): boolean | UrlTree => {
     return router.createUrlTree(['/']);
   }
 
-  // === 2) Permisos ===
   const rawPerms = common.obtenerElementoSession('permission_menu');
   const permSet = normalizePermissions(rawPerms);
 
@@ -130,10 +119,9 @@ export const accessControlGuard: CanActivateFn = (route): boolean | UrlTree => {
       'No tienes permisos para acceder a esta sección.',
       'Permisos',
     );
-    return router.createUrlTree(['/']); // o tu ruta 403
+    return router.createUrlTree(['/']);
   }
 
-  // === 3) Roles ===
   const roles = normalizeRoles(user);
   const needRole = data.role?.trim().toLowerCase() ?? null;
   const needRoles = (data.roles ?? [])

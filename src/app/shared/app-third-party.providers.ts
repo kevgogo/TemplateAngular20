@@ -1,4 +1,3 @@
-// src/app/shared/app-third-party.providers.ts
 import {
   EnvironmentProviders,
   importProvidersFrom,
@@ -18,7 +17,6 @@ import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
 
 export function provideThirdParty(): EnvironmentProviders {
   return makeEnvironmentProviders([
-    // Requerido por ngx-toastr
     provideAnimations(),
 
     importProvidersFrom(
@@ -42,15 +40,13 @@ export function provideThirdParty(): EnvironmentProviders {
       provide: TooltipConfig,
       useValue: { container: 'body', adaptivePosition: true },
     },
-    // Opcional: modal centrado por defecto
     {
       provide: ModalOptions,
       useValue: { class: 'modal-dialog-centered', animated: true },
     },
 
     provideTranslateService({
-      fallbackLang: 'es_AR',
-      // Loader HTTP (prefijo/sufijo según tu estructura)
+      fallbackLang: 'es_CO',
       loader: provideTranslateHttpLoader({
         prefix: './assets/i18n/',
         suffix: '.json',
@@ -60,7 +56,6 @@ export function provideThirdParty(): EnvironmentProviders {
       }),
     }),
 
-    // Config opcional para SweetAlert2
     provideSweetAlert2({
       fireOnInit: false,
       dismissOnDestroy: true,

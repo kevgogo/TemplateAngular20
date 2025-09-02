@@ -16,6 +16,6 @@ export interface User {
   token?: string;
   user?: string;
   userId?: number;
-  roles?: string[]; // opcional para guards
-  rol?: string; // compat legado "rol" como string con comas
+  roles?: string[];
+  rol?: string;
 }

@@ -1,4 +1,3 @@
-// src/app/core/graphql/graphql-client.service.ts
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { API_URLS } from '@core/constants/api-urls';
@@ -16,11 +15,6 @@ export class GraphQLClientService {
   private readonly urls = API_URLS();
   private http: HttpClient = inject(HttpClient);
 
-  /**
-   * Health-check ultra barato por GET sin headers "no simples".
-   * - Usa ?hc=1 para que el interceptor NO inyecte Authorization.
-   * - Evita preflight/OPTIONS y las reglas del WAF/LB que devuelven 503.
-   */
   isAlive(timeoutMs = 1200): Observable<boolean> {
     const q = encodeURIComponent('{ __typename }');
     const url = `${this.urls.GRAPHQL.ENDPOINT}?hc=1&query=${q}&t=${Date.now()}`;
@@ -32,30 +26,18 @@ export class GraphQLClientService {
     );
   }
 
-  /**
-   * Ejecuta un query GraphQL (POST).
-   * Nota: el interceptor añadirá Authorization si hay token almacenado.
-   */
   query<T = unknown, V extends GqlVariables = GqlVariables>(
     options: GqlOptions<V>,
   ): Observable<T> {
     return this.execute<T, V>(options);
   }
 
-  /**
-   * Ejecuta una mutation GraphQL (POST).
-   * Igual que query, lo separamos por semántica.
-   */
   mutate<T = unknown, V extends GqlVariables = GqlVariables>(
     options: GqlOptions<V>,
   ): Observable<T> {
     return this.execute<T, V>(options);
   }
 
-  /**
-   * Low-level: permite enviar un body arbitrario al endpoint /graphql.
-   * Útil si necesitas pasar extensiones personalizadas del servidor.
-   */
   raw<T = unknown>(
     body: Record<string, unknown>,
     context?: {
@@ -73,8 +55,6 @@ export class GraphQLClientService {
       },
     );
   }
-
-  // -------------------- privados --------------------
 
   private execute<T, V extends GqlVariables>(
     options: GqlOptions<V>,

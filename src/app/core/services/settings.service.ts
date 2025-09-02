@@ -2,8 +2,6 @@ import { EventEmitter, Injectable, inject } from '@angular/core';
 import type { User } from '@core/models/user.model';
 import { CommonService } from '@core/services/common.service';
 
-/* ====================== Tipos ====================== */
-
 interface Layout {
   isFixedHeader: boolean;
   isFixedSidebar: boolean;
@@ -24,16 +22,11 @@ type BoolLayoutKeys =
   | 'isChatOpen'
   | 'isFixedFooter';
 
-/** Usuario persistido: objeto flexible (User parcial + campos extra) */
 type StoredUser = Partial<User> & Record<string, unknown>;
-
-/* ====================== Guards utilitarios ====================== */
 
 function isObjectRecord(x: unknown): x is Record<string, unknown> {
   return typeof x === 'object' && x !== null;
 }
-
-/* ====================== Servicio ====================== */
 
 @Injectable({ providedIn: 'root' })
 export class SettingsService {
@@ -58,8 +51,6 @@ export class SettingsService {
     };
   }
 
-  /* ========== Layout ==========% */
-
   getLayoutSetting<K extends keyof Layout>(name: K): Layout[K] {
     return this.layout[name];
   }
@@ -68,16 +59,12 @@ export class SettingsService {
     this.layout[name] = value;
   }
 
-  /** Alterna solo propiedades booleanas del layout y devuelve el nuevo valor */
   toggleLayoutSetting(name: BoolLayoutKeys): boolean {
     const next = !this.layout[name];
     this.layout[name] = next;
     return next;
   }
 
-  /* ========== Usuario / sesión ==========% */
-
-  /** Carga el usuario desde storage si aún no está en memoria */
   private ensureUserLoaded(): void {
     if (this.user !== null) return;
     const stored = this.commun.obtenerElementoSession<unknown>(
@@ -87,9 +74,7 @@ export class SettingsService {
     this.user = isObjectRecord(stored) ? (stored as StoredUser) : null;
   }
 
-  /** Devuelve el objeto de usuario completo (o null si no hay sesión) */
   getUserSetting(): StoredUser | null;
-  /** Devuelve una propiedad tipada del usuario (o null si no existe) */
   getUserSetting<T = unknown>(name: string): T | null;
   getUserSetting<T = unknown>(name?: string): (StoredUser | null) | T {
     this.ensureUserLoaded();
@@ -102,17 +87,14 @@ export class SettingsService {
     return val === undefined ? null : (val as T);
   }
 
-  /** Setea una propiedad en el usuario, persiste y emite el cambio */
   setUserSetting<T = unknown>(name: string, value: T): void {
     this.ensureUserLoaded();
     this.user ??= {};
-    // Al ser Record<string, unknown> no hace falta any
     (this.user as Record<string, unknown>)[name] = value as unknown;
     this.commun.registrarElementoSession('colibri_usr', this.user);
     this.onUserChange.next(this.user);
   }
 
-  /** Limpia el usuario de memoria y de storage, y notifica */
   cleanUserSetting(): void {
     this.user = null;
     this.commun.borrarElementoSession('colibri_usr');

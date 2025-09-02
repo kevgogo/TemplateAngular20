@@ -17,7 +17,7 @@ export const APP_DESCRIPTION_TOKEN = new InjectionToken<string>(
       // TODO: Cambiar descripción de la aplicación
       return 'Descripción de la APP';
     },
-  }
+  },
 );
 
 export const APP_BASE_HREF_TOKEN = new InjectionToken<string>('APP_BASE_HREF', {
@@ -31,7 +31,8 @@ export const APP_BASE_HREF_TOKEN = new InjectionToken<string>('APP_BASE_HREF', {
 export const APP_VERSION_TOKEN = new InjectionToken<string>('APP_VERSION', {
   providedIn: 'root',
   factory: () => {
-    return '1.0.0'; // Versión de la aplicación
+    // TODO: Cambiar Versión de la aplicación
+    return '1.0.0';
   },
 });
 
@@ -44,7 +45,7 @@ export const APP_AUTHOR_TOKEN = new InjectionToken<string>('APP_AUTHOR', {
 
 export const API_BASE_URL = new InjectionToken<string>('API_BASE_URL', {
   providedIn: 'root',
-  factory: () => environment.urlApiBase, // p.ej. https://api.miapp.com
+  factory: () => environment.urlApiBase,
 });
 
 export const APP_LAND_ID = new InjectionToken<string>('APP_LAND_ID', {
@@ -72,7 +73,7 @@ export const GRAPHQL_AUTH_BASE_URL = new InjectionToken<string>(
   {
     providedIn: 'root',
     factory: () => environment.urlAuthApiGraphQL,
-  }
+  },
 );
 
 export const GRAPHQL_USER_TOKEN = new InjectionToken<string>(
@@ -80,7 +81,7 @@ export const GRAPHQL_USER_TOKEN = new InjectionToken<string>(
   {
     providedIn: 'root',
     factory: () => environment.user_graphql_api,
-  }
+  },
 );
 
 export const GRAPHQL_PASSWORD_TOKEN = new InjectionToken<string>(
@@ -88,5 +89,5 @@ export const GRAPHQL_PASSWORD_TOKEN = new InjectionToken<string>(
   {
     providedIn: 'root',
     factory: () => environment.password_graphql_api,
-  }
+  },
 );

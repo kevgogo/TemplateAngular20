@@ -1,4 +1,3 @@
-// src/app/core/services/layout.service.ts
 import { DOCUMENT } from '@angular/common';
 import { effect, inject, Injectable, NgZone, signal } from '@angular/core';
 import { fromEvent, Subject, Subscription } from 'rxjs';
@@ -15,11 +14,8 @@ interface LayoutState {
 }
 
 interface AutoCloseOnScrollOptions {
-  /** Intervalo mínimo entre manejos de scroll (ms) */
   throttleMs?: number;
-  /** 'any' = cualquier scroll; 'down' = solo cuando el usuario baja */
   direction?: 'any' | 'down';
-  /** Delta mínima (px) para considerar que hubo scroll “real” */
   minDelta?: number;
 }
 
@@ -31,27 +27,21 @@ export class LayoutService {
   private readonly state = signal<LayoutState>(this.restore());
   private readonly zone = inject(NgZone);
 
-  // ===== evento para pedir cerrar el flypanel del sidebar =====
   private _closeSidebarPanel$ = new Subject<void>();
-  /** El Sidebar se suscribe a esto para cerrar su flypanel cuando haya scroll */
   readonly closeSidebarPanel$ = this._closeSidebarPanel$.asObservable();
-  /** Para disparar manualmente el cierre (si lo necesitas) */
   requestCloseSidebarPanel() {
     this._closeSidebarPanel$.next();
   }
 
-  // suscripción al scroll global/elemento
   private scrollSub?: Subscription;
 
   constructor() {
-    // Aplica clases al <body> y persiste cambios ante cualquier modificación del estado
     effect(() => {
       this.applyToDOM();
       this.persist();
     });
   }
 
-  // ===== Getters (para templates/componentes) =====
   isFixed(area: Area) {
     return this.state()[`${area}Fixed` as const];
   }
@@ -62,7 +52,6 @@ export class LayoutService {
     return this.state().sidebarFixed;
   }
 
-  // ===== Mutadores (toggles/sets) =====
   toggleFixed(area: Area, force?: boolean) {
     this.state.update(
       (s) =>
@@ -93,7 +82,6 @@ export class LayoutService {
     this.state.update((s) => ({ ...s, sidebarFixed: !!value }));
   }
 
-  // ===== Interno: DOM + persistencia =====
   private applyToDOM() {
     const b = this.doc.body.classList;
     const s = this.state();
@@ -143,9 +131,6 @@ export class LayoutService {
     else list.remove(cls);
   }
 
-  // ===== Autocierre del sidebar/flypanel al scrollear =====
-
-  /** Activa el cierre automático del flypanel al hacer scroll en window/body */
   enableAutoCloseOnScroll(opts: AutoCloseOnScrollOptions = {}): void {
     if (this.scrollSub) return; // ya activo
     const { throttleMs = 150, direction = 'any', minDelta = 4 } = opts;
@@ -166,13 +151,11 @@ export class LayoutService {
     });
   }
 
-  /** Desactiva el cierre automático por scroll global */
   disableAutoCloseOnScroll(): void {
     this.scrollSub?.unsubscribe();
     this.scrollSub = undefined;
   }
 
-  /** Variante para escuchar el scroll de un contenedor específico (opcional) */
   enableAutoCloseOnElement(
     el: HTMLElement,
     opts: AutoCloseOnScrollOptions = {},

@@ -86,6 +86,8 @@
     "@angular/build": "20.2.0",
     "@angular/cli": "20.2.0",
     "@angular/compiler-cli": "20.2.3",
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
     "@eslint/js": "^9.34.0",
     "@types/jest": "^29.5.14",
     "angular-eslint": "20.2.0",
@@ -99,5 +101,14 @@
     "ts-jest": "^29.2.5",
     "typescript": "~5.8.2",
     "typescript-eslint": "^8.41.0"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js}": [
+      "eslint --max-warnings=0 --fix",
+      "prettier --write"
+    ],
+    "*.{html,scss,css,md,json}": [
+      "prettier --write"
+    ]
   }
 }

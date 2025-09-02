@@ -5,8 +5,6 @@ import type { System } from '@core/models/system.models';
 import { SettingsService } from '@core/services/settings.service';
 import type { Observable } from 'rxjs';
 
-/* ===================== Helpers seguros ===================== */
-
 function isObject(x: unknown): x is Record<string, unknown> {
   return typeof x === 'object' && x !== null;
 }
@@ -17,7 +15,6 @@ function readStringProp(obj: unknown, key: string): string | undefined {
   return typeof v === 'string' ? v : undefined;
 }
 
-/** Obtiene un token Bearer normalizado desde SettingsService */
 function getBearerToken(setting: SettingsService): string | undefined {
   // 1) token directo
   const tk = setting.getUserSetting('token');
@@ -37,15 +34,12 @@ function getBearerToken(setting: SettingsService): string | undefined {
   return undefined;
 }
 
-/* ===================== Servicio ===================== */
-
 @Injectable({ providedIn: 'root' })
 export class SystemService {
   private readonly _URLS = API_URLS();
   private readonly client = inject(HttpClient);
   private readonly setting = inject(SettingsService);
 
-  /** Construye headers con Authorization si hay token */
   private buildHeaders(): HttpHeaders {
     let headers = new HttpHeaders({
       'Content-Type': 'application/json',
@@ -55,8 +49,6 @@ export class SystemService {
     if (token) headers = headers.set('Authorization', `Bearer ${token}`);
     return headers;
   }
-
-  /* ===== Endpoints ===== */
 
   getSystem(): Observable<unknown> {
     return this.client.get(this._URLS.SYSTEM.GET, {

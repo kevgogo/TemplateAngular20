@@ -1,6 +1,5 @@
 import { Injectable, computed, effect, signal } from '@angular/core';
 
-/** Temas Bootstrap 5.3+ controlados con data-bs-theme */
 export type ThemeName = 'light' | 'dark';
 export type SkinName =
   | 'azure'
@@ -19,8 +18,8 @@ export type SkinName =
 
 export interface SkinOption {
   name: SkinName;
-  hex: string; // color de muestra (swatch)
-  label: string; // cómo se muestra en UI
+  hex: string;
+  label: string;
 }
 
 export interface ThemeState {
@@ -30,18 +29,18 @@ export interface ThemeState {
 
 /** Opciones de skin para tu selector en UI */
 export const SKIN_OPTIONS: SkinOption[] = [
-  { name: 'colibri', hex: '#03b3b2', label: 'Colibri' }, // colibri.less
-  { name: 'darkblue', hex: '#0072c6', label: 'Dark Blue' }, // darkblue.less
-  { name: 'darkred', hex: '#ac193d', label: 'Dark Red' }, // darkred.less
-  { name: 'deepblue', hex: '#001940', label: 'Deep Blue' }, // deepblue.less
-  { name: 'gray', hex: '#585858', label: 'Gray' }, // gray.less
-  { name: 'green', hex: '#53a93f', label: 'Green' }, // green.less
-  { name: 'orange', hex: '#ff8f32', label: 'Orange' }, // orange.less
-  { name: 'pink', hex: '#cc324b', label: 'Pink' }, // pink.less
-  { name: 'purple', hex: '#8c0095', label: 'Purple' }, // purple.less
-  { name: 'azure', hex: '#2dc3e8', label: 'Azure' }, // azure.less
-  { name: 'black', hex: '#474544', label: 'Black' }, // black.less
-  { name: 'blue', hex: '#5db2ff', label: 'Blue' }, // Blue.less
+  { name: 'colibri', hex: '#03b3b2', label: 'Colibri' },
+  { name: 'darkblue', hex: '#0072c6', label: 'Dark Blue' },
+  { name: 'darkred', hex: '#ac193d', label: 'Dark Red' },
+  { name: 'deepblue', hex: '#001940', label: 'Deep Blue' },
+  { name: 'gray', hex: '#585858', label: 'Gray' },
+  { name: 'green', hex: '#53a93f', label: 'Green' },
+  { name: 'orange', hex: '#ff8f32', label: 'Orange' },
+  { name: 'pink', hex: '#cc324b', label: 'Pink' },
+  { name: 'purple', hex: '#8c0095', label: 'Purple' },
+  { name: 'azure', hex: '#2dc3e8', label: 'Azure' },
+  { name: 'black', hex: '#474544', label: 'Black' },
+  { name: 'blue', hex: '#5db2ff', label: 'Blue' },
 ];
 
 const STORAGE_KEY = 'ui.theme.v1';
@@ -61,7 +60,6 @@ export class ThemeService {
   readonly isDark = computed(() => this.theme() === 'dark');
 
   constructor() {
-    // Aplica inmediatamente y en cada cambio
     this._applyToDom(this._state());
     effect(() => {
       const s = this._state();
@@ -86,7 +84,6 @@ export class ThemeService {
     }
   }
 
-  // --- Persistencia ---
   private _write(s: ThemeState): void {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
@@ -121,7 +118,7 @@ export class ThemeService {
 
       const skin: SkinName = validSkins.includes(parsed.skin!)
         ? parsed.skin!
-        : 'colibri'; // fallback seguro
+        : 'colibri';
 
       return { theme, skin };
     } catch {
@@ -129,13 +126,11 @@ export class ThemeService {
     }
   }
 
-  // --- Aplicación al DOM ---
   private _applyToDom(s: ThemeState): void {
     const root = document.documentElement;
     root.setAttribute('data-bs-theme', s.theme);
-    root.dataset['skin'] = s.skin; // útil para selectores [data-skin="colibri"]
+    root.dataset['skin'] = s.skin;
 
-    // Para compatibilidad con estilos legacy basados en clases:
     const body = document.body;
     [...body.classList].forEach(
       (c) => c.startsWith('skin-') && body.classList.remove(c),

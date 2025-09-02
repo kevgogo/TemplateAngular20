@@ -81,11 +81,8 @@ export const routes: Routes = [
           import('@pages/demo/demo.routes').then((m) => m.DEMO_ROUTES),
       },
 
-      // 404 para rutas desconocidas dentro del shell
       { path: '**', redirectTo: 'error/404' },
     ],
   },
-
-  // Fallback global
   { path: '**', redirectTo: '' },
 ];

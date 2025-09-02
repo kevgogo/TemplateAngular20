@@ -16,45 +16,40 @@ export interface RawMenuItem {
   action: string | null;
   description: string;
   description2: string | null;
-  path: string; // si viene ya armado desde backend, se respeta
-  icon: string; // ej: "fa fa-cog"
+  path: string;
+  icon: string;
   order: number;
-  status: number; // 1 = visible/activo (asumido)
+  status: number;
   menuName: string | null;
   moduleName: string | null;
   permission: string | null;
 }
 
 export interface SidebarNode extends RawMenuItem {
-  key: number; // alias de id, útil para plantillas
-  text: string; // etiqueta a mostrar (nameSpanish ?? name)
-  link: string | null; // ruta calculada a partir de path | controller/action
-  isLeaf: boolean; // sin hijos y con link
-  children: SidebarNode[]; // árbol
+  key: number;
+  text: string;
+  link: string | null;
+  isLeaf: boolean;
+  children: SidebarNode[];
   title?: string;
   submenu?: SidebarNode[];
 }
-/** ---------------- UI: tipos que consume el Sidebar ---------------- */
 
-// Links aceptados por Angular Router: string ('/ruta') o array (['/ruta', id])
 export type RouteLink = string | readonly unknown[] | UrlTree;
 
-/** Forma antigua usada por algunas plantillas */
 export interface SidebarItem {
   text: string;
-  link?: RouteLink | null; // puede venir null en data vieja
+  link?: RouteLink | null;
   icon?: string | null;
   submenu?: SidebarItem[] | null;
 }
 
-/** Forma actual (la que debe usar tu Sidebar) */
 export interface MenuNode {
   label: string;
-  link?: RouteLink; // si no hay, simplemente no se asigna
+  link?: RouteLink;
   icon?: string;
   children?: MenuNode[];
 }
 
-/** Compatibilidad: inputs que aceptan ambas formas */
 export type AnySidebarItem = MenuNode | SidebarItem;
 export type AnyItem = MenuNode | SidebarItem;

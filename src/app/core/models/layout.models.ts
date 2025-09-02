@@ -1,4 +1,3 @@
-// src/app/layout/models/layout.models.ts
 export type SidebarMode = 'fixed' | 'floating';
 
 export interface LayoutState {
@@ -17,9 +16,8 @@ export interface LayoutPositions {
   sidebar: Position;
 }
 
-// Compat con tu shape previo
 export interface LayoutToggles {
   navFixed: boolean;
   breadcrumbsFixed: boolean;
-  pageHeaderFixed: boolean; // == headbar
+  pageHeaderFixed: boolean;
 }

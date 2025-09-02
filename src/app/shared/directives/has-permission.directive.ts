@@ -9,8 +9,6 @@ import {
 } from '@angular/core';
 import { CommonService } from '@core/services/common.service';
 
-/* ===================== Tipos y helpers seguros ===================== */
-
 type PermItem =
   | string
   | {
@@ -32,7 +30,6 @@ function readStringField(obj: unknown, key: string): string | null {
   return typeof v === 'string' ? v : null;
 }
 
-/** Convierte el arreglo de permisos crudos a un Set<string> en minúsculas */
 function normalizePermissions(raw: unknown): Set<string> {
   const out = new Set<string>();
   if (!Array.isArray(raw)) return out;
@@ -56,8 +53,6 @@ function normalizePermissions(raw: unknown): Set<string> {
   return out;
 }
 
-/* ===================== Directiva ===================== */
-
 @Directive({
   selector: '[appHasPermission]',
   standalone: true,
@@ -67,7 +62,6 @@ export class HasPermissionDirective implements OnInit, OnChanges {
   private readonly tpl = inject(TemplateRef<unknown>);
   private readonly common = inject(CommonService);
 
-  /** Código de permiso requerido */
   @Input('appHasPermission') code?: string;
 
   private permSet: Set<string> = new Set<string>();
@@ -96,14 +90,11 @@ export class HasPermissionDirective implements OnInit, OnChanges {
   }
 
   private check(code?: string): boolean {
-    // Sin código => no filtra (muestra)
     if (!code) return true;
 
-    // normaliza entrada a minúsculas
     const wanted = code.trim().toLowerCase();
     if (!wanted) return true;
 
-    // si no hay set (aún no cargado), intenta recargar una vez
     if (this.permSet.size === 0) this.loadPermissionsFromSession();
 
     return this.permSet.size === 0 || this.permSet.has(wanted);

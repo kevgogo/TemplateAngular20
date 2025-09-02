@@ -51,13 +51,12 @@ export class GraphQLAuthService {
   private urls = API_URLS();
   private http = inject(HttpClient);
 
-  /** Obtiene el token via mutación GetToken */
   getGraphQLToken(username?: string, password?: string) {
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
       Accept: 'application/json',
       'Cache-Control': 'no-store',
-      'X-Skip-GraphQL-Auth': '1', // <- CRÍTICO: el interceptor no inyecta Authorization
+      'X-Skip-GraphQL-Auth': '1',
     });
 
     const query = `
@@ -79,7 +78,7 @@ export class GraphQLAuthService {
       >(
         this.urls.GRAPHQL.ENDPOINT,
         { query, variables, operationName: 'GetToken' },
-        { headers, withCredentials: false }, // evita cookies en el LB/WAF
+        { headers, withCredentials: false },
       )
       .pipe(
         backoff503(3, 600),
@@ -90,7 +89,6 @@ export class GraphQLAuthService {
           return token;
         }),
         catchError((err) => {
-          // Log útil para distinguir CORS vs. 503 real vs. DNS
           if (err instanceof HttpErrorResponse) {
             console.error(
               '[GraphQLAuth] status:',
@@ -104,7 +102,7 @@ export class GraphQLAuthService {
             console.error('[GraphQLAuth] error:', err);
           }
           return throwError(() => {
-            const error: Error = new Error(`This is an error`);
+            const error: Error = new Error(`This is an error: ${err}`);
             return error;
           });
         }),
