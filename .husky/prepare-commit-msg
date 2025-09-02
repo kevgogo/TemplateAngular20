@@ -3,96 +3,209 @@
 # Evitar procesar merges, squash, etc.
 [ "$2" = "merge" ] && exit 0
 [ "$2" = "squash" ] && exit 0
+[ "$2" = "revert" ] && exit 0
 
 MSG_FILE="$1"
+
+# Verificar que el archivo existe
+[ ! -f "$MSG_FILE" ] && exit 0
 
 # Obtener información básica
 BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "main")
 TICKET=$(echo "$BRANCH" | grep -o '[A-Z][A-Z]*-[0-9][0-9]*' | head -1)
 
-# Contar archivos staged
-ADDED=$(git diff --cached --name-only --diff-filter=A | wc -l | tr -d ' ')
-MODIFIED=$(git diff --cached --name-only --diff-filter=M | wc -l | tr -d ' ')
-DELETED=$(git diff --cached --name-only --diff-filter=D | wc -l | tr -d ' ')
+# Obtener listas de archivos (usando here-strings en lugar de pipes)
+ADDED_FILES=$(git diff --cached --name-only --diff-filter=A 2>/dev/null)
+MODIFIED_FILES=$(git diff --cached --name-only --diff-filter=M 2>/dev/null)
+DELETED_FILES=$(git diff --cached --name-only --diff-filter=D 2>/dev/null)
+RENAMED_FILES=$(git diff --cached --name-status --diff-filter=R 2>/dev/null)
 
-# Detectar tipo simple
+# Contar archivos
+ADDED=$(echo "$ADDED_FILES" | grep -c '^' 2>/dev/null || echo 0)
+MODIFIED=$(echo "$MODIFIED_FILES" | grep -c '^' 2>/dev/null || echo 0)
+DELETED=$(echo "$DELETED_FILES" | grep -c '^' 2>/dev/null || echo 0)
+RENAMED=$(echo "$RENAMED_FILES" | grep -c '^' 2>/dev/null || echo 0)
+
+# Ajustar contadores para archivos vacíos
+[ -z "$ADDED_FILES" ] && ADDED=0
+[ -z "$MODIFIED_FILES" ] && MODIFIED=0
+[ -z "$DELETED_FILES" ] && DELETED=0
+[ -z "$RENAMED_FILES" ] && RENAMED=0
+
+# Detectar tipo por rama
 TYPE="chore"
 case "$BRANCH" in
   feat/*|feature/*) TYPE="feat" ;;
-  fix/*|hotfix/*) TYPE="fix" ;;
-  docs/*) TYPE="docs" ;;
+  fix/*|hotfix/*|bugfix/*) TYPE="fix" ;;
+  docs/*|doc/*) TYPE="docs" ;;
+  style/*|styles/*) TYPE="style" ;;
+  refactor/*) TYPE="refactor" ;;
+  test/*|tests/*) TYPE="test" ;;
+  build/*) TYPE="build" ;;
+  ci/*) TYPE="ci" ;;
 esac
+
+# Detectar scope básico por archivos
+SCOPE=""
+ALL_FILES="$ADDED_FILES $MODIFIED_FILES"
+if echo "$ALL_FILES" | grep -q "src/components/"; then
+  SCOPE="(components)"
+elif echo "$ALL_FILES" | grep -q "src/api/\|src/services/"; then
+  SCOPE="(api)"
+elif echo "$ALL_FILES" | grep -q "src/utils/"; then
+  SCOPE="(utils)"
+elif echo "$ALL_FILES" | grep -q "package.json\|yarn.lock\|package-lock.json"; then
+  SCOPE="(deps)"
+fi
 
 # Construir contadores
 COUNTERS=""
 [ "$ADDED" -gt 0 ] && COUNTERS="+$ADDED"
 [ "$MODIFIED" -gt 0 ] && COUNTERS="$COUNTERS${COUNTERS:+,}~$MODIFIED"
 [ "$DELETED" -gt 0 ] && COUNTERS="$COUNTERS${COUNTERS:+,}-$DELETED"
+[ "$RENAMED" -gt 0 ] && COUNTERS="$COUNTERS${COUNTERS:+,}→$RENAMED"
 
-# Leer mensaje existente
+# Leer mensaje existente (solo la primera línea)
 EXISTING_MSG=$(head -1 "$MSG_FILE" 2>/dev/null | sed 's/^[[:space:]]*//' | sed 's/[[:space:]]*$//')
 
-# Si el mensaje ya es válido, solo agregar contadores
+# Construir título
 if echo "$EXISTING_MSG" | grep -q "^[a-z]*:"; then
+  # Ya es conventional commit, mantener estructura
   NEW_TITLE="$EXISTING_MSG"
 else
-  # Crear nuevo título
+  # Crear nuevo título conventional
   SUBJECT="${EXISTING_MSG:-"actualizar archivos"}"
   if [ -n "$TICKET" ]; then
-    NEW_TITLE="$TYPE: [$TICKET] $SUBJECT"
+    NEW_TITLE="$TYPE$SCOPE: [$TICKET] $SUBJECT"
   else
-    NEW_TITLE="$TYPE: $SUBJECT"
+    NEW_TITLE="$TYPE$SCOPE: $SUBJECT"
   fi
 fi
 
-# Agregar contadores si existen
+# Agregar contadores al título
 if [ -n "$COUNTERS" ]; then
+  # Eliminar contadores existentes si los hay
+  NEW_TITLE=$(echo "$NEW_TITLE" | sed 's/ ([+~→-][^)]*)$//')
   NEW_TITLE="$NEW_TITLE ($COUNTERS)"
 fi
 
-# Generar lista de archivos
-FILES_LIST=""
-if [ "$ADDED" -gt 0 ]; then
-  FILES_LIST="$FILES_LIST
+# Construir secciones de archivos
+FILES_SECTIONS=""
 
-### ✨ Archivos agregados:"
-  git diff --cached --name-only --diff-filter=A | while read -r file; do
-    FILES_LIST="$FILES_LIST
-  - $file"
-  done
+if [ "$ADDED" -gt 0 ]; then
+  FILES_SECTIONS="$FILES_SECTIONS
+
+### ✨ Archivos agregados ($ADDED):"
+  echo "$ADDED_FILES" | while IFS= read -r file; do
+    [ -n "$file" ] && echo "  - $file"
+  done | {
+    while IFS= read -r line; do
+      FILES_SECTIONS="$FILES_SECTIONS
+$line"
+    done
+  }
 fi
 
 if [ "$MODIFIED" -gt 0 ]; then
-  FILES_LIST="$FILES_LIST
+  FILES_SECTIONS="$FILES_SECTIONS
 
-### 🔧 Archivos modificados:"
-  git diff --cached --name-only --diff-filter=M | while read -r file; do
-    FILES_LIST="$FILES_LIST
-  - $file"
-  done
+### 🔧 Archivos modificados ($MODIFIED):"
+  echo "$MODIFIED_FILES" | while IFS= read -r file; do
+    [ -n "$file" ] && echo "  - $file"
+  done | {
+    while IFS= read -r line; do
+      FILES_SECTIONS="$FILES_SECTIONS
+$line"
+    done
+  }
 fi
 
 if [ "$DELETED" -gt 0 ]; then
-  FILES_LIST="$FILES_LIST
+  FILES_SECTIONS="$FILES_SECTIONS
 
-### 🗑️ Archivos eliminados:"
-  git diff --cached --name-only --diff-filter=D | while read -r file; do
-    FILES_LIST="$FILES_LIST
-  - $file"
-  done
+### 🗑️ Archivos eliminados ($DELETED):"
+  echo "$DELETED_FILES" | while IFS= read -r file; do
+    [ -n "$file" ] && echo "  - $file"
+  done | {
+    while IFS= read -r line; do
+      FILES_SECTIONS="$FILES_SECTIONS
+$line"
+    done
+  }
 fi
 
-# Escribir el mensaje completo
-cat > "$MSG_FILE" << EOF
-$NEW_TITLE
+if [ "$RENAMED" -gt 0 ]; then
+  FILES_SECTIONS="$FILES_SECTIONS
 
-## 📋 Cambios realizados
-$FILES_LIST
+### 📝 Archivos renombrados ($RENAMED):"
+  echo "$RENAMED_FILES" | while IFS= read -r line; do
+    if [ -n "$line" ]; then
+      old_file=$(echo "$line" | cut -f2)
+      new_file=$(echo "$line" | cut -f3)
+      echo "  - $old_file → $new_file"
+    fi
+  done | {
+    while IFS= read -r line; do
+      FILES_SECTIONS="$FILES_SECTIONS
+$line"
+    done
+  }
+fi
 
-## 🧪 Testing
-- [ ] Probado manualmente
-- [ ] Tests actualizados
+# Construir mensaje completo usando un método más confiable
+{
+  echo "$NEW_TITLE"
+  echo ""
+  
+  TOTAL=$((ADDED + MODIFIED + DELETED + RENAMED))
+  if [ "$TOTAL" -gt 0 ]; then
+    echo "## 📊 Resumen: $TOTAL archivo(s) afectado(s)"
+    [ "$ADDED" -gt 0 ] && echo "- ✨ **$ADDED** agregado(s)"
+    [ "$MODIFIED" -gt 0 ] && echo "- 🔧 **$MODIFIED** modificado(s)"
+    [ "$DELETED" -gt 0 ] && echo "- 🗑️ **$DELETED** eliminado(s)"
+    [ "$RENAMED" -gt 0 ] && echo "- 📝 **$RENAMED** renombrado(s)"
+    echo ""
+  fi
+  
+  # Listar archivos si hay pocos (para evitar mensajes muy largos)
+  if [ "$TOTAL" -le 10 ] && [ "$TOTAL" -gt 0 ]; then
+    echo "## 📋 Archivos modificados"
+    
+    if [ "$ADDED" -gt 0 ]; then
+      echo ""
+      echo "**✨ Agregados:**"
+      echo "$ADDED_FILES" | sed 's/^/- /'
+    fi
+    
+    if [ "$MODIFIED" -gt 0 ]; then
+      echo ""  
+      echo "**🔧 Modificados:**"
+      echo "$MODIFIED_FILES" | sed 's/^/- /'
+    fi
+    
+    if [ "$DELETED" -gt 0 ]; then
+      echo ""
+      echo "**🗑️ Eliminados:**"
+      echo "$DELETED_FILES" | sed 's/^/- /'
+    fi
+    
+    echo ""
+  fi
+  
+  echo "## 🎯 Descripción"
+  echo ""
+  echo "<!-- Describe brevemente los cambios realizados -->"
+  echo ""
+  echo "## ✅ Checklist"
+  echo "- [ ] Cambios probados localmente"
+  echo "- [ ] Documentación actualizada (si aplica)"
+  echo "- [ ] Tests añadidos/actualizados (si aplica)"
+  echo ""
+  
+  if [ -n "$TICKET" ]; then
+    echo "**Refs:** $TICKET"
+  fi
+  
+} > "$MSG_FILE"
 
-EOF
-
-[ -n "$TICKET" ] && echo "Refs: $TICKET" >> "$MSG_FILE"
+exit 0
