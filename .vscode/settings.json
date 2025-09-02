@@ -23,5 +23,8 @@
   "workbench.editor.decorations.colors": true,
 
   // === Tarea integrada del plugin ESLint (para correr todo el workspace desde Tasks) ===
-  "eslint.lintTask.enable": true
+  "eslint.lintTask.enable": true,
+  "files.associations": {
+    "**/.husky/*": "shellscript"
+  }
 }

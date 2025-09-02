@@ -51,6 +51,9 @@
     ]
   },
   "lint-staged": {
+    "ignore": [
+      "**/.husky/**"
+    ],
     "*.{ts,tsx,js}": [
       "eslint --max-warnings=0 --fix",
       "prettier --write"

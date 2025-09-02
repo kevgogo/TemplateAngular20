@@ -4,3 +4,4 @@ dist
 coverage
 *.min.css
 *.min.js
+.husky/

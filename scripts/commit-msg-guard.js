@@ -1,17 +1,24 @@
+#!/usr/bin/env node
 /**
- * Falla el commit si "Descripción:" no tiene texto real (más allá de placeholders).
- * "Corregido:" queda opcional.
+ * Valida que la línea INMEDIATA a "Descripción:" tenga contenido real (≥ MIN chars).
+ * - Formato esperado:
+ *     Descripción:
+ *     <tu texto aquí>
+ * - Placeholders como [Reemplaza ...], [Describe ...], TODO, Pendiente, etc. NO cuentan.
+ * - "Corregido:" es opcional (no se valida aquí).
  */
 const fs = require("fs");
 const path = require("path");
+
+const MIN = 20; // mínimo de caracteres reales requeridos
 
 const msgFile =
   process.argv[2] || path.join(process.cwd(), ".git/COMMIT_EDITMSG");
 const raw = fs.readFileSync(msgFile, "utf8");
 const lines = raw.split(/\r?\n/);
 
-function isComment(l) {
-  const t = l.trim();
+function isComment(s) {
+  const t = (s || "").trim();
   return (
     t.startsWith("#") ||
     t.startsWith("//") ||
@@ -20,49 +27,56 @@ function isComment(l) {
   );
 }
 
-function findSection(startRegex) {
-  const start = lines.findIndex(
-    (l) => !isComment(l) && startRegex.test(l.trim()),
+// Busca la primera línea "Descripción:" (no comentario)
+const idx = lines.findIndex(
+  (l) => !isComment(l) && /^\s*Descripción:\s*$/i.test(l),
+);
+if (idx === -1) {
+  console.error(
+    '\n✖ Falta el bloque "Descripción:" (línea con solo "Descripción:")',
   );
-  if (start === -1) return [];
-  const out = [];
-  for (let i = start + 1; i < lines.length; i++) {
-    const t = lines[i];
-    const s = t.trim();
-    // Cortamos si aparece otro encabezado típico o fin de bloque
-    if (
-      /^Refs:/i.test(s) ||
-      /^Items:/i.test(s) ||
-      /^Corregido:/i.test(s) ||
-      // línea vacía seguida de un encabezado
-      (s === "" &&
-        i + 1 < lines.length &&
-        /^[A-ZÁÉÍÓÚÑ][\w\s()\/.-]+:$/i.test(lines[i + 1].trim()))
-    )
-      break;
-    if (!isComment(t)) out.push(t);
-  }
-  return out;
+  process.exit(1);
 }
 
-const descBlock = findSection(/^Descripción:/i);
+// Toma la SIGUIENTE línea no comentario (si hay líneas en blanco, se consideran vacías)
+let next = idx + 1 < lines.length ? lines[idx + 1] : "";
+while (isComment(next)) {
+  // si justo la siguiente es un comentario, considera la siguiente real como vacía para forzar edición
+  const probe = lines.slice(idx + 1).find((l) => !isComment(l));
+  next = typeof probe === "string" ? probe : "";
+  break;
+}
 
-// Filtra placeholders y ruido
-const PLACEHOLDERS = new Set([
-  "- ¿Qué se hizo?".toLowerCase(),
-  "- ¿Por qué se hizo?".toLowerCase(),
-]);
-const cleaned = descBlock
-  .map((l) => l.replace(/\s+/g, " ").trim())
-  .filter((l) => l.length > 0)
-  .filter((l) => !PLACEHOLDERS.has(l.toLowerCase()));
+// Normaliza bullets y espacios
+let content = (next || "")
+  .replace(/^\s*[-*]\s+/, "") // quita bullet inicial
+  .replace(/\s+/g, " ") // espacios múltiples -> uno
+  .trim();
 
-// Exige al menos N caracteres “reales”
-const MIN = 20;
-const total = cleaned.join(" ");
-if (total.length < MIN) {
+// Quita brackets/paréntesis si son placeholder obvio; si no, conserva el texto interno
+const removeIfPlaceholder = (s) => {
+  const inner = s.replace(/^[\[\(]\s*|\s*[\]\)]$/g, "");
+  return /(reemplaza|describe|todo|pendiente|replace|fill|write|tbd)/i.test(
+    inner,
+  )
+    ? ""
+    : inner;
+};
+
+// Si es [ ... ] o ( ... ), decide si es placeholder
+if (/^\s*\[.*\]\s*$/.test(content) || /^\s*\(.*\)\s*$/.test(content)) {
+  content = removeIfPlaceholder(content);
+} else {
+  // Aunque no esté entero entre []/(), limpia placeholders obvios sueltos
+  content = content.replace(/\[(.*?)\]|\((.*?)\)/g, (_, a, b) =>
+    removeIfPlaceholder(_),
+  );
+}
+
+// Validaciones
+if (!content || content.length < MIN) {
   console.error(
-    `\n✖ "Descripción:" es obligatoria. Agrega texto propio (≥ ${MIN} caracteres) y no solo placeholders.`,
+    `\n✖ "Descripción:" es obligatoria en la línea siguiente. Escribe contenido propio (≥ ${MIN} caracteres) y no dejes placeholders sin reemplazar.\nEjemplo esperado:\n\nDescripción:\nSe refactorizó el scheduler para simplificar dependencias y mejorar legibilidad...`,
   );
   process.exit(1);
 }

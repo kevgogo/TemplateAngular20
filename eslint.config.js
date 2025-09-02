@@ -7,7 +7,15 @@ const prettierCompat = require("eslint-config-prettier/flat");
 /** @type {import('eslint').Linter.Config[]} */
 module.exports = tseslint.config(
   // Ignorados globales
-  { ignores: ["dist/**", ".angular/**", "coverage/**", "**/*.min.*"] },
+  {
+    ignores: [
+      "dist/**",
+      ".angular/**",
+      "coverage/**",
+      "**/*.min.*",
+      "**/.husky/**",
+    ],
+  },
 
   /* 1) == CONFIG FILES SIN TIPOS ==
      Aplica a jest.config.ts y otros *.config.ts/.mts/.cts
@@ -43,6 +51,7 @@ module.exports = tseslint.config(
       "jest.config.ts",
       "devextreme-license.ts",
       "devextreme.license.ts",
+      "**/.husky/**",
     ],
     extends: [
       js.configs.recommended,
