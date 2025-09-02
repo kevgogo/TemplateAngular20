@@ -1,262 +1,98 @@
-# Genera títulos y descripciones automáticas con contadores y listados de archivos
+#!/usr/bin/env sh
 
-set +e  # No abortar por comandos que fallen
+# Evitar procesar merges, squash, etc.
+[ "$2" = "merge" ] && exit 0
+[ "$2" = "squash" ] && exit 0
 
-MSG_FILE="${1:-}"
-SOURCE="${2:-}"
-SHA="${3:-}"
+MSG_FILE="$1"
 
-# No tocar mensajes de merge/squash/revert
-case "$SOURCE" in
-  merge|squash|revert) exit 0 ;;
+# Obtener información básica
+BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "main")
+TICKET=$(echo "$BRANCH" | grep -o '[A-Z][A-Z]*-[0-9][0-9]*' | head -1)
+
+# Contar archivos staged
+ADDED=$(git diff --cached --name-only --diff-filter=A | wc -l | tr -d ' ')
+MODIFIED=$(git diff --cached --name-only --diff-filter=M | wc -l | tr -d ' ')
+DELETED=$(git diff --cached --name-only --diff-filter=D | wc -l | tr -d ' ')
+
+# Detectar tipo simple
+TYPE="chore"
+case "$BRANCH" in
+  feat/*|feature/*) TYPE="feat" ;;
+  fix/*|hotfix/*) TYPE="fix" ;;
+  docs/*) TYPE="docs" ;;
 esac
 
-# ============= OBTENER CONTEXTO =============
-BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'main')"
-TICKET="$(echo "$BRANCH" | grep -Eo '[A-Z]{2,}-[0-9]+' | head -n1)"
-CHANGES="$(git diff --cached --name-status -M -C --no-color 2>/dev/null)"
+# Construir contadores
+COUNTERS=""
+[ "$ADDED" -gt 0 ] && COUNTERS="+$ADDED"
+[ "$MODIFIED" -gt 0 ] && COUNTERS="$COUNTERS${COUNTERS:+,}~$MODIFIED"
+[ "$DELETED" -gt 0 ] && COUNTERS="$COUNTERS${COUNTERS:+,}-$DELETED"
 
-# Contadores de archivos
-ADDED_COUNT=0
-MODIFIED_COUNT=0
-DELETED_COUNT=0
-RENAMED_COUNT=0
-
-# Listas de archivos
-ADDED_FILES=""
-MODIFIED_FILES=""
-DELETED_FILES=""
-RENAMED_FILES=""
-
-# Procesar cambios
-if [ -n "$CHANGES" ]; then
-  while IFS="$(printf '\t')" read -r status file_a file_b; do
-    case "$status" in
-      A)
-        ADDED_COUNT=$((ADDED_COUNT + 1))
-        ADDED_FILES="${ADDED_FILES}\n  - ${file_a}"
-        ;;
-      M|T)
-        MODIFIED_COUNT=$((MODIFIED_COUNT + 1))
-        MODIFIED_FILES="${MODIFIED_FILES}\n  - ${file_a}"
-        ;;
-      D)
-        DELETED_COUNT=$((DELETED_COUNT + 1))
-        DELETED_FILES="${DELETED_FILES}\n  - ${file_a}"
-        ;;
-      R*)
-        RENAMED_COUNT=$((RENAMED_COUNT + 1))
-        RENAMED_FILES="${RENAMED_FILES}\n  - ${file_a} → ${file_b}"
-        ;;
-      C*)
-        ADDED_COUNT=$((ADDED_COUNT + 1))
-        ADDED_FILES="${ADDED_FILES}\n  - ${file_b:-$file_a} (copiado)"
-        ;;
-    esac
-  done <<EOF
-$CHANGES
-EOF
-fi
-
-TOTAL_FILES=$((ADDED_COUNT + MODIFIED_COUNT + DELETED_COUNT + RENAMED_COUNT))
-
-# ============= DETECCIÓN DE TIPO =============
-detect_type() {
-  # Por nombre de rama
-  case "$BRANCH" in
-    fix/*|hotfix/*|bugfix/*) echo "fix" && return ;;
-    feat/*|feature/*) echo "feat" && return ;;
-    docs/*|doc/*) echo "docs" && return ;;
-    style/*|styles/*) echo "style" && return ;;
-    refactor/*) echo "refactor" && return ;;
-    perf/*|performance/*) echo "perf" && return ;;
-    test/*|tests/*) echo "test" && return ;;
-    build/*) echo "build" && return ;;
-    ci/*) echo "ci" && return ;;
-    chore/*|task/*) echo "chore" && return ;;
-  esac
-
-  # Por archivos modificados
-  STAGED_LIST="$(git diff --name-only --cached 2>/dev/null)"
-  if [ -n "$STAGED_LIST" ]; then
-    # Tests
-    if echo "$STAGED_LIST" | grep -qE '\.(test|spec)\.|__tests__|\.test\.|\.spec\.'; then
-      echo "test" && return
-    fi
-    
-    # Documentación
-    if echo "$STAGED_LIST" | grep -qE '\.md$|README|CHANGELOG|LICENSE|\.txt$'; then
-      echo "docs" && return
-    fi
-    
-    # Estilos
-    if echo "$STAGED_LIST" | grep -qE '\.(s?css|less|sass|styl)$|\.html$'; then
-      echo "style" && return
-    fi
-    
-    # Build/Config
-    if echo "$STAGED_LIST" | grep -qE 'package\.json|package-lock\.json|yarn\.lock|pnpm-lock\.yaml|webpack|vite|rollup|tsconfig|\.config\.|Dockerfile|docker-compose'; then
-      echo "build" && return
-    fi
-    
-    # CI
-    if echo "$STAGED_LIST" | grep -qE '\.github/|\.gitlab-ci|jenkins|\.travis|\.circleci|azure-pipeline'; then
-      echo "ci" && return
-    fi
-  fi
-
-  # Por defecto
-  echo "chore"
-}
-
-# ============= DETECCIÓN DE SCOPE =============
-detect_scope() {
-  STAGED_LIST="$(git diff --name-only --cached 2>/dev/null)"
-  if [ -n "$STAGED_LIST" ]; then
-    # Componentes
-    if echo "$STAGED_LIST" | grep -q '^src/components/\|^components/'; then
-      echo "(components)" && return
-    fi
-    
-    # API/Services
-    if echo "$STAGED_LIST" | grep -qE '^src/(services|api)/|^(services|api)/'; then
-      echo "(api)" && return
-    fi
-    
-    # Utils
-    if echo "$STAGED_LIST" | grep -q '^src/utils/\|^utils/'; then
-      echo "(utils)" && return
-    fi
-    
-    # Hooks
-    if echo "$STAGED_LIST" | grep -q '^src/hooks/\|^hooks/'; then
-      echo "(hooks)" && return
-    fi
-    
-    # UI/Styles
-    if echo "$STAGED_LIST" | grep -qE '^src/(ui|styles)/|^(ui|styles)/'; then
-      echo "(ui)" && return
-    fi
-    
-    # Config
-    if echo "$STAGED_LIST" | grep -qE '^src/config/|^config/|\.config\.|tsconfig|package\.json'; then
-      echo "(config)" && return
-    fi
-    
-    # Tests
-    if echo "$STAGED_LIST" | grep -qE '__tests__|\.test\.|\.spec\.'; then
-      echo "(tests)" && return
-    fi
-  fi
-  
-  echo ""  # Sin scope
-}
-
-TYPE="$(detect_type)"
-SCOPE="$(detect_scope)"
-
-# ============= CONSTRUIR TÍTULO =============
 # Leer mensaje existente
-EXISTING_HEADER="$(sed -n '1p' "$MSG_FILE" 2>/dev/null | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
+EXISTING_MSG=$(head -1 "$MSG_FILE" 2>/dev/null | sed 's/^[[:space:]]*//' | sed 's/[[:space:]]*$//')
 
-# Verificar si ya es un conventional commit
-if echo "$EXISTING_HEADER" | grep -qE '^[a-z]+(\([^)]+\))?(!)?: .+'; then
-  # Ya es conventional, solo agregar/actualizar contadores y ticket
-  TITLE_BASE="$(echo "$EXISTING_HEADER" | sed 's/ \[[A-Z][A-Z]*-[0-9][0-9]*\]//g' | sed 's/ ([0-9].*//g')"
-  
-  # Construir contadores
-  COUNTERS=""
-  [ $ADDED_COUNT -gt 0 ] && COUNTERS="${COUNTERS}+${ADDED_COUNT}"
-  [ $MODIFIED_COUNT -gt 0 ] && COUNTERS="${COUNTERS}${COUNTERS:+,}~${MODIFIED_COUNT}"
-  [ $DELETED_COUNT -gt 0 ] && COUNTERS="${COUNTERS}${COUNTERS:+,}-${DELETED_COUNT}"
-  [ $RENAMED_COUNT -gt 0 ] && COUNTERS="${COUNTERS}${COUNTERS:+,}→${RENAMED_COUNT}"
-  
-  if [ -n "$COUNTERS" ]; then
-    TITLE="${TITLE_BASE} (${COUNTERS})"
-  else
-    TITLE="$TITLE_BASE"
-  fi
-  
-  # Agregar ticket si existe
-  if [ -n "$TICKET" ] && ! echo "$TITLE" | grep -q "$TICKET"; then
-    TITLE="${TITLE} [$TICKET]"
-  fi
+# Si el mensaje ya es válido, solo agregar contadores
+if echo "$EXISTING_MSG" | grep -q "^[a-z]*:"; then
+  NEW_TITLE="$EXISTING_MSG"
 else
-  # Crear nuevo título conventional
-  SUBJECT="${EXISTING_HEADER:-"actualización de archivos"}"
-  
-  # Construir contadores
-  COUNTERS=""
-  [ $ADDED_COUNT -gt 0 ] && COUNTERS="${COUNTERS}+${ADDED_COUNT}"
-  [ $MODIFIED_COUNT -gt 0 ] && COUNTERS="${COUNTERS}${COUNTERS:+,}~${MODIFIED_COUNT}"
-  [ $DELETED_COUNT -gt 0 ] && COUNTERS="${COUNTERS}${COUNTERS:+,}-${DELETED_COUNT}"
-  [ $RENAMED_COUNT -gt 0 ] && COUNTERS="${COUNTERS}${COUNTERS:+,}→${RENAMED_COUNT}"
-  
-  if [ -n "$COUNTERS" ]; then
-    COUNTER_PART=" (${COUNTERS})"
-  else
-    COUNTER_PART=""
-  fi
-  
-  # Construir título completo
+  # Crear nuevo título
+  SUBJECT="${EXISTING_MSG:-"actualizar archivos"}"
   if [ -n "$TICKET" ]; then
-    TITLE="${TYPE}${SCOPE}: [$TICKET] ${SUBJECT}${COUNTER_PART}"
+    NEW_TITLE="$TYPE: [$TICKET] $SUBJECT"
   else
-    TITLE="${TYPE}${SCOPE}: ${SUBJECT}${COUNTER_PART}"
+    NEW_TITLE="$TYPE: $SUBJECT"
   fi
 fi
 
-# ============= CONSTRUIR DESCRIPCIÓN =============
-BODY=""
-
-# Resumen de cambios
-if [ $TOTAL_FILES -gt 0 ]; then
-  BODY="${BODY}## 📋 Resumen de cambios\n\n"
-  BODY="${BODY}**Total de archivos afectados:** ${TOTAL_FILES}\n\n"
-  
-  # Estadísticas por tipo
-  [ $ADDED_COUNT -gt 0 ] && BODY="${BODY}- ✨ **Agregados:** ${ADDED_COUNT}\n"
-  [ $MODIFIED_COUNT -gt 0 ] && BODY="${BODY}- 🔧 **Modificados:** ${MODIFIED_COUNT}\n"
-  [ $DELETED_COUNT -gt 0 ] && BODY="${BODY}- 🗑️ **Eliminados:** ${DELETED_COUNT}\n"
-  [ $RENAMED_COUNT -gt 0 ] && BODY="${BODY}- 📝 **Renombrados:** ${RENAMED_COUNT}\n"
-  
-  BODY="${BODY}\n"
+# Agregar contadores si existen
+if [ -n "$COUNTERS" ]; then
+  NEW_TITLE="$NEW_TITLE ($COUNTERS)"
 fi
 
-# Listado detallado de archivos
-if [ -n "$ADDED_FILES" ]; then
-  BODY="${BODY}### ✨ Archivos agregados\n$(printf '%b' "$ADDED_FILES")\n\n"
+# Generar lista de archivos
+FILES_LIST=""
+if [ "$ADDED" -gt 0 ]; then
+  FILES_LIST="$FILES_LIST
+
+### ✨ Archivos agregados:"
+  git diff --cached --name-only --diff-filter=A | while read -r file; do
+    FILES_LIST="$FILES_LIST
+  - $file"
+  done
 fi
 
-if [ -n "$MODIFIED_FILES" ]; then
-  BODY="${BODY}### 🔧 Archivos modificados\n$(printf '%b' "$MODIFIED_FILES")\n\n"
+if [ "$MODIFIED" -gt 0 ]; then
+  FILES_LIST="$FILES_LIST
+
+### 🔧 Archivos modificados:"
+  git diff --cached --name-only --diff-filter=M | while read -r file; do
+    FILES_LIST="$FILES_LIST
+  - $file"
+  done
 fi
 
-if [ -n "$DELETED_FILES" ]; then
-  BODY="${BODY}### 🗑️ Archivos eliminados\n$(printf '%b' "$DELETED_FILES")\n\n"
+if [ "$DELETED" -gt 0 ]; then
+  FILES_LIST="$FILES_LIST
+
+### 🗑️ Archivos eliminados:"
+  git diff --cached --name-only --diff-filter=D | while read -r file; do
+    FILES_LIST="$FILES_LIST
+  - $file"
+  done
 fi
 
-if [ -n "$RENAMED_FILES" ]; then
-  BODY="${BODY}### 📝 Archivos renombrados\n$(printf '%b' "$RENAMED_FILES")\n\n"
-fi
+# Escribir el mensaje completo
+cat > "$MSG_FILE" << EOF
+$NEW_TITLE
 
-# Plantilla adicional para el usuario
-BODY="${BODY}## 🎯 Descripción del cambio\n\n"
-BODY="${BODY}<!-- Describe brevemente qué cambios realizaste y por qué -->\n\n"
-BODY="${BODY}## 🧪 Testing\n\n"
-BODY="${BODY}- [ ] Pruebas unitarias actualizadas\n"
-BODY="${BODY}- [ ] Probado manualmente\n"
-BODY="${BODY}- [ ] No requiere testing\n\n"
+## 📋 Cambios realizados
+$FILES_LIST
 
-# Referencias
-if [ -n "$TICKET" ]; then
-  BODY="${BODY}---\n**Refs:** $TICKET\n"
-fi
+## 🧪 Testing
+- [ ] Probado manualmente
+- [ ] Tests actualizados
 
-# ============= ESCRIBIR ARCHIVO =============
-{
-  printf "%s\n\n" "$TITLE"
-  [ -n "$BODY" ] && printf "%b" "$BODY"
-} > "$MSG_FILE" 2>/dev/null || true
+EOF
 
-exit 0
+[ -n "$TICKET" ] && echo "Refs: $TICKET" >> "$MSG_FILE"
