@@ -7,138 +7,244 @@
    - Sin !important
    ============================================================================= */
 
-/* 0) Puntos de verdad (usa rutas relativas dentro de src/styles) */
+/* ===== IMPORTS ===== */
 @use "./colors" as *; /* palettes + skins por [data-skin] */
 @use "./typography" as *; /* tipografía base 13px + escala rem */
-// TODO: Pendientes de ajustar
 @use "./dx-overrides" as *; /* Estilos para Dev Extreme */
 
-/* 1) Tokens de layout (solo si no los tienes en otro archivo) */
+/* ===== CSS CUSTOM PROPERTIES ===== */
 :root {
-  /* Alturas/z-index del shell */
-  --nav-h: 56px; /* navbar/headbar */
-  --bc-h: 34px; /* breadcrumbs */
-  --footer-h: 32px;
+  /* Layout Shell */
+  --navbar-h: 45px; /* altura navbar unificada */
+  --bc-h: 36px; /* breadcrumbs */
+  --hdr-h: 40px; /* page header */
+  --footer-h: 32px; /* footer */
+  --sidebar-w: 224px; /* sidebar width */
+  --sidebar-w-collapsed: 72px;
+
+  /* Offsets dinámicos (se activan con flags en body) */
+  --off-nav: 0px;
+  --off-bc: 0px;
+  --off-hdr: 0px;
+
+  /* Design tokens */
   --card-radius: 0.75rem;
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
   --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.08);
 
-  /* Sidebar */
-  --sb-w: 256px;
-  --sb-w-collapsed: 72px;
-  --sb-bg: #0f172a; /* opcional: mapea a un tono de tu skin */
+  /* Sidebar colors */
+  --sb-bg: #0f172a;
   --sb-color: #e2e8f0;
 
-  /* Z-index */
+  /* Z-index scale */
   --z-1: 1;
   --z-10: 10;
   --z-50: 50;
   --z-100: 100;
   --z-1000: 1000;
+  --z-sidebar: 1000;
+  --z-header: 1010;
+  --z-breadcrumbs: 1020;
+  --z-navbar: 1030;
 }
 
-/* 2) Base mínima / reset ligero */
+/* ===== RESET Y BASE ===== */
 *,
 *::before,
 *::after {
   box-sizing: border-box;
 }
+
 html,
 body {
   height: 100%;
 }
+
 img {
   max-width: 100%;
   height: auto;
 }
 
-/* 3) Bridge de tema (BS3 → BS5 y ajustes suaves) */
-.btn-default {
-  /* legado */
-  @supports (color: var(--bs-body-color)) {
-    color: var(--bs-body-color);
-    background-color: var(--bs-secondary-bg, #e9ecef);
-    border-color: var(--bs-border-color, #dee2e6);
-  }
-}
-.panel {
-  /* legado */
-  border-radius: var(--card-radius);
-  box-shadow: var(--shadow-sm);
-}
-.panel-heading {
-  font-weight: 600;
-}
-.panel-body {
-  padding: 1rem;
+/* ===== SISTEMA DE FLAGS PARA ELEMENTOS FIJOS ===== */
+/* Los offsets se activan cuando el flag correspondiente está en <body> */
+body.navbar-fixed {
+  --off-nav: var(--navbar-h);
 }
 
-/* Tabs activos con color del skin */
-.nav-tabs .nav-link.active {
-  color: var(--bs-primary);
-  border-color: var(--bs-primary);
+body.breadcrumbs-fixed {
+  --off-bc: var(--bc-h);
 }
 
-/* 4) Shell (contenedores principales) */
+body.page-header-fixed {
+  --off-hdr: var(--hdr-h);
+}
+
+/* ===== LAYOUT PRINCIPAL (APP SHELL) ===== */
 .app-shell {
   min-height: 100dvh;
   display: grid;
-  grid-template-rows: var(--nav-h) var(--bc-h) 1fr var(--footer-h);
+  grid-template-rows: var(--navbar-h) var(--bc-h) 1fr var(--footer-h);
 }
-.app-navbar {
-  height: var(--nav-h);
+
+/* Navbar */
+.app-navbar,
+.page-navbar {
+  height: var(--navbar-h);
   box-shadow: var(--shadow-sm);
 }
-.app-breadcrumbs {
+
+/* Breadcrumbs */
+.app-breadcrumbs,
+.page-breadcrumbs {
   height: var(--bc-h);
   display: flex;
   align-items: center;
 }
-.app-content {
-  padding: 1rem;
+
+/* Page Header */
+.page-header {
+  height: var(--hdr-h);
 }
+
+/* Content */
+.app-content,
+.page-content {
+  padding: 1rem;
+  /* Compensación dinámica por elementos fijos */
+  padding-top: calc(var(--off-nav) + var(--off-bc) + var(--off-hdr));
+  margin-left: var(--sidebar-w);
+}
+
+/* Footer */
 .app-footer {
   height: var(--footer-h);
   display: flex;
   align-items: center;
 }
 
-/* 5) Sidebar */
-.app-sidebar {
-  width: var(--sb-w);
+/* ===== SIDEBAR ===== */
+.app-sidebar,
+.page-sidebar {
+  width: var(--sidebar-w);
   background: var(--sb-bg);
   color: var(--sb-color);
-}
-.app-sidebar.is-collapsed {
-  width: var(--sb-w-collapsed);
+
+  &.is-collapsed {
+    width: var(--sidebar-w-collapsed);
+  }
+
+  &.hide ~ .page-content {
+    margin-left: 0 !important;
+  }
 }
 
-/* 6) Component surfaces (genéricas) */
+/* ===== ELEMENTOS FIJOS ===== */
+/* Soporte para flags en <body> o clases directas en el elemento */
+
+/* Navbar fija */
+body.navbar-fixed .page-navbar,
+.page-navbar.navbar-fixed {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: var(--z-navbar);
+}
+
+/* Breadcrumbs fijas */
+body.breadcrumbs-fixed .page-breadcrumbs,
+.page-breadcrumbs.breadcrumbs-fixed {
+  position: fixed;
+  top: var(--off-nav);
+  left: 0;
+  right: 0;
+  z-index: var(--z-breadcrumbs);
+}
+
+/* Header fijo */
+body.page-header-fixed .page-header,
+.page-header.page-header-fixed {
+  position: fixed;
+  top: calc(var(--off-nav) + var(--off-bc));
+  left: 0;
+  right: 0;
+  z-index: var(--z-header);
+}
+
+/* Sidebar fijo */
+body.sidebar-fixed .page-sidebar,
+.page-sidebar.sidebar-fixed {
+  position: fixed;
+  top: calc(var(--off-nav) + var(--off-bc) + var(--off-hdr));
+  bottom: 0;
+  left: 0;
+  width: var(--sidebar-w);
+  z-index: var(--z-sidebar);
+}
+
+/* ===== COMPONENTES UI ===== */
+/* Cards */
 .card {
   border-radius: var(--card-radius);
   box-shadow: var(--shadow-sm);
 }
+
+/* Modals */
 .modal-content {
   border-radius: var(--card-radius);
   box-shadow: var(--shadow-md);
 }
 
-/* 7) DevExtreme — ajustes sin !important */
+/* ===== BRIDGE BS3 → BS5 (LEGACY) ===== */
+.btn-default {
+  @supports (color: var(--bs-body-color)) {
+    color: var(--bs-body-color);
+    background-color: var(--bs-secondary-bg, #e9ecef);
+    border-color: var(--bs-border-color, #dee2e6);
+  }
+}
+
+.panel {
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow-sm);
+
+  &-heading {
+    font-weight: 600;
+  }
+
+  &-body {
+    padding: 1rem;
+  }
+}
+
+/* Tabs con color de skin */
+.nav-tabs .nav-link.active {
+  color: var(--bs-primary);
+  border-color: var(--bs-primary);
+}
+
+/* ===== DEVEXTREME AJUSTES ===== */
 .dx-widget {
   font-size: var(--font-size-md);
   line-height: var(--line-height-base);
 }
-.dx-datagrid .dx-datagrid-headers {
-  font-weight: 600;
+
+.dx-datagrid {
+  .dx-datagrid-headers {
+    font-weight: 600;
+  }
 }
+
 .dx-datagrid-rowsview .dx-row td[data-type="number"] {
   text-align: right;
 }
 
-/* 8) Utilidades suaves */
+/* ===== UTILIDADES ===== */
 .text-muted-2 {
   opacity: 0.75;
 }
+
+/* Width utilities */
 .w-xxs {
   width: 8rem;
 }
@@ -149,7 +255,7 @@ img {
   width: 16rem;
 }
 
-/* 9) Estado vacío estándar */
+/* Empty state */
 .app-empty {
   display: flex;
   align-items: center;
@@ -158,12 +264,15 @@ img {
   color: var(--bs-secondary-color, #6c757d);
 }
 
-/* 10) Impresión */
+/* ===== MEDIA QUERIES ===== */
 @media print {
   .app-sidebar,
   .app-navbar,
   .app-breadcrumbs,
-  .app-footer {
+  .app-footer,
+  .page-sidebar,
+  .page-navbar,
+  .page-breadcrumbs {
     display: none;
   }
 }
