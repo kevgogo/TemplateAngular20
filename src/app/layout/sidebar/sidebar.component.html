@@ -9,16 +9,14 @@
   <!-- =================== Búsqueda (NO colapsado) =================== -->
   @if (!collapsedResolved) {
     <div class="search-container border-bottom">
-      <div
-        class="input-group input-group-sm search-like-row gap-2 px-3 py-2 align-items-center"
-      >
+      <div class="input-group gap-2 px-4 py-3 align-items-center">
         <span class="input-group-text bg-transparent border-0 p-0 me-2">
           <i class="fa fa-search opacity-75"></i>
         </span>
 
         <input
           type="text"
-          class="form-control form-control-sm border-0 bg-transparent shadow-none p-0"
+          class="form-control border-0 bg-transparent shadow-none p-0"
           placeholder="Buscar en el menú..."
           [value]="searchTerm()"
           (input)="onSearchChange($any($event).target.value)"
@@ -58,11 +56,11 @@
 
   <!-- =================== Lista principal (árbol) =================== -->
   @if (items.length > 0) {
-    <ul class="root list-unstyled m-0">
+    <ul class="root">
       @if (isSearching() && !collapsedResolved) {
         <li class="item meta" role="status" aria-live="polite">
           <div
-            class="link d-flex align-items-center gap-2 px-3 py-2 text-decoration-none"
+            class="link d-flex align-items-center gap-3 px-3 py-2 text-decoration-none"
           >
             <span class="label text-truncate flex-grow-1">
               {{ items.length }} resultado{{
@@ -77,7 +75,7 @@
 
       @for (it of items; track $index) {
         <li
-          class="item"
+          class="item depth-0"
           [class.has-children]="hasChildren(it)"
           [class.open]="
             !collapsedResolved &&
@@ -88,10 +86,13 @@
         >
           <!-- Nivel 0 -->
           <a
-            class="link d-flex align-items-center gap-2 px-3 py-2 text-decoration-none"
+            class="link depth-0 d-flex align-items-center gap-3 px-3 py-2 text-decoration-none"
             [routerLink]="hasChildren(it) ? [] : it.link || []"
-            routerLinkActive="active"
+            [routerLinkActive]="hasChildren(it) ? '' : 'active'"
             [routerLinkActiveOptions]="{ exact: true }"
+            [class.active]="
+              hasChildren(it) ? isOpen(nodeId(null, $index)) : false
+            "
             (click)="onRootClick($event, it, $index)"
             [attr.aria-haspopup]="hasChildren(it) ? 'true' : null"
             [attr.aria-expanded]="
@@ -150,7 +151,7 @@
       @if (isSearching() && !collapsedResolved) {
         <li class="item meta" role="status" aria-live="polite">
           <div
-            class="link d-flex align-items-center gap-2 px-3 py-2 text-decoration-none"
+            class="link d-flex align-items-center gap-3 px-3 py-2 text-decoration-none"
           >
             <span class="label text-truncate flex-grow-1">
               {{ items.length }} resultado{{
@@ -175,16 +176,21 @@
     <ul class="submenu" [class]="'depth-' + depth">
       @for (n of nodes; track $index) {
         <li
+          [class]="'depth-' + depth"
           class="subitem"
           [class.has-children]="hasChildren(n)"
           [class.open]="hasChildren(n) && isOpen(nodeId(parentId, $index))"
           [class.search-match]="isSearching()"
         >
           <a
-            class="sub-link d-flex align-items-center gap-2 px-3 py-2 text-decoration-none"
+            [class]="'depth-' + depth"
+            class="sub-link d-flex align-items-center gap-3 px-3 py-2 text-decoration-none"
             [routerLink]="hasChildren(n) ? [] : n.link || []"
-            routerLinkActive="active"
+            [routerLinkActive]="hasChildren(n) ? '' : 'active'"
             [routerLinkActiveOptions]="{ exact: true }"
+            [class.active]="
+              hasChildren(n) ? isOpen(nodeId(parentId, $index)) : false
+            "
             (click)="onItemClick($event, n, nodeId(parentId, $index))"
             role="menuitem"
           >
@@ -292,7 +298,7 @@
           >
             @if (visiblePanelResults().length === 0) {
               <div class="px-3 py-2 text-body-secondary" aria-live="polite">
-                Sin resultados para “{{ panelSearchTerm() }}”.
+                Sin resultados para "{{ panelSearchTerm() }}".
               </div>
             }
 
@@ -305,7 +311,7 @@
                   "
                 >
                   <a
-                    class="dropdown-like d-flex align-items-center gap-2 px-3 py-2 text-decoration-none"
+                    class="dropdown-like d-flex align-items-center gap-3 px-3 py-2 text-decoration-none"
                     [routerLink]="hasChildren(r.node) ? [] : r.node.link || []"
                     (click)="onPanelSearchResultClick($event, r.node)"
                   >
@@ -369,7 +375,7 @@
                 @if (hasChildren(n)) {
                   <a
                     href="#"
-                    class="dropdown-like d-flex align-items-center gap-2 px-3 py-2 text-decoration-none"
+                    class="dropdown-like d-flex align-items-center gap-3 px-3 py-2 text-decoration-none"
                     (click)="onPanelItemClick($event, n)"
                   >
                     <i class="fa" [ngClass]="n.icon"></i>
@@ -380,7 +386,7 @@
                   </a>
                 } @else {
                   <a
-                    class="dropdown-like d-flex align-items-center gap-2 px-3 py-2 text-decoration-none"
+                    class="dropdown-like d-flex align-items-center gap-3 px-3 py-2 text-decoration-none"
                     [routerLink]="n.link || []"
                     (click)="onPanelItemClick($event, n)"
                   >

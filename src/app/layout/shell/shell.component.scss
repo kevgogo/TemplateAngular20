@@ -22,7 +22,8 @@ $sidebar-w-collapsed: 72px;
   position: relative;
   top: var(--offset-top);
   height: calc(100dvh - var(--offset-top));
-  width: $sidebar-w;
+  width: auto;
+  max-width: $sidebar-w;
 
   &.collapsed {
     width: $sidebar-w-collapsed;

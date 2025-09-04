@@ -13,10 +13,10 @@ import {
   ViewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormsModule } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { Router } from '@angular/router';
 import { AnyItem, MenuNode, SidebarItem } from '@core/models/menu.types';
 import { LayoutService } from '@core/services/layout.service';
+import { SHARED_IMPORTS } from '@shared/app-shared-imports';
 import { DEMO_MENU } from '@shared/mock/fake-menu';
 import { Subscription } from 'rxjs';
 
@@ -40,7 +40,7 @@ function getComposedPath(e: Event): EventTarget[] | undefined {
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, SHARED_IMPORTS],
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -355,7 +355,15 @@ export class SidebarComponent {
 
   private closeBranch(prefix: string): void {
     for (const k of Array.from(this.openSet)) {
-      if (k === prefix || k.startsWith(prefix + '.')) this.openSet.delete(k);
+      if (k === prefix || k.startsWith(prefix + '.')) {
+        this.openSet.delete(k);
+      }
+    }
+
+    for (const k of Array.from(this.forcedOpen)) {
+      if (k === prefix || k.startsWith(prefix + '.')) {
+        this.forcedOpen.delete(k);
+      }
     }
   }
 
@@ -375,6 +383,8 @@ export class SidebarComponent {
   }
 
   // ------------------ Handlers (expandido / colapsado) ------------------
+  // Modifica estos métodos en tu componente:
+
   onRootClick(ev: MouseEvent, node: MenuNode, rootIndex: number): void {
     if (this.hasChildren(node)) {
       ev.preventDefault();
@@ -388,13 +398,17 @@ export class SidebarComponent {
           );
       } else {
         const id = this.nodeId(null, rootIndex);
-        if (!this.accordionPerLevel) {
-          this.toggle(id);
-          return;
-        }
-        if (this.isOpen(id)) this.closeBranch(id);
-        else {
-          this.collapseSiblings(id);
+
+        // CAMBIO CLAVE: permitir cerrar incluso si está en forcedOpen
+        if (this.isOpen(id)) {
+          // Cerrar la rama
+          this.closeBranch(id);
+          // Remover también de forcedOpen si existe
+          this.forcedOpen.delete(id);
+        } else {
+          if (this.accordionPerLevel) {
+            this.collapseSiblings(id);
+          }
           this.openSet.add(id);
         }
       }
@@ -407,19 +421,45 @@ export class SidebarComponent {
     if (this.hasChildren(node)) {
       ev.preventDefault();
       if (!this.collapsedResolved) {
-        if (!this.accordionPerLevel) {
-          this.toggle(id);
-          return;
-        }
-        if (this.isOpen(id)) this.closeBranch(id);
-        else {
-          this.collapseSiblings(id);
+        // CAMBIO CLAVE: permitir cerrar incluso si está en forcedOpen
+        if (this.isOpen(id)) {
+          this.closeBranch(id);
+          // Remover también de forcedOpen si existe
+          this.forcedOpen.delete(id);
+        } else {
+          if (this.accordionPerLevel) {
+            this.collapseSiblings(id);
+          }
           this.openSet.add(id);
         }
       }
     } else {
       if (this.collapsedResolved) this.closePanel();
     }
+  }
+
+  // Método adicional para forzar el cierre de un nodo específico
+  forceClose(nodeId: string): void {
+    this.openSet.delete(nodeId);
+    this.forcedOpen.delete(nodeId);
+    this.closeBranch(nodeId);
+  }
+
+  // Modifica también el método closeBranch para limpiar forcedOpen
+
+  getActiveClass(node: MenuNode, nodeId: string): string | null {
+    // Si tiene hijos y está abierto, devolver 'active'
+    if (this.hasChildren(node) && this.isOpen(nodeId)) {
+      return 'active';
+    }
+
+    // Si NO tiene hijos, permitir que routerLinkActive maneje el estado
+    if (!this.hasChildren(node)) {
+      return 'active';
+    }
+
+    // Si tiene hijos pero está cerrado, no aplicar 'active'
+    return null;
   }
 
   // ------------------ Panel (colapsado) ------------------

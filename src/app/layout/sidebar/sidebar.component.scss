@@ -1,17 +1,13 @@
 /* =====================================
-   Sidebar + Flypanel (SCSS completo)
-   LINK al sistema de colores (ThemeService / --shell-* / --bs-*)
+   Sidebar + Flypanel (SCSS organizado)
    ===================================== */
 
-/* ======== Variables (SASS) ======== */
+/* ======== Variables SASS ======== */
 $w-expanded: 224px;
 $w-collapsed: 72px;
-/* riel conserva border-color del tema */
-$rail-color: var(--bs-border-color, rgba(0, 0, 0, 0.15));
 
-/* ======== Tokens CSS del Sidebar (scoped) ======== */
+/* ======== Tokens CSS del Sidebar ======== */
 aside.sidebar {
-  /* Mapea primero a --shell- si existe; si no, cae a --bs- */
   --sb-bg: var(--shell-sidebar-bg, var(--bs-body-bg, #fff));
   --sb-fg: var(--shell-sidebar-fg, var(--bs-body-color, #212529));
   --sb-border: var(
@@ -19,8 +15,6 @@ aside.sidebar {
     var(--bs-border-color, rgba(0, 0, 0, 0.1))
   );
   --sb-accent: var(--shell-accent, var(--bs-primary, #0d6efd));
-
-  /* Derivados */
   --sb-hover-bg: var(
     --shell-sidebar-hover-bg,
     color-mix(in srgb, var(--sb-bg) 92%, var(--sb-accent) 8%)
@@ -29,7 +23,6 @@ aside.sidebar {
     --shell-sidebar-active-bg,
     color-mix(in srgb, var(--sb-bg) 88%, var(--sb-accent) 12%)
   );
-  /* Por defecto el texto activo usa el acento (como tu comportamiento actual) */
   --sb-active-fg: var(--shell-sidebar-active-fg, var(--sb-accent));
   --sb-muted-fg: var(
     --shell-sidebar-muted-fg,
@@ -39,17 +32,12 @@ aside.sidebar {
     --shell-focus-ring,
     color-mix(in srgb, var(--sb-accent) 35%, #fff)
   );
-
-  /* Z-index con fallback */
   --z-sidebar: var(--shell-z-sidebar, 1020);
   --z-sidebar-panel: var(--shell-z-sidebar-panel, 1030);
-
   width: auto;
 }
 
-/* =====================================
-   Sidebar base
-   ===================================== */
+/* ======== Sidebar Base ======== */
 .sidebar {
   position: relative;
   width: $w-expanded;
@@ -61,14 +49,19 @@ aside.sidebar {
   z-index: var(--z-sidebar);
   font-size: 13px;
 
+  /* Listas */
+  .root {
+    margin: 0 0 0 5px;
+    padding: 0;
+    list-style: none;
+  }
   .root,
   .submenu {
     list-style: none;
     padding-left: 0;
-    margin: 0;
   }
 
-  /* Enlaces comunes */
+  /* Enlaces base */
   .link,
   .sub-link,
   .dropdown-like {
@@ -85,27 +78,66 @@ aside.sidebar {
   .link:hover,
   .sub-link:hover,
   .dropdown-like:hover {
-    background: var(--sb-hover-bg);
+    background: #fbfbfb;
   }
 
-  .link.active,
-  .sub-link.active {
-    background: var(--sb-active-bg);
-    color: var(--sb-active-fg);
-    font-weight: 600;
+  /* Estilos específicos del root */
+  ul.root {
+    color: #737373;
+
+    li.item > a:hover {
+      color: #262626;
+    }
+    li.has-children.open > a.active {
+      color: #262626;
+    }
+    li.subitem > a:hover {
+      color: #262626;
+    }
+    li.item.has-children > ul.submenu.depth-1 {
+      background: #fbfbfb;
+      box-shadow:
+        inset 0 4px 4px -2px #00000026,
+        inset 0 -4px 4px -2px #00000026;
+    }
+    li.item.has-children.open {
+      ul.submenu.depth-1 > li.subitem.has-children.open > ul.submenu.depth-2 {
+        border-width: 1px 0;
+        border-style: solid;
+        border-color: #eee;
+        background: #fbfbfb;
+      }
+    }
   }
+  /* Estados activos */
+  /* Sombra para el primer sub-link de cada submenu */
+  ul > li.item.has-children.open > ul > li:nth-child(1) > a.active {
+    box-shadow: inset 0 4px 4px -2px #00000026;
+  }
+
   .link[aria-expanded="true"],
   .sub-link[aria-expanded="true"] {
     color: var(--sb-active-fg);
     font-weight: 600;
   }
-
-  /* Background degradado por niveles - SOLO activos */
   .submenu.depth-1 .sub-link.active {
-    background: color-mix(in srgb, var(--sb-accent) 6%, transparent);
+    background: rgb(245, 245, 245);
+    color: #262626 !important;
   }
   .submenu.depth-2 .sub-link.active {
-    background: transparent;
+    background: #f5f5f5;
+  }
+
+  /* Enlaces activos en general */
+  .link.active,
+  .sub-link.active {
+    color: #262626;
+  }
+
+  /* Asegurar que los activos en depth-1 mantengan su fondo */
+  .sidebar .submenu.depth-1 .sub-link.active {
+    background: #fbfbfb !important;
+    color: #262626 !important;
   }
 
   /* Iconos */
@@ -138,166 +170,19 @@ aside.sidebar {
     opacity: 1;
   }
 
-  /* ===== Expandido ===== */
-  &:not(.collapsed) {
-    .submenu {
-      margin: 0.25rem 0;
-    }
-
-    /* Riel vertical por profundidad */
-    .submenu.depth-1,
-    .submenu.depth-2,
-    .submenu.depth-3,
-    .submenu.depth-4,
-    .submenu.depth-5 {
-      position: relative;
-      &::before {
-        content: "";
-        position: absolute;
-        left: 0.5rem;
-        top: 0.5rem;
-        bottom: 0.5rem;
-        width: 1px;
-        background: $rail-color;
-        pointer-events: none;
-      }
-    }
-
-    /* Sangrías */
-    .submenu.depth-1 {
-      padding-left: 0.75rem;
-    }
-    .submenu.depth-2,
-    .submenu.depth-3 {
-      padding-left: 0.5rem;
-      margin-left: 0.25rem;
-    }
-
-    /* Atenuar riel con profundidad */
-    .submenu.depth-1::before {
-      opacity: 0.55;
-    }
-    .submenu.depth-2::before {
-      opacity: 0.4;
-    }
-    .submenu.depth-3::before {
-      opacity: 0.28;
-    }
-    .submenu.depth-4::before {
-      opacity: 0.2;
-    }
-
-    /* Sin bordes para TODOS los hijos */
-    .submenu .sub-link,
-    .submenu .subitem.has-children:not(.open) > .sub-link {
-      background: transparent;
-      border: 0;
-      border-radius: 0;
-    }
-
-    /* ===== Barra de acento SOLO en nodos con hijos y EXPANDIDOS ===== */
-    .link::before,
-    .sub-link::before {
-      content: none;
-    }
-
-    /* Nivel 0 */
-    .item.has-children.open > .link,
-    .item.has-children > .link[aria-expanded="true"] {
-      position: relative;
-      &::before {
-        content: "";
-        position: absolute;
-        left: 0.25rem;
-        top: 6px;
-        bottom: 6px;
-        width: 4px;
-        border-radius: 4px;
-        background: var(--sb-accent);
-        pointer-events: none;
-        z-index: 0;
-      }
-    }
-
-    /* Niveles hijos */
-    .subitem.has-children.open > .sub-link,
-    .subitem.has-children > .sub-link[aria-expanded="true"] {
-      position: relative;
-      &::before {
-        content: "";
-        position: absolute;
-        left: 0.25rem;
-        top: 6px;
-        bottom: 6px;
-        width: 4px;
-        border-radius: 4px;
-        background: var(--sb-accent);
-        pointer-events: none;
-        z-index: 0;
-      }
-    }
-
-    /* Chevrons sutiles */
-    .submenu .subitem.has-children .ms-auto {
-      opacity: 0.6;
-    }
-    .submenu .subitem.has-children.open .ms-auto {
-      opacity: 0.9;
-    }
-
-    /* Hover leve niveles altos */
-    .submenu.depth-3 .sub-link:hover,
-    .submenu.depth-4 .sub-link:hover {
-      background: color-mix(in srgb, var(--sb-bg) 96%, #000 4%);
-    }
+  /* Alto de filas */
+  .root > .item a {
+    height: 38px;
   }
 
-  /* ===== Colapsado ===== */
-  &.collapsed {
-    width: $w-collapsed;
-
-    .item {
-      position: relative;
-    }
-    .link {
-      justify-content: center;
-      gap: 0;
-      padding-left: 0.5rem;
-      padding-right: 0.5rem;
-      position: relative;
-    }
-
-    .chevron-collapsed {
-      position: absolute;
-      right: 8px;
-      top: 50%;
-      transform: translateY(-50%);
-      opacity: 0.75;
-      pointer-events: none;
-      font-size: 1rem;
-    }
-    .item:hover .chevron-collapsed {
-      opacity: 1;
-    }
-
-    /* Nunca mostrar barras en modo colapsado */
-    .link::before,
-    .sub-link::before {
-      content: none !important;
-    }
-  }
-
-  /* Quitar cualquier ::after de <a> */
+  /* Limpiar pseudo-elementos de enlaces */
+  .link::before,
   .link::after,
+  .sub-link::before,
   .sub-link::after,
   .dropdown-like::after,
   a::after {
     content: none !important;
-  }
-
-  /* Alto de filas de nivel 0 */
-  .root > .item a {
-    height: 50px;
   }
 
   /* Accesibilidad */
@@ -308,62 +193,126 @@ aside.sidebar {
   }
 }
 
-/* =====================================
-   Panel Único (colapsado)
-   ===================================== */
-.flypanel-backdrop {
-  position: fixed;
-  inset: 0;
-  background: transparent;
-  z-index: calc(var(--z-sidebar-panel) - 1);
-}
-.flypanel {
-  position: fixed;
-  min-width: 260px;
-  max-width: 360px;
-  max-height: calc(100vh - 24px);
-  /* SIN overflow aquí: el scroll va en .panel-scroll */
-  background: var(--sb-bg);
-  border: 1px solid var(--sb-border);
-  border-radius: 0.5rem;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-  z-index: var(--z-sidebar-panel);
-}
-.flypanel-header {
-  display: flex;
-  align-items: center;
-  border-bottom: 1px solid var(--sb-border);
-  .title {
-    line-height: 1.25rem;
-    font-size: 13px;
+/* ======== Sidebar Expandido ======== */
+.sidebar:not(.collapsed) {
+  width: $w-expanded;
+
+  /* Contenedores de submenu */
+  .submenu.depth-1 {
+    position: relative;
+    overflow: visible;
+    background: #fbfbfb;
   }
-  .btn {
-    color: inherit;
+  .submenu.depth-2 {
+    position: relative;
+    background: #f5f5f5;
+    margin-left: -1.5rem;
+
+    li {
+      padding-left: 2.1rem;
+    }
   }
-}
-.panel-list {
-  list-style: none;
-  margin: 0;
-  padding: 0.25rem 0;
-  .panel-item .dropdown-like {
+
+  /* Sangrías */
+  .submenu.depth-1 > li.depth-1 {
+    padding-left: 1.2rem;
+  }
+  .submenu.depth-2,
+  .submenu.depth-3 {
+    padding-left: 1.2rem;
+  }
+
+  /* Sin bordes en subelementos */
+  .submenu .sub-link,
+  .submenu .subitem.has-children:not(.open) > .sub-link {
+    background: transparent;
+    border: 0;
     border-radius: 0;
   }
-  .panel-item:first-child .dropdown-like {
-    padding-top: 0.5rem;
+
+  /* Chevrons sutiles */
+  .submenu .subitem.has-children .ms-auto {
+    opacity: 0.6;
   }
-  .panel-item:last-child .dropdown-like {
-    padding-bottom: 0.5rem;
+  .submenu .subitem.has-children.open .ms-auto {
+    opacity: 0.9;
+  }
+
+  /* Hover en niveles profundos */
+  .submenu.depth-3 .sub-link:hover,
+  .submenu.depth-4 .sub-link:hover {
+    background: color-mix(in srgb, var(--sb-bg) 96%, #000 4%);
   }
 }
 
-/* Ocultar cuando layout colapsa por servicio externo */
-:host-context(.sidebar-collapsed) .hide-when-sidebar-collapsed {
-  display: none !important;
+/* ======== Rieles Verticales ======== */
+
+/* Riel principal depth-1 */
+li.subitem.depth-1.has-children.open ul.submenu.depth-1::after,
+li.item.has-children.open ul.submenu.depth-1::after {
+  content: "";
+  position: absolute;
+  left: 23px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  border-left: 1px solid #e2e2e2;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.55;
+  display: block;
 }
 
-/* Buscador (sidebar expandida) */
-.search-container {
-  height: 50px;
+/* Ocultador en depth-2 - mismo color de su fondo */
+ul.submenu.depth-2::before {
+  content: "";
+  position: absolute;
+  left: 27px;
+  top: 0;
+  bottom: -2px;
+  width: 1px;
+  background: #fbfbfb; /* mismo color que depth-2 */
+  pointer-events: none;
+  z-index: 1;
+  display: block;
+}
+
+/* ======== Sidebar Colapsado ======== */
+.sidebar.collapsed {
+  width: $w-collapsed;
+
+  .item {
+    position: relative;
+  }
+  .link {
+    justify-content: center;
+    gap: 0;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    position: relative;
+  }
+  .chevron-collapsed {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.75;
+    pointer-events: none;
+    font-size: 1rem;
+  }
+  .item:hover .chevron-collapsed {
+    opacity: 1;
+  }
+  .link::before,
+  .sub-link::before {
+    content: none !important;
+  }
+}
+
+/* ======== Búsqueda ======== */
+.search-container,
+.search-area {
+  height: 38px;
 }
 .sidebar .item.meta .link {
   pointer-events: none;
@@ -377,19 +326,17 @@ aside.sidebar {
   padding: 0.05rem 0.25rem;
   border-radius: 0.2rem;
 }
-.search-area {
-  height: 50px;
-}
 
-/* ===== Lupa en modo colapsado (estilo permanente activo) ===== */
+/* Búsqueda en modo colapsado */
 .collapsed-search {
   padding: 0;
   border-bottom: 1px solid var(--sb-border);
+
   .link {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    height: 50px;
+    height: 38px;
     width: 100%;
     padding: 0 1rem;
     background: transparent;
@@ -397,6 +344,7 @@ aside.sidebar {
     border-radius: 0;
     color: var(--sb-fg);
     text-decoration: none;
+
     &:hover {
       background: var(--sb-hover-bg);
       color: var(--sb-fg);
@@ -408,66 +356,99 @@ aside.sidebar {
     }
   }
 }
+
 aside.sidebar .collapsed-search {
   background: transparent !important;
-}
-aside.sidebar .collapsed-search:hover {
-  background: transparent !important;
-}
-aside.sidebar .collapsed-search .link.active-static {
-  background: var(--sb-active-bg) !important;
-  color: var(--sb-active-fg) !important;
-  box-shadow: none !important;
-  outline: 0 !important;
-}
-aside.sidebar .collapsed-search .link.active-static:hover,
-aside.sidebar .collapsed-search:hover .link.active-static,
-aside.sidebar .collapsed-search .link.active-static:focus,
-aside.sidebar .collapsed-search .link.active-static:active {
-  background: var(--sb-active-bg) !important;
-  color: var(--sb-active-fg) !important;
-  text-decoration: none !important;
-  box-shadow: none !important;
-  outline: 0 !important;
-}
-aside.sidebar .collapsed-search .link {
-  height: 50px;
+
+  &:hover {
+    background: transparent !important;
+  }
+  .link.active-static {
+    background: var(--sb-active-bg) !important;
+    color: var(--sb-active-fg) !important;
+    box-shadow: none !important;
+    outline: 0 !important;
+
+    &:hover,
+    &:focus,
+    &:active {
+      background: var(--sb-active-bg) !important;
+      color: var(--sb-active-fg) !important;
+      text-decoration: none !important;
+      box-shadow: none !important;
+      outline: 0 !important;
+    }
+  }
+  .link {
+    height: 38px;
+  }
 }
 
-/* =====================================
-   Flypanel de búsqueda: scroll interno
-   ===================================== */
-/* Scrollbar delgada sólo DENTRO del contenedor scrolleable del panel */
-.flypanel .panel-scroll {
-  scrollbar-width: thin; /* Firefox */
-  scrollbar-color: color-mix(in srgb, var(--sb-accent) 25%, #999) transparent;
+aside.sidebar .collapsed-search:hover .link.active-static {
+  background: var(--sb-active-bg) !important;
+  color: var(--sb-active-fg) !important;
 }
-.flypanel .panel-scroll::-webkit-scrollbar {
-  width: 8px;
-}
-.flypanel .panel-scroll::-webkit-scrollbar-track {
+
+/* ======== Flypanel ======== */
+.flypanel-backdrop {
+  position: fixed;
+  inset: 0;
   background: transparent;
-}
-.flypanel .panel-scroll::-webkit-scrollbar-thumb {
-  background-color: color-mix(in srgb, var(--sb-accent) 35%, #aaa);
-  border-radius: 6px;
-  border: 2px solid transparent;
-}
-.flypanel .panel-scroll::-webkit-scrollbar-thumb:hover {
-  background-color: color-mix(in srgb, var(--sb-accent) 55%, #888);
+  z-index: calc(var(--z-sidebar-panel) - 1);
 }
 
-/* El body del panel no scrollea; el scroll vive en .panel-scroll */
-.flypanel .panel-body {
+.flypanel {
+  position: fixed;
+  min-width: 260px;
+  max-width: 360px;
+  max-height: calc(100vh - 24px);
+  background: var(--sb-bg);
+  border: 1px solid var(--sb-border);
+  border-radius: 0.5rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  z-index: var(--z-sidebar-panel);
+}
+
+.flypanel-header {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--sb-border);
+
+  .title {
+    line-height: 1.25rem;
+    font-size: 13px;
+  }
+  .btn {
+    color: inherit;
+  }
+}
+
+.panel-list {
+  list-style: none;
+  margin: 0;
+  padding: 0.25rem 0;
+
+  .panel-item .dropdown-like {
+    border-radius: 0;
+  }
+  .panel-item:first-child .dropdown-like {
+    padding-top: 0.5rem;
+  }
+  .panel-item:last-child .dropdown-like {
+    padding-bottom: 0.5rem;
+  }
+}
+
+.panel-body {
   overflow: visible;
 }
 
-/* Altura del área scrolleable calculada (no afecta a otros flypanels) */
+/* Scroll interno del panel */
 .flypanel .panel-scroll {
-  --fp-safe: 24px; /* márgenes externos del panel */
-  --fp-header: 44px; /* alto aprox. del header */
-  --fp-search: 40px; /* alto aprox. del input + paddings */
-  --fp-footer: 68px; /* alto del footer (meta + botones) */
+  --fp-safe: 24px;
+  --fp-header: 44px;
+  --fp-search: 40px;
+  --fp-footer: 68px;
 
   max-height: calc(
     60vh - var(--fp-safe) - var(--fp-header) - var(--fp-search) - var(
@@ -477,9 +458,27 @@ aside.sidebar .collapsed-search .link {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--sb-accent) 25%, #999) transparent;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: color-mix(in srgb, var(--sb-accent) 35%, #aaa);
+    border-radius: 6px;
+    border: 2px solid transparent;
+
+    &:hover {
+      background-color: color-mix(in srgb, var(--sb-accent) 55%, #888);
+    }
+  }
 }
 
-/* Footer centrado y fijo al fondo del panel */
+/* Footer del panel */
 .flypanel .panel-footer.center {
   position: sticky;
   bottom: 0;
@@ -494,22 +493,51 @@ aside.sidebar .collapsed-search .link {
   background: var(--sb-bg);
   border-top: 1px solid var(--sb-border);
   padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0));
-}
-.flypanel .panel-footer.center .actions {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: center;
-  flex-wrap: wrap;
+
+  .actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .btn {
+    --bs-btn-color: #fff;
+    --bs-btn-bg: var(--sb-accent);
+    --bs-btn-border-color: var(--sb-accent);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: color-mix(in srgb, var(--sb-accent) 92%, #000 8%);
+    --bs-btn-hover-border-color: color-mix(
+      in srgb,
+      var(--sb-accent) 90%,
+      #000 10%
+    );
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: color-mix(in srgb, var(--sb-accent) 82%, #000 18%);
+    --bs-btn-active-border-color: color-mix(
+      in srgb,
+      var(--sb-accent) 80%,
+      #000 20%
+    );
+    --bs-btn-disabled-color: #fff;
+    --bs-btn-disabled-bg: color-mix(in srgb, var(--sb-accent) 60%, #bbb 40%);
+    --bs-btn-disabled-border-color: var(--bs-btn-disabled-bg);
+    --bs-btn-padding-x: 0.9rem;
+    --bs-btn-padding-y: 0.45rem;
+    --bs-btn-border-radius: 9999px;
+
+    &:focus-visible {
+      box-shadow: 0 0 0 0.2rem var(--sb-focus-ring);
+    }
+  }
 }
 
-/* =========================
-   Flypanel: modo compacto (opcional)
-   ========================= */
+/* ======== Flypanel Compacto ======== */
 .flypanel.compact {
   .flypanel-header {
     min-height: 36px;
     padding-top: 0.25rem !important;
     padding-bottom: 0.25rem !important;
+
     .title {
       font-size: 0.875rem;
       line-height: 1.15;
@@ -551,46 +579,40 @@ aside.sidebar .collapsed-search .link {
       transparent
     );
   }
-}
-.flypanel.compact.hide-icons .fa {
-  display: none;
-}
-/* =========================
-   Flypanel: unificar color de botones
-   ========================= */
-.flypanel .panel-footer.center .btn {
-  /* Usa el acento del sidebar (→ shell-accent → bs-primary) */
-  --bs-btn-color: #fff;
-  --bs-btn-bg: var(--sb-accent);
-  --bs-btn-border-color: var(--sb-accent);
 
-  --bs-btn-hover-color: #fff;
-  --bs-btn-hover-bg: color-mix(in srgb, var(--sb-accent) 92%, #000 8%);
-  --bs-btn-hover-border-color: color-mix(
-    in srgb,
-    var(--sb-accent) 90%,
-    #000 10%
-  );
-
-  --bs-btn-active-color: #fff;
-  --bs-btn-active-bg: color-mix(in srgb, var(--sb-accent) 82%, #000 18%);
-  --bs-btn-active-border-color: color-mix(
-    in srgb,
-    var(--sb-accent) 80%,
-    #000 20%
-  );
-
-  --bs-btn-disabled-color: #fff;
-  --bs-btn-disabled-bg: color-mix(in srgb, var(--sb-accent) 60%, #bbb 40%);
-  --bs-btn-disabled-border-color: var(--bs-btn-disabled-bg);
-
-  /* opcional: micro-ajustes de tamaño/forma */
-  --bs-btn-padding-x: 0.9rem;
-  --bs-btn-padding-y: 0.45rem;
-  --bs-btn-border-radius: 9999px; /* pastilla */
+  &.hide-icons .fa {
+    display: none;
+  }
 }
 
-/* Si quieres que el focus use tu ring del tema */
-.flypanel .panel-footer.center .btn:focus-visible {
-  box-shadow: 0 0 0 0.2rem var(--sb-focus-ring);
+/* ======== Utilidades ======== */
+:host-context(.sidebar-collapsed) .hide-when-sidebar-collapsed {
+  display: none !important;
+}
+
+/* ======== Pseudo-elemento para enlaces depth-1 ======== */
+/* Volver al posicionamiento en el li, pero mejorado */
+li.subitem.depth-1 {
+  position: relative;
+}
+
+li.subitem.depth-1::before {
+  content: "";
+  display: block;
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  left: 21px;
+  top: 24px; /* Posición fija en lugar de 50% para evitar que se mueva */
+  background-color: #fff;
+  border: 1px solid #e2e2e2;
+  z-index: 2;
+}
+
+a.sub-link.depth-1 {
+  padding-left: 30% !important;
+  margin-left: -15%;
+}
+
+a.sub-link.submenu.depth-1.active {
 }

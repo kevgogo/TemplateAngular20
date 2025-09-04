@@ -1,10 +1,7 @@
 <nav class="navbar navbar-expand navbar-dark" [class.fixed-top]="isNavFixed()">
   <div class="container-fluid">
     <div class="d-flex align-items-center">
-      <a
-        class="navbar-brand d-flex align-items-center fw-bold"
-        routerLink="/home"
-      >
+      <a class="navbar-brand d-flex align-items-center" routerLink="/home">
         <img
           src="../../../assets/picasso/logo-picasso.png"
           alt="Logo"
@@ -48,7 +45,7 @@
         >
           <h6 class="dropdown-header mb-2">
             <span class="d-block text-wrap" title="kegomez@sunshinebouquet.com">
-              kegomez@sunshinebouquet.com
+              kegomezsunshinebouquet.com
             </span>
           </h6>
 
@@ -56,20 +53,20 @@
 
           <div class="skin-grid mx-auto">
             @for (skin of SKINS; track $index) {
-            <button
-              type="button"
-              class="skin-swatch btn p-0 position-relative"
-              (click)="theme.setSkin(skin.name)"
-              [class.active]="theme.skin() === skin.name"
-              [style.--swatch-bg]="skin.hex"
-              title="{{ skin.label }}"
-            >
-              @if (theme.skin() === skin.name) {
-              <i
-                class="fa fa-check-lg position-absolute top-50 start-50 translate-middle"
-              ></i>
-              }
-            </button>
+              <button
+                type="button"
+                class="skin-swatch btn p-0 position-relative"
+                (click)="theme.setSkin(skin.name)"
+                [class.active]="theme.skin() === skin.name"
+                [style.--swatch-bg]="skin.hex"
+                title="{{ skin.label }}"
+              >
+                @if (theme.skin() === skin.name) {
+                  <i
+                    class="fa fa-check-lg position-absolute top-50 start-50 translate-middle"
+                  ></i>
+                }
+              </button>
             }
           </div>
 
