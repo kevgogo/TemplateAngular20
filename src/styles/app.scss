@@ -1,0 +1,169 @@
+/* =============================================================================
+   app.scss — Único entrypoint de estilos (TemplateAngular20)
+   -----------------------------------------------------------------------------
+   - Carga tokens (colores + tipografía)
+   - Define layout/base/bridge de tema
+   - Ajustes suaves para DevExtreme y utilidades
+   - Sin !important
+   ============================================================================= */
+
+/* 0) Puntos de verdad (usa rutas relativas dentro de src/styles) */
+@use "./colors" as *; /* palettes + skins por [data-skin] */
+@use "./typography" as *; /* tipografía base 13px + escala rem */
+// TODO: Pendientes de ajustar
+@use "./dx-overrides" as *; /* Estilos para Dev Extreme */
+
+/* 1) Tokens de layout (solo si no los tienes en otro archivo) */
+:root {
+  /* Alturas/z-index del shell */
+  --nav-h: 56px; /* navbar/headbar */
+  --bc-h: 34px; /* breadcrumbs */
+  --footer-h: 32px;
+  --card-radius: 0.75rem;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.08);
+
+  /* Sidebar */
+  --sb-w: 256px;
+  --sb-w-collapsed: 72px;
+  --sb-bg: #0f172a; /* opcional: mapea a un tono de tu skin */
+  --sb-color: #e2e8f0;
+
+  /* Z-index */
+  --z-1: 1;
+  --z-10: 10;
+  --z-50: 50;
+  --z-100: 100;
+  --z-1000: 1000;
+}
+
+/* 2) Base mínima / reset ligero */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+html,
+body {
+  height: 100%;
+}
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* 3) Bridge de tema (BS3 → BS5 y ajustes suaves) */
+.btn-default {
+  /* legado */
+  @supports (color: var(--bs-body-color)) {
+    color: var(--bs-body-color);
+    background-color: var(--bs-secondary-bg, #e9ecef);
+    border-color: var(--bs-border-color, #dee2e6);
+  }
+}
+.panel {
+  /* legado */
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow-sm);
+}
+.panel-heading {
+  font-weight: 600;
+}
+.panel-body {
+  padding: 1rem;
+}
+
+/* Tabs activos con color del skin */
+.nav-tabs .nav-link.active {
+  color: var(--bs-primary);
+  border-color: var(--bs-primary);
+}
+
+/* 4) Shell (contenedores principales) */
+.app-shell {
+  min-height: 100dvh;
+  display: grid;
+  grid-template-rows: var(--nav-h) var(--bc-h) 1fr var(--footer-h);
+}
+.app-navbar {
+  height: var(--nav-h);
+  box-shadow: var(--shadow-sm);
+}
+.app-breadcrumbs {
+  height: var(--bc-h);
+  display: flex;
+  align-items: center;
+}
+.app-content {
+  padding: 1rem;
+}
+.app-footer {
+  height: var(--footer-h);
+  display: flex;
+  align-items: center;
+}
+
+/* 5) Sidebar */
+.app-sidebar {
+  width: var(--sb-w);
+  background: var(--sb-bg);
+  color: var(--sb-color);
+}
+.app-sidebar.is-collapsed {
+  width: var(--sb-w-collapsed);
+}
+
+/* 6) Component surfaces (genéricas) */
+.card {
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow-sm);
+}
+.modal-content {
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow-md);
+}
+
+/* 7) DevExtreme — ajustes sin !important */
+.dx-widget {
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-base);
+}
+.dx-datagrid .dx-datagrid-headers {
+  font-weight: 600;
+}
+.dx-datagrid-rowsview .dx-row td[data-type="number"] {
+  text-align: right;
+}
+
+/* 8) Utilidades suaves */
+.text-muted-2 {
+  opacity: 0.75;
+}
+.w-xxs {
+  width: 8rem;
+}
+.w-xs {
+  width: 12rem;
+}
+.w-sm {
+  width: 16rem;
+}
+
+/* 9) Estado vacío estándar */
+.app-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  color: var(--bs-secondary-color, #6c757d);
+}
+
+/* 10) Impresión */
+@media print {
+  .app-sidebar,
+  .app-navbar,
+  .app-breadcrumbs,
+  .app-footer {
+    display: none;
+  }
+}

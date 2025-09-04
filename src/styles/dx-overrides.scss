@@ -1,0 +1,249 @@
+/* =============================================================================
+   DevExtreme overrides – TemplateAngular20
+   -----------------------------------------------------------------------------
+   Filosofía: usar tokens de colores/tipografía ya definidos en
+   colors.scss y typography.scss. Sin !important. Sin acoplar a skins 
+   específicos (funciona con [data-skin]).
+   ============================================================================= */
+
+/* 1) Base para todos los widgets */
+.dx-widget {
+  font-family: inherit;
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-base);
+  color: var(--bs-body-color, #212529);
+}
+
+/* 2) Button */
+.dx-button {
+  border-radius: var(--card-radius);
+}
+.dx-button .dx-button-content {
+  padding: 0.5rem 0.875rem;
+}
+.dx-button-mode-contained .dx-button-content {
+  font-weight: 600;
+}
+.dx-button-mode-contained.dx-button-default {
+  background-color: var(--bs-primary, #0d6efd);
+  border-color: var(--bs-primary, #0d6efd);
+}
+.dx-button-mode-contained.dx-button-default:hover {
+  filter: brightness(0.98);
+}
+.dx-button-mode-outlined {
+  border-color: var(--bs-primary, #0d6efd);
+  color: var(--bs-primary, #0d6efd);
+}
+.dx-button-mode-text {
+  color: var(--bs-link-color, #0d6efd);
+}
+
+/* 3) Focus ring accesible */
+.dx-state-focused,
+.dx-widget .dx-state-focused {
+  outline: 2px solid var(--bs-focus-ring-color, rgba(13, 110, 253, 0.25));
+  outline-offset: 2px;
+}
+
+/* 4) DataGrid */
+.dx-datagrid {
+  border-color: var(--bs-border-color, #dee2e6);
+}
+.dx-datagrid .dx-datagrid-headers {
+  background: var(--bs-secondary-bg, #f1f3f5);
+  color: var(--bs-secondary-color, #6c757d);
+  font-weight: 600;
+}
+.dx-datagrid-headers .dx-row > td {
+  padding: 0.6rem 0.75rem;
+}
+.dx-datagrid-rowsview .dx-row > td {
+  padding: 0.55rem 0.75rem;
+}
+.dx-datagrid-rowsview .dx-row-alternation {
+  background-color: var(--bs-tertiary-bg, #f8f9fa);
+}
+.dx-datagrid-rowsview .dx-row:hover td {
+  background-color: color-mix(
+    in srgb,
+    var(--bs-primary, #0d6efd) 8%,
+    transparent
+  );
+}
+.dx-datagrid-rowsview .dx-row-focused > td {
+  outline: 2px solid var(--bs-focus-ring-color, rgba(13, 110, 253, 0.25));
+  outline-offset: -2px; /* encaja dentro de la celda */
+}
+.dx-datagrid-rowsview .dx-selection > td,
+.dx-datagrid-rowsview .dx-selection.dx-row:hover > td {
+  background-color: color-mix(
+    in srgb,
+    var(--bs-primary, #0d6efd) 15%,
+    transparent
+  );
+  color: inherit;
+}
+.dx-datagrid-rowsview td[data-type="number"],
+.dx-datagrid-rowsview .text-end-number,
+.dx-datagrid-headers td[data-type="number"] {
+  text-align: right;
+}
+
+/* Estado vacío */
+.dx-datagrid .dx-datagrid-nodata {
+  color: var(--bs-secondary-color, #6c757d);
+  padding: 1.25rem 1rem;
+}
+
+/* Paginación */
+.dx-pager {
+  border-top: 1px solid var(--bs-border-color, #dee2e6);
+  padding: 0.5rem 0.75rem;
+}
+.dx-pager .dx-page,
+.dx-pager .dx-next-button,
+.dx-pager .dx-prev-button {
+  border-radius: 0.5rem;
+}
+.dx-pager .dx-page.dx-selection {
+  background: var(--bs-primary, #0d6efd);
+  color: #fff;
+}
+
+/* Tamaño compacto opcional */
+.dx-size-compact .dx-datagrid-headers .dx-row > td {
+  padding: 0.4rem 0.5rem;
+}
+.dx-size-compact .dx-datagrid-rowsview .dx-row > td {
+  padding: 0.35rem 0.5rem;
+}
+
+/* 5) Form */
+.dx-form .dx-field-item-label-text::after {
+  /* requerido */
+  content: attr(data-required-mark);
+  color: var(--bs-danger, #dc3545);
+  margin-left: 0.25rem;
+}
+.dx-form .dx-item-required-mark {
+  color: var(--bs-danger, #dc3545);
+}
+.dx-form .dx-field-item-label-text {
+  font-weight: 600;
+}
+.dx-form .dx-field-item-help-text {
+  color: var(--bs-secondary-color, #6c757d);
+}
+.dx-form .dx-texteditor-input,
+.dx-datebox .dx-texteditor-input {
+  font: inherit;
+}
+
+/* 6) Editors (inputs/selects) */
+.dx-texteditor,
+.dx-selectbox,
+.dx-tagbox,
+.dx-datebox,
+.dx-numberbox {
+  border-radius: 0.5rem;
+}
+.dx-texteditor.dx-state-hover,
+.dx-selectbox.dx-state-hover {
+  filter: brightness(0.99);
+}
+.dx-texteditor.dx-state-focused,
+.dx-selectbox.dx-state-focused {
+  box-shadow: 0 0 0 0.25rem var(--bs-focus-ring-color, rgba(13, 110, 253, 0.25));
+}
+.dx-invalid .dx-texteditor-input,
+.dx-invalid .dx-texteditor-container {
+  border-color: var(--bs-danger, #dc3545);
+}
+.dx-valid .dx-texteditor-container {
+  border-color: var(--bs-success, #198754);
+}
+
+/* 7) Popup / Modal */
+.dx-popup .dx-overlay-content {
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow-md, 0 4px 10px rgba(0, 0, 0, 0.08));
+  background: var(--bs-body-bg, #fff);
+}
+.dx-popup-title {
+  font-weight: 600;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--bs-border-color, #dee2e6);
+}
+.dx-popup-content {
+  padding: 1rem;
+}
+
+/* 8) Toolbar / Tooltip / Toast */
+.dx-toolbar {
+  background: var(--bs-body-bg, #fff);
+}
+.dx-tooltip-wrapper .dx-overlay-content {
+  border-radius: 0.5rem;
+}
+.dx-toast-content {
+  border-radius: 0.5rem;
+}
+.dx-toast-success {
+  background: var(--bs-success, #198754);
+  color: #fff;
+}
+.dx-toast-error {
+  background: var(--bs-danger, #dc3545);
+  color: #fff;
+}
+.dx-toast-warning {
+  background: var(--bs-warning, #ffc107);
+  color: #111;
+}
+.dx-toast-info {
+  background: var(--bs-info, #0dcaf0);
+  color: #111;
+}
+
+/* 9) TreeView */
+.dx-treeview-item {
+  border-radius: 0.375rem;
+}
+.dx-treeview-item.dx-state-hover {
+  background: color-mix(in srgb, var(--bs-primary, #0d6efd) 8%, transparent);
+}
+.dx-treeview-item.dx-state-selected {
+  background: color-mix(in srgb, var(--bs-primary, #0d6efd) 15%, transparent);
+}
+
+/* 10) Scheduler */
+.dx-scheduler-date-table-cell {
+  height: 2.25rem;
+}
+.dx-scheduler-appointment {
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, var(--bs-primary, #0d6efd) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--bs-primary, #0d6efd) 30%, #fff);
+}
+.dx-scheduler-appointment .dx-scheduler-appointment-content {
+  font-weight: 600;
+}
+.dx-scheduler-current-time-indicator {
+  background: var(--bs-danger, #dc3545);
+}
+
+/* 11) Validación resumen */
+.dx-validationsummary .dx-validationsummary-item {
+  color: var(--bs-danger, #dc3545);
+}
+
+/* 12) Preferencias de usuario */
+@media (prefers-reduced-motion: reduce) {
+  .dx-overlay-content,
+  .dx-button,
+  .dx-tooltip,
+  .dx-toast {
+    transition: none;
+  }
+}

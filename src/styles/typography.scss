@@ -1,0 +1,165 @@
+/* =============================================================================
+   Typography base – TemplateAngular20
+   -----------------------------------------------------------------------------
+   Objetivo: definir tipografía global (Open Sans 13px), escala en rem,
+   mapeo a tokens CSS/Bootstrap y ajustes no intrusivos para DevExtreme.
+   No usar !important. Mantener variables como punto único de verdad.
+   ============================================================================= */
+
+/* 1) Tokens globales de tipografía */
+:root {
+  /* Familias */
+  --font-family-sans:
+    "Open Sans", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, "Noto Sans", "Liberation Sans", "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", sans-serif;
+  --font-family-mono:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+
+  /* Tamaños base */
+  --font-size-base: 13px; /* Punto base = 1rem */
+  --line-height-base: 1.5; /* Recomendado para lecturabilidad */
+
+  /* Escala en rem (derivada del base) */
+  --font-size-xs: 0.75rem; /* 9.75px */
+  --font-size-sm: 0.875rem; /* 11.375px */
+  --font-size-md: 1rem; /* 13px */
+  --font-size-lg: 1.125rem; /* 14.625px */
+  --font-size-xl: 1.25rem; /* 16.25px */
+  --font-size-2xl: 1.5rem; /* 19.5px */
+  --font-size-3xl: 1.75rem; /* 22.75px */
+  --font-size-4xl: 2rem; /* 26px */
+
+  /* Headings */
+  --heading-line-height: 1.25;
+  --heading-weight: 600; /* Semibold por defecto */
+
+  /* Mapeo hacia tokens Bootstrap (opcional si usas BS) */
+  --bs-body-font-family: var(--font-family-sans);
+  --bs-body-font-size: var(--font-size-md);
+  --bs-body-line-height: var(--line-height-base);
+}
+
+/* 2) Seteo global – html/body */
+html {
+  font-size: var(--font-size-base);
+  text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-base);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 3) Headings semánticos – uso de escala + pesos coherentes */
+h1,
+.h1 {
+  font-size: var(--font-size-4xl);
+  line-height: var(--heading-line-height);
+  font-weight: var(--heading-weight);
+}
+h2,
+.h2 {
+  font-size: var(--font-size-3xl);
+  line-height: var(--heading-line-height);
+  font-weight: var(--heading-weight);
+}
+h3,
+.h3 {
+  font-size: var(--font-size-2xl);
+  line-height: var(--heading-line-height);
+  font-weight: var(--heading-weight);
+}
+h4,
+.h4 {
+  font-size: var(--font-size-xl);
+  line-height: var(--heading-line-height);
+  font-weight: var(--heading-weight);
+}
+h5,
+.h5 {
+  font-size: var(--font-size-lg);
+  line-height: var(--heading-line-height);
+  font-weight: var(--heading-weight);
+}
+h6,
+.h6 {
+  font-size: var(--font-size-md);
+  line-height: var(--heading-line-height);
+  font-weight: var(--heading-weight);
+}
+
+/* 4) Tipos y utilidades rápidas (sin colisionar con .fs-* de Bootstrap) */
+.lead {
+  font-size: var(--font-size-lg);
+  line-height: 1.6;
+}
+small,
+.text-small {
+  font-size: var(--font-size-sm);
+}
+.text-xs {
+  font-size: var(--font-size-xs);
+}
+.text-md {
+  font-size: var(--font-size-md);
+}
+.text-lg {
+  font-size: var(--font-size-lg);
+}
+.text-mono {
+  font-family: var(--font-family-mono);
+}
+
+/* 5) Formularios / inputs: heredan base sin !important */
+input,
+select,
+textarea,
+button {
+  font: inherit; /* hereda family, size y line-height */
+}
+
+/* 6) DevExtreme – alineación suave sin !important */
+.dx-widget,
+.dx-popup,
+.dx-tooltip,
+.dx-overlay-content,
+.dx-datagrid,
+.dx-scheduler,
+.dx-treeview,
+.dx-form {
+  font-family: inherit;
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-base);
+}
+.dx-button .dx-button-text,
+.dx-toolbar-label,
+.dx-datagrid .dx-datagrid-content .dx-row td,
+.dx-scheduler .dx-scheduler-appointment-content {
+  font-size: inherit; /* evita cascadas de tamaños inconsistentes */
+}
+
+/* 7) Tablas – numerales a la derecha como guía general (puedes ajustar en tu grid) */
+.table [data-type="number"],
+.table .text-end-number {
+  text-align: right;
+}
+
+/* 8) Accesibilidad: mantener tamaño mínimo legible en pantallas muy densas */
+@media (max-width: 360px) {
+  html {
+    font-size: 12px;
+  } /* mantiene legibilidad en móviles muy pequeños */
+}
+
+/* 9) Modo impresión – mejora claridad */
+@media print {
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
