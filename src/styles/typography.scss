@@ -19,7 +19,8 @@
 
   /* Tamaños base */
   --font-size-base: 13px; /* Punto base = 1rem */
-  --line-height-base: 1.5; /* Recomendado para lecturabilidad */
+  --line-height-base: 1.4286; /* Recomendado para lecturabilidad */
+  --bs-body-color: #444; /* igual a Transporte */
 
   /* Escala en rem (derivada del base) */
   --font-size-xs: 0.75rem; /* 9.75px */
@@ -33,12 +34,25 @@
 
   /* Headings */
   --heading-line-height: 1.25;
-  --heading-weight: 600; /* Semibold por defecto */
+  --heading-weight: 300; /* Semibold por defecto */
+  --heading-line-height: 1.25;
+  --heading-weight: 300; /* Light */
 
   /* Mapeo hacia tokens Bootstrap (opcional si usas BS) */
   --bs-body-font-family: var(--font-family-sans);
   --bs-body-font-size: var(--font-size-md);
   --bs-body-line-height: var(--line-height-base);
+
+  /* Tamaño base para DevExtreme */
+  --dx-font-size: 11px;
+
+  /* titulos */
+  --h1: 32px;
+  --h2: 26px;
+  --h3: 22px;
+  --h4: 18px;
+  --h5: 15px;
+  --h6: 13px;
 }
 
 /* 2) Seteo global – html/body */
@@ -51,46 +65,46 @@ body {
   font-family: var(--font-family-sans);
   font-size: var(--font-size-md);
   line-height: var(--line-height-base);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: auto;
+  -moz-osx-font-smoothing: auto;
 }
 
 /* 3) Headings semánticos – uso de escala + pesos coherentes */
 h1,
 .h1 {
-  font-size: var(--font-size-4xl);
-  line-height: var(--heading-line-height);
-  font-weight: var(--heading-weight);
+  font-size: var(--h1);
+  line-height: 1.25;
+  font-weight: 300;
 }
 h2,
 .h2 {
-  font-size: var(--font-size-3xl);
-  line-height: var(--heading-line-height);
-  font-weight: var(--heading-weight);
+  font-size: var(--h2);
+  line-height: 1.25;
+  font-weight: 300;
 }
 h3,
 .h3 {
-  font-size: var(--font-size-2xl);
-  line-height: var(--heading-line-height);
-  font-weight: var(--heading-weight);
+  font-size: var(--h3);
+  line-height: 1.25;
+  font-weight: 300;
 }
 h4,
 .h4 {
-  font-size: var(--font-size-xl);
-  line-height: var(--heading-line-height);
-  font-weight: var(--heading-weight);
+  font-size: var(--h4);
+  line-height: 1.25;
+  font-weight: 300;
 }
 h5,
 .h5 {
-  font-size: var(--font-size-lg);
-  line-height: var(--heading-line-height);
-  font-weight: var(--heading-weight);
+  font-size: var(--h5);
+  line-height: 1.25;
+  font-weight: 300;
 }
 h6,
 .h6 {
-  font-size: var(--font-size-md);
-  line-height: var(--heading-line-height);
-  font-weight: var(--heading-weight);
+  font-size: var(--h6);
+  line-height: 1.25;
+  font-weight: 300;
 }
 
 /* 4) Tipos y utilidades rápidas (sin colisionar con .fs-* de Bootstrap) */
@@ -135,12 +149,14 @@ button {
   font-family: inherit;
   font-size: var(--font-size-md);
   line-height: var(--line-height-base);
+  font-size: var(--dx-font-size);
 }
 .dx-button .dx-button-text,
 .dx-toolbar-label,
 .dx-datagrid .dx-datagrid-content .dx-row td,
 .dx-scheduler .dx-scheduler-appointment-content {
   font-size: inherit; /* evita cascadas de tamaños inconsistentes */
+  font-weight: 400;
 }
 
 /* 7) Tablas – numerales a la derecha como guía general (puedes ajustar en tu grid) */
