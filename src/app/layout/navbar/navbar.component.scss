@@ -1,3 +1,5 @@
+// navbar.component.scss - Actualizado para estructura de cajones
+
 nav {
   background: var(--app-primary);
   height: var(--navbar-h);
@@ -5,20 +7,275 @@ nav {
   line-height: var(--navbar-h);
 }
 
-/* Grilla exacta para los swatches */
+// ===== ESTRUCTURA DE CAJONES =====
+.navbar-inner {
+  padding: 0.5rem 0;
+  width: 100%;
+}
+
+.navbar-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.navbar-header.pull-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.navbar-header.pull-right {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+}
+
+// ===== SIDEBAR COLLAPSE =====
+.sidebar-collapse {
+  display: flex;
+  align-items: center;
+  margin-left: 1rem; /* Espaciado adicional como en Transporte */
+}
+
+.collapse-icon {
+  color: white;
+  font-size: 1.25rem;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0.75rem; /* Padding más grande para que se vea como en Transporte */
+  border-radius: 4px;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease;
+
+  &:hover {
+    color: #f8f9fa;
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25);
+  }
+}
+
+// ===== NAVBAR BRAND =====
+.navbar-brand {
+  color: white !important;
+  text-decoration: none;
+  font-weight: 200 !important; /* Extra light como en Navigation */
+  display: flex;
+  align-items: center;
+  max-width: 250px;
+  margin-right: unset;
+
+  &:hover {
+    color: #f8f9fa !important;
+  }
+
+  small {
+    display: flex;
+    align-items: center;
+    font-size: 1.275rem; /* 20.4px */
+    font-weight: 200 !important; /* Extra light - igual que Navigation */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 180px; /* Ancho fijo de 180px */
+
+    img {
+      height: 40px;
+      width: 40px;
+      margin-right: 0.5rem;
+      flex-shrink: 0;
+    }
+  }
+}
+
+// ===== ACCOUNT AREA =====
+.navbar-account {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  .account-area {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    li {
+      display: flex;
+      align-items: center;
+    }
+  }
+}
+
+.login-area {
+  display: flex;
+  align-items: center;
+  background: transparent;
+  border: none;
+  color: white;
+  text-decoration: none;
+
+  .avatar {
+    display: flex;
+    align-items: center;
+
+    img {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+    }
+  }
+
+  section {
+    margin-left: 0.5rem;
+
+    .profile {
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+  }
+}
+
+// ===== SETTINGS =====
+.setting {
+  display: flex;
+  align-items: center;
+  margin-left: 0.5rem;
+}
+
+// ===== BOTONES DE ICONOS =====
+.navbar .icon-btn {
+  --size: 36px;
+  min-width: var(--size);
+  height: var(--size);
+  padding: 0 0.75rem;
+  border: 0;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  color: white;
+  transition: color 0.2s ease;
+  white-space: nowrap;
+
+  &:hover {
+    color: #f8f9fa;
+  }
+
+  .fa {
+    display: block;
+    line-height: 1;
+    font-size: 1.5rem;
+  }
+
+  .fa-user-circle {
+    transform: translateY(0.5px);
+  }
+
+  p {
+    font-size: 0.875rem;
+    font-weight: 400;
+    margin: 0; /* Eliminar márgenes del p */
+    margin-right: 0.75rem;
+    line-height: 1.5rem; /* Altura de línea para centrar verticalmente */
+    display: flex;
+    align-items: center; /* Centrar contenido del p */
+  }
+}
+
+// ===== DROPDOWNS =====
+.dropdown-arrow {
+  position: relative;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: -8px;
+    right: 12px;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-bottom: 8px solid var(--bs-dropdown-bg, #fff);
+  }
+}
+
+.dropdown-login-area {
+  min-width: 280px;
+
+  .username,
+  .email {
+    list-style: none;
+    padding: 0.25rem 0;
+  }
+
+  .avatar-area {
+    text-align: center;
+    padding: 1rem 0;
+
+    .avatar {
+      width: 60px;
+      height: 60px;
+      margin-bottom: 0.5rem;
+    }
+  }
+
+  .edit {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    list-style: none;
+
+    a {
+      flex: 1;
+      text-align: center;
+    }
+  }
+
+  .theme-area {
+    list-style: none;
+    padding: 1rem 0;
+  }
+
+  .dropdown-footer {
+    list-style: none;
+    text-align: center;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--bs-dropdown-divider-bg, #dee2e6);
+
+    a {
+      color: var(--bs-primary);
+      font-weight: 600;
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+}
+
+// ===== SKIN GRID (manteniendo tu configuración original) =====
 .skin-grid {
-  --sw: 44px; /* tamaño del swatch (coincide con .skin-swatch) */
-  --gap: 0.2rem; /* pon 0 si no quieres ningún espacio entre celdas */
+  --sw: 44px;
+  --gap: 0.2rem;
   display: grid;
   grid-template-columns: repeat(4, var(--sw));
   gap: var(--gap);
-  width: fit-content; /* el menú se ajusta al contenido */
+  width: fit-content;
 }
 
-/* (opcional) si quieres la grilla centrada dentro del dropdown: */
-/* .skin-grid{ justify-content: center; } */
-
-/* Tus estilos existentes pueden quedarse igual */
 .skin-swatch {
   width: 44px;
   height: 44px;
@@ -31,26 +288,58 @@ nav {
     box-shadow 0.12s ease;
 }
 
-/* Botón de ícono cuadrado y centrado */
-.navbar .icon-btn {
-  --size: 36px; /* ajusta a tu gusto */
-  width: var(--size);
-  height: var(--size);
-  padding: 0;
-  border: 0;
-  background: transparent;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1; /* evita alturas raras del .btn */
+// ===== SETTING CONTAINER =====
+.setting-container {
+  .form-check {
+    margin-bottom: 0.75rem;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    .text {
+      margin-left: 0.5rem;
+    }
+  }
 }
 
-.navbar .icon-btn .fa {
-  display: block; /* usa la caja del glifo, no la de línea */
-  line-height: 1; /* FA4 ya lo trae, reforzamos */
-  font-size: 1.5rem; /* equivalente a fs-4 */
+// ===== RESPONSIVE =====
+@media (max-width: 768px) {
+  .navbar-container {
+    flex-direction: column;
+    gap: 1rem;
+
+    .navbar-header.pull-left,
+    .navbar-header.pull-right {
+      width: 100%;
+      justify-content: space-between;
+    }
+  }
+
+  .navbar-header.pull-left {
+    gap: 2rem; /* Menos espaciado en móvil */
+  }
+
+  .sidebar-collapse {
+    margin-left: 1rem; /* Menos margen en móvil */
+  }
 }
 
-.navbar .icon-btn .fa-user-circle {
-  transform: translateY(0.5px);
+@media (max-width: 480px) {
+  .navbar-header.pull-left {
+    gap: 1rem; /* Espaciado mínimo en pantallas muy pequeñas */
+  }
+
+  .sidebar-collapse {
+    margin-left: 0.5rem;
+  }
+}
+
+// ===== FIXED NAVBAR =====
+.navbar-fixed-top {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1030;
 }

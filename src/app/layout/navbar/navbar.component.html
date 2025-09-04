@@ -1,144 +1,187 @@
-<nav class="navbar navbar-expand navbar-dark" [class.fixed-top]="isNavFixed()">
-  <div class="container-fluid">
-    <div class="d-flex align-items-center">
-      <a class="navbar-brand d-flex align-items-center" routerLink="/home">
-        <img
-          src="../../../assets/picasso/logo-picasso.png"
-          alt="Logo"
-          width="30"
-          class="d-inline-block align-text-top me-2"
-        />
-        Plantilla Angular
-      </a>
-
-      <button
-        type="button"
-        class="btn p-0 border-0 bg-transparent shadow-none d-inline-flex align-items-center justify-content-center text-white"
-        aria-label="Alternar sidebar"
-        title="Alternar sidebar"
-        (click)="onToggleSidebar()"
-      >
-        <i class="fa fa-bars fs-4"></i>
-      </button>
-    </div>
-
-    <div class="d-flex align-items-center ms-auto">
-      <div
-        class="dropdown"
-        dropdown
-        container="body"
-        placement="bottom right"
-        [autoClose]="true"
-      >
-        <button
-          class="btn icon-btn text-white p-0"
-          type="button"
-          aria-label="Menú de usuario"
-          dropdownToggle
-        >
-          <i class="fa fa-user-circle-o fs-4"></i>
-        </button>
-
-        <div
-          *dropdownMenu
-          class="dropdown-menu dropdown-menu-end p-3 skin-menu"
-        >
-          <h6 class="dropdown-header mb-2">
-            <span class="d-block text-wrap" title="kegomez@sunshinebouquet.com">
-              kegomezsunshinebouquet.com
-            </span>
-          </h6>
-
-          <hr class="dropdown-divider mt-0 mb-2" />
-
-          <div class="skin-grid mx-auto">
-            @for (skin of SKINS; track $index) {
-              <button
-                type="button"
-                class="skin-swatch btn p-0 position-relative"
-                (click)="theme.setSkin(skin.name)"
-                [class.active]="theme.skin() === skin.name"
-                [style.--swatch-bg]="skin.hex"
-                title="{{ skin.label }}"
-              >
-                @if (theme.skin() === skin.name) {
-                  <i
-                    class="fa fa-check-lg position-absolute top-50 start-50 translate-middle"
-                  ></i>
-                }
-              </button>
-            }
-          </div>
-
-          <hr class="dropdown-divider" />
-
-          <h6 class="dropdown-item text-center fw-bold mb-0">
-            <a class="" href="#">Menú Principal</a>
-          </h6>
-        </div>
+<!-- navbar.component.html - Estructura de cajones como navigation.component -->
+<nav
+  class="navbar navbar-expand navbar-dark"
+  [class.navbar-fixed-top]="isNavFixed()"
+>
+  <div class="navbar-inner">
+    <div class="navbar-container">
+      <!-- Navbar Brand - Equivalente a navbar-header pull-left -->
+      <div class="navbar-header pull-left">
+        <a class="navbar-brand" routerLink="/home" href="/home">
+          <small>
+            <img
+              src="../../../assets/picasso/logo-picasso.png"
+              alt="Logo"
+              style="height: 40px; width: 40px"
+              class="d-inline-block align-text-top me-2"
+            />
+            Plantilla
+          </small>
+        </a>
       </div>
 
-      <!-- Dropdown engranaje con 4 switches -->
-      <div
-        class="dropdown"
-        dropdown
-        container="body"
-        placement="bottom right"
-        [insideClick]="true"
-        #gearDrop="bs-dropdown"
-      >
+      <!-- Sidebar Collapse -->
+      <div class="sidebar-collapse">
         <button
-          class="btn icon-btn text-white p-0"
           type="button"
-          aria-label="Ajustes"
-          dropdownToggle
+          class="collapse-icon btn p-0 border-0 bg-transparent shadow-none d-inline-flex align-items-center justify-content-center text-white"
+          aria-label="Alternar sidebar"
+          title="Alternar sidebar"
+          (click)="onToggleSidebar()"
         >
-          <i class="fa fa-gear fs-4"></i>
+          <i class="fa fa-bars fs-4"></i>
         </button>
-        <div
-          *dropdownMenu
-          class="dropdown-menu dropdown-menu-end p-3"
-          style="min-width: 260px"
-        >
-          <div class="form-check">
-            <input
-              id="fxNav"
-              class="form-check-input"
-              type="checkbox"
-              [checked]="isNavFixed()"
-              (change)="onToggleNavFixed(); gearDrop.hide()"
-            />
-            <label class="form-check-label" for="fxNav">Navbar fija</label>
-          </div>
-          <div class="form-check">
-            <input
-              id="fxBc"
-              class="form-check-input"
-              type="checkbox"
-              [checked]="isBreadcrumbsFixed()"
-              (change)="onToggleBreadcrumbsFixed(); gearDrop.hide()"
-            />
-            <label class="form-check-label" for="fxBc">Breadcrumbs fijas</label>
-          </div>
-          <div class="form-check">
-            <input
-              id="fxPh"
-              class="form-check-input"
-              type="checkbox"
-              [checked]="isHeadbarFixed()"
-              (change)="onToggleHeadbarFixed(); gearDrop.hide()"
-            />
-            <label class="form-check-label" for="fxPh">Page header fija</label>
-          </div>
-          <div class="form-check">
-            <input
-              id="fxSb"
-              class="form-check-input"
-              type="checkbox"
-              [checked]="isSidebarFixed()"
-              (change)="onToggleSidebarFixed(); gearDrop.hide()"
-            />
-            <label class="form-check-label" for="fxSb">Sidebar fija</label>
+      </div>
+
+      <!-- Account Area and Settings - Equivalente a navbar-header pull-right -->
+      <div class="navbar-header pull-right">
+        <div class="navbar-account">
+          <ul class="account-area">
+            <!-- Usuario Dropdown - ORIGINAL SIN MODIFICAR -->
+            <li>
+              <div
+                class="dropdown"
+                dropdown
+                container="body"
+                placement="bottom right"
+                [autoClose]="true"
+              >
+                <button
+                  class="btn icon-btn text-white p-0 d-flex align-items-center"
+                  type="button"
+                  aria-label="Menú de usuario"
+                  dropdownToggle
+                >
+                  <b class="me-2 d-none d-md-inline">
+                    Kevin Camilo Gómez González
+                  </b>
+                  &nbsp;&nbsp;
+                  <i class="fa fa-user-circle-o fs-4"></i>
+                </button>
+
+                <div
+                  *dropdownMenu
+                  class="dropdown-menu dropdown-menu-end p-3 skin-menu"
+                >
+                  <h6 class="dropdown-header mb-2">
+                    <span
+                      class="d-block text-wrap"
+                      title="kegomez@sunshinebouquet.com"
+                    >
+                      kegomezsunshinebouquet.com
+                    </span>
+                  </h6>
+
+                  <hr class="dropdown-divider mt-0 mb-2" />
+
+                  <div class="skin-grid mx-auto">
+                    @for (skin of SKINS; track $index) {
+                      <button
+                        type="button"
+                        class="skin-swatch btn p-0 position-relative"
+                        (click)="theme.setSkin(skin.name)"
+                        [class.active]="theme.skin() === skin.name"
+                        [style.--swatch-bg]="skin.hex"
+                        title="{{ skin.label }}"
+                      >
+                        @if (theme.skin() === skin.name) {
+                          <i
+                            class="fa fa-check-lg position-absolute top-50 start-50 translate-middle"
+                          ></i>
+                        }
+                      </button>
+                    }
+                  </div>
+
+                  <hr class="dropdown-divider" />
+
+                  <h6 class="dropdown-item text-center fw-bold mb-0">
+                    <a class="" href="#">Menú Principal</a>
+                  </h6>
+                </div>
+              </div>
+            </li>
+          </ul>
+
+          <!-- Settings - Equivalente al gear -->
+          <div class="setting">
+            <div
+              class="dropdown"
+              dropdown
+              container="body"
+              placement="bottom right"
+              [insideClick]="true"
+              #gearDrop="bs-dropdown"
+            >
+              <button
+                class="btn icon-btn text-white p-0"
+                type="button"
+                aria-label="Ajustes"
+                dropdownToggle
+                id="btn-setting"
+                title="Setting"
+              >
+                <i class="fa fa-gear fs-4"></i>
+              </button>
+
+              <div
+                *dropdownMenu
+                class="dropdown-menu dropdown-menu-end p-3 setting-container"
+                style="min-width: 260px"
+              >
+                <div class="form-check">
+                  <input
+                    id="fxNav"
+                    class="form-check-input"
+                    type="checkbox"
+                    [checked]="isNavFixed()"
+                    (change)="onToggleNavFixed(); gearDrop.hide()"
+                  />
+                  <label class="form-check-label" for="fxNav">
+                    <span class="text">Fixed Navbar</span>
+                  </label>
+                </div>
+
+                <div class="form-check">
+                  <input
+                    id="fxBc"
+                    class="form-check-input"
+                    type="checkbox"
+                    [checked]="isBreadcrumbsFixed()"
+                    (change)="onToggleBreadcrumbsFixed(); gearDrop.hide()"
+                  />
+                  <label class="form-check-label" for="fxBc">
+                    <span class="text">Fixed BreadCrumbs</span>
+                  </label>
+                </div>
+
+                <div class="form-check">
+                  <input
+                    id="fxPh"
+                    class="form-check-input"
+                    type="checkbox"
+                    [checked]="isHeadbarFixed()"
+                    (change)="onToggleHeadbarFixed(); gearDrop.hide()"
+                  />
+                  <label class="form-check-label" for="fxPh">
+                    <span class="text">Fixed Header</span>
+                  </label>
+                </div>
+
+                <div class="form-check">
+                  <input
+                    id="fxSb"
+                    class="form-check-input"
+                    type="checkbox"
+                    [checked]="isSidebarFixed()"
+                    (change)="onToggleSidebarFixed(); gearDrop.hide()"
+                  />
+                  <label class="form-check-label" for="fxSb">
+                    <span class="text">Fixed SideBar</span>
+                  </label>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
