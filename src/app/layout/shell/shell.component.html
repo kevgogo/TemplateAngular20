@@ -1,5 +1,9 @@
 <app-navbar (toggleSidebar)="onToggleSidebar()" />
-<div class="layout" [class.sidebar-hidden]="sidebarHidden()">
+<div
+  class="layout"
+  [class.sidebar-hidden]="sidebarHidden()"
+  [class.sidebar-collapsed]="collapsed()"
+>
   <app-sidebar
     class="sidebar"
     [items]="menuItems()"

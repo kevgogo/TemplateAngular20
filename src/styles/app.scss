@@ -234,15 +234,15 @@ body.fixed-pageheader app-header-page,
     color-mix(in srgb, var(--app-header-bg, var(--app-primary)), #000 15%);
 }
 
-/* Sidebar fijo */
+/* Sidebar fijo - compatible con ambos sistemas */
 body.sidebar-fixed .page-sidebar,
 body.sidebar-fixed app-sidebar.sidebar,
+body.sidebar-fixed .sidebar,
 .page-sidebar.sidebar-fixed {
   position: sticky;
-  top: calc(var(--off-nav) + var(--off-bc) + var(--off-hdr));
-  bottom: 0;
-  left: 0;
-  width: var(--sidebar-w);
+  top: var(--offset-top, 0px);
+  height: calc(100dvh - var(--offset-top, 0px));
+  // width: var(--sidebar-w);
   z-index: var(--z-sidebar);
 }
 
@@ -350,6 +350,15 @@ body.fixed-pageheader section.content {
 
 .navbar-default {
   @extend .navbar !optional;
+}
+
+.navbar-default {
+  padding: 0.5rem 1rem;
+  margin-bottom: 0;
+  list-style: none;
+  background-color: #f8f9fa;
+  border: 1px solid rgba(0, 0, 0, 0.125);
+  border-radius: 0.375rem;
 }
 
 /* Tabs con color de skin */
