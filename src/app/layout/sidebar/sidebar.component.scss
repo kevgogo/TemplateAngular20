@@ -35,6 +35,13 @@ aside.sidebar {
   --z-sidebar: var(--shell-z-sidebar, 1020);
   --z-sidebar-panel: var(--shell-z-sidebar-panel, 1030);
   width: auto;
+
+  /* ======== Tokens del buscador ======== */
+  --sidebar-search-h: 40px; /* alto del buscador */
+  --sidebar-search-fs: 13px; /* tamaño de fuente */
+  --sidebar-search-icon: 14px; /* tamaño del ícono */
+  --sidebar-search-x: 16px; /* padding horizontal */
+  --sidebar-search-border: #eee;
 }
 
 /* ======== Sidebar Base ======== */
