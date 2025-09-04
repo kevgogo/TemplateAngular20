@@ -48,8 +48,7 @@
               "node_modules/ngx-toastr/toastr.css",
               "node_modules/devextreme/dist/css/dx.light.css",
               "node_modules/ngx-toastr/toastr.css",
-              "src/styles.scss",
-              "src/assets/css/themes.css"
+              "src/styles/app.scss"
             ]
           },
           "configurations": {
