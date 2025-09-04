@@ -2,6 +2,7 @@ import { Injectable, computed, effect, signal } from '@angular/core';
 
 export type ThemeName = 'light' | 'dark';
 export type SkinName =
+  | 'default'
   | 'azure'
   | 'black'
   | 'blue'
@@ -29,6 +30,7 @@ export interface ThemeState {
 
 /** Opciones de skin para tu selector en UI */
 export const SKIN_OPTIONS: SkinOption[] = [
+  { name: 'default', hex: '#1CA5B8', label: 'default' },
   { name: 'colibri', hex: '#03b3b2', label: 'Colibri' },
   { name: 'darkblue', hex: '#0072c6', label: 'Dark Blue' },
   { name: 'darkred', hex: '#ac193d', label: 'Dark Red' },
@@ -48,7 +50,7 @@ const STORAGE_KEY = 'ui.theme.v1';
 /** ✅ Estado por defecto: skin 'colibri' */
 const DEFAULT_STATE: ThemeState = {
   theme: 'light',
-  skin: 'colibri',
+  skin: 'default',
 };
 
 @Injectable({ providedIn: 'root' })
@@ -101,6 +103,7 @@ export class ThemeService {
       const theme: ThemeName = parsed.theme === 'dark' ? 'dark' : 'light';
 
       const validSkins: readonly SkinName[] = [
+        'default',
         'azure',
         'black',
         'blue',
@@ -118,7 +121,7 @@ export class ThemeService {
 
       const skin: SkinName = validSkins.includes(parsed.skin!)
         ? parsed.skin!
-        : 'colibri';
+        : 'default';
 
       return { theme, skin };
     } catch {
