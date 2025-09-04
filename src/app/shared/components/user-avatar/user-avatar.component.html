@@ -1,0 +1,9 @@
+<img
+  [src]="(avatar$ | async) ?? fallbackSrc"
+  [alt]="alt"
+  [width]="width"
+  [height]="height"
+  [ngClass]="imgClass"
+  (click)="avatarClick.emit()"
+  (error)="onError()"
+/>

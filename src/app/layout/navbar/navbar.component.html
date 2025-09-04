@@ -7,7 +7,7 @@
     <div class="navbar-container">
       <!-- Navbar Brand - Equivalente a navbar-header pull-left -->
       <div class="navbar-header pull-left">
-        <a class="navbar-brand" routerLink="/home" href="/home">
+        <a class="navbar-brand" routerLink="/home">
           <small>
             <img
               src="../../../assets/picasso/logo-picasso.png"
@@ -52,28 +52,60 @@
                   aria-label="Menú de usuario"
                   dropdownToggle
                 >
-                  <b class="me-2 d-none d-md-inline">
+                  <p class="me-2 d-none d-md-inline">
                     Kevin Camilo Gómez González
-                  </b>
-                  &nbsp;&nbsp;
-                  <i class="fa fa-user-circle-o fs-4"></i>
+                  </p>
+                  <app-user-photo
+                    class="me-2"
+                    imgClass="navbar-user-avatar rounded-circle"
+                    [width]="40"
+                    [height]="40"
+                    [propPath]="'token'"
+                    [size]="'48x48'"
+                  />
                 </button>
 
                 <div
                   *dropdownMenu
                   class="dropdown-menu dropdown-menu-end p-3 skin-menu"
                 >
-                  <h6 class="dropdown-header mb-2">
-                    <span
-                      class="d-block text-wrap"
-                      title="kegomez@sunshinebouquet.com"
-                    >
+                  <!-- Sección de usuario con foto -->
+                  <div class="user-profile-section text-center mb-3">
+                    <div class="avatar-container mb-2">
+                      <app-user-photo
+                        imgClass="user-avatar rounded-circle"
+                        [width]="60"
+                        [height]="60"
+                        [propPath]="'token'"
+                        [size]="'120x120'"
+                      />
+                    </div>
+                    <h6 class="dropdown-header mb-1">
+                      <span
+                        class="d-block text-wrap"
+                        [title]="'kegomezsunshinebouquet'"
+                      >
+                        kegomezsunshinebouquet
+                      </span>
+                    </h6>
+                    <p class="text-muted small mb-0">
                       kegomezsunshinebouquet.com
-                    </span>
-                  </h6>
+                    </p>
+                  </div>
 
-                  <hr class="dropdown-divider mt-0 mb-2" />
+                  <!-- Links de perfil -->
+                  <div class="profile-links mb-3">
+                    <a href="profile.html" class="dropdown-item">
+                      <i class="fa fa-user me-2"></i>Profile
+                    </a>
+                    <a href="#" class="dropdown-item">
+                      <i class="fa fa-cog me-2"></i>Setting
+                    </a>
+                  </div>
 
+                  <hr class="dropdown-divider" />
+
+                  <!-- Grid de temas -->
                   <div class="skin-grid mx-auto">
                     @for (skin of SKINS; track $index) {
                       <button
@@ -96,7 +128,7 @@
                   <hr class="dropdown-divider" />
 
                   <h6 class="dropdown-item text-center fw-bold mb-0">
-                    <a class="" href="#">Menú Principal</a>
+                    <a class="" href="#">MENÚ PRINCIPAL</a>
                   </h6>
                 </div>
               </div>

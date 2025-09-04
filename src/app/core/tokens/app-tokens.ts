@@ -91,3 +91,11 @@ export const GRAPHQL_PASSWORD_TOKEN = new InjectionToken<string>(
     factory: () => environment.password_graphql_api,
   },
 );
+
+export const MICROSOFT_GRAPH_URL = new InjectionToken<string>(
+  'MICROSOFT_GRAPH_URL',
+  {
+    providedIn: 'root',
+    factory: () => 'https://graph.microsoft.com/v1.0',
+  },
+);

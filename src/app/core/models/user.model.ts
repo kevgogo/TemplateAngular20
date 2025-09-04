@@ -19,3 +19,21 @@ export interface User {
   roles?: string[];
   rol?: string;
 }
+
+// Interface para usar en componentes
+export interface UserPhotoData {
+  photoUrl: string;
+  isDefault: boolean;
+  lastUpdated?: Date;
+}
+
+export interface UserPhotoConfig {
+  defaultPhotoUrl?: string;
+  cacheEnabled?: boolean;
+  cacheDurationMs?: number;
+}
+
+export interface PhotoCache {
+  photoUrl: string;
+  timestamp: number;
+}

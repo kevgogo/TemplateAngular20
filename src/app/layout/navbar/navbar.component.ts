@@ -15,14 +15,14 @@ import {
   SkinOption,
   ThemeService,
 } from '@core/services/theme.service';
-import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
+import { SHARED_IMPORTS } from '@shared/app-shared-imports';
 
 type FixedPart = 'nav' | 'breadcrumbs' | 'headbar' | 'sidebar';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [CommonModule, BsDropdownModule],
+  imports: [CommonModule, SHARED_IMPORTS],
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -57,22 +57,6 @@
   <!-- =================== Lista principal (árbol) =================== -->
   @if (items.length > 0) {
     <ul class="root">
-      @if (isSearching() && !collapsedResolved) {
-        <li class="item meta" role="status" aria-live="polite">
-          <div
-            class="link d-flex align-items-center gap-3 px-3 py-2 text-decoration-none"
-          >
-            <span class="label text-truncate flex-grow-1">
-              {{ items.length }} resultado{{
-                items.length !== 1 ? "s" : ""
-              }}
-              encontrado{{ items.length !== 1 ? "s" : "" }} para
-              <mark class="search-term">{{ searchTerm() }}</mark>
-            </span>
-          </div>
-        </li>
-      }
-
       @for (it of items; track $index) {
         <li
           class="item depth-0"
@@ -143,6 +127,22 @@
               }"
             ></ng-template>
           }
+        </li>
+      }
+
+      @if (isSearching() && !collapsedResolved) {
+        <li class="item meta" role="status" aria-live="polite">
+          <div
+            class="link d-flex align-items-center gap-3 px-3 py-2 text-decoration-none"
+          >
+            <span class="label text-truncate flex-grow-1">
+              {{ items.length }} resultado{{
+                items.length !== 1 ? "s" : ""
+              }}
+              encontrado{{ items.length !== 1 ? "s" : "" }} para
+              <mark class="search-term">{{ searchTerm() }}</mark>
+            </span>
+          </div>
         </li>
       }
     </ul>

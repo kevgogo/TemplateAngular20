@@ -73,7 +73,6 @@ nav {
   display: flex;
   align-items: center;
   max-width: 250px;
-  margin-right: unset;
 
   &:hover {
     color: #f8f9fa !important;
@@ -186,13 +185,22 @@ nav {
   }
 
   p {
-    font-size: 0.875rem;
-    font-weight: 400;
-    margin: 0; /* Eliminar márgenes del p */
+    font-size: 1.275rem; /* Mismo tamaño que el título */
+    font-weight: 200 !important; /* Mismo peso que el título */
+    margin: 0;
     margin-right: 0.75rem;
-    line-height: 1.5rem; /* Altura de línea para centrar verticalmente */
+    line-height: 1;
     display: flex;
-    align-items: center; /* Centrar contenido del p */
+    align-items: center;
+  }
+
+  .navbar-user-avatar {
+    width: 29px;
+    height: 29px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    object-fit: cover;
+    flex-shrink: 0; /* No se reduce en pantallas pequeñas */
   }
 }
 
@@ -286,6 +294,38 @@ nav {
   transition:
     transform 0.12s ease,
     box-shadow 0.12s ease;
+}
+
+// ===== DROPDOWN USER PROFILE SECTION =====
+.user-profile-section {
+  padding: 0.5rem 0;
+
+  .avatar-container {
+    display: flex;
+    justify-content: center;
+
+    .user-avatar {
+      border-radius: 50%;
+      border: 2px solid rgba(0, 0, 0, 0.1);
+      /* Tamaño personalizable - cambiar aquí */
+      width: 128px !important;
+      height: 128px !important;
+      object-fit: cover;
+    }
+  }
+}
+
+.profile-links {
+  .dropdown-item {
+    padding: 0.5rem 1rem;
+    display: flex;
+    align-items: center;
+
+    i {
+      width: 16px;
+      text-align: center;
+    }
+  }
 }
 
 // ===== SETTING CONTAINER =====
