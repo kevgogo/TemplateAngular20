@@ -63,8 +63,6 @@ export class SharedShowcasePage {
         return 'es-EC';
       case 'en_US':
         return 'en-US';
-      case 'es_AR':
-        return 'es-AR';
       default:
         return 'en-US';
     }

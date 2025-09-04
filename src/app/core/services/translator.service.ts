@@ -10,7 +10,7 @@ type NavigatorLegacy = Navigator & {
 export class TranslatorService {
   private readonly translate = inject(TranslateService);
 
-  private readonly fallbackLanguage = 'es_AR';
+  private readonly fallbackLanguage = 'es_CO';
 
   private readonly availablelangs: { code: string; text: string }[] = [
     { code: 'es_CO', text: 'Español (Colombia)' },
