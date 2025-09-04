@@ -80,7 +80,23 @@ aside.sidebar {
   .dropdown-like:hover {
     background: #fbfbfb;
   }
+  /* ======== BORDES NIVEL 0 ======== */
+  /* Borde superior para el primer elemento del nivel 0 */
+  .root > .item:first-child {
+    border-top: 1px solid var(--sb-border);
+  }
 
+  /* Borde inferior para todos los elementos del nivel 0 */
+  .root > .item {
+    border-bottom: 1px solid var(--sb-border);
+  }
+
+  /* Alternativa: Solo borde inferior en el último elemento */
+  /*
+  .root > .item:last-child {
+    border-bottom: 1px solid var(--sb-border);
+  }
+  */
   /* Estilos específicos del root */
   ul.root {
     color: #737373;
@@ -603,7 +619,7 @@ li.subitem.depth-1::before {
   width: 5px;
   height: 5px;
   left: 21px;
-  top: 24px; /* Posición fija en lugar de 50% para evitar que se mueva */
+  top: 16px; /* Posición fija en lugar de 50% para evitar que se mueva */
   background-color: #fff;
   border: 1px solid #e2e2e2;
   z-index: 2;
@@ -612,7 +628,4 @@ li.subitem.depth-1::before {
 a.sub-link.depth-1 {
   padding-left: 30% !important;
   margin-left: -15%;
-}
-
-a.sub-link.submenu.depth-1.active {
 }

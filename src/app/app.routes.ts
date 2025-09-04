@@ -22,7 +22,6 @@ export const routes: Routes = [
       { path: '', pathMatch: 'full', redirectTo: 'home' }, // <— CAMBIO
       {
         path: 'home',
-        title: 'Inicio',
         data: {
           breadcrumb: 'Inicio',
           hideHeadbarTitle: true,
@@ -32,7 +31,6 @@ export const routes: Routes = [
       },
       {
         path: 'dashboard',
-        title: 'Dashboard',
         data: { breadcrumb: 'Dashboard' },
         // canActivate: [accessControlGuard],
         loadComponent: () =>
@@ -44,7 +42,6 @@ export const routes: Routes = [
       // Errores (ahora desde shared/pages/errors)
       {
         path: 'error/401',
-        title: 'No autorizado',
         data: { breadcrumb: '401' },
         loadComponent: () =>
           import('@pages/errors/unauthorized.page').then(
@@ -53,21 +50,18 @@ export const routes: Routes = [
       },
       {
         path: 'error/403',
-        title: 'Acceso denegado',
         data: { breadcrumb: '403' },
         loadComponent: () =>
           import('@pages/errors/forbidden.page').then((m) => m.ForbiddenPage),
       },
       {
         path: 'error/404',
-        title: 'Página no encontrada',
         data: { breadcrumb: '404' },
         loadComponent: () =>
           import('@pages/errors/not-found.page').then((m) => m.NotFoundPage),
       },
       {
         path: 'error/500',
-        title: 'Error del servidor',
         data: { breadcrumb: '500' },
         loadComponent: () =>
           import('@pages/errors/server-error.page').then(

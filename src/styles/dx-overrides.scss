@@ -247,3 +247,67 @@
     transition: none;
   }
 }
+
+/* =============================================================================
+   Colibrí – complementos a dx-overrides (alineado a lineamientos)
+   ============================================================================= */
+
+/* 1) Botón: icono a la derecha + texto centrado */
+.dx-button-has-icon .dx-button-content {
+  display: flex;
+  flex-direction: row-reverse; /* icono a la derecha */
+  gap: 0.5rem;
+}
+.dx-button-has-icon .dx-button-text {
+  margin: 0 auto; /* centra el texto */
+}
+
+/* 2) DataGrid: títulos centrados y enlaces con color de marca */
+.dx-datagrid-headers .dx-row > td {
+  text-align: center;
+}
+.dx-datagrid .dx-link {
+  color: var(--bs-link-color, #0d6efd);
+}
+
+/* 3) DataGrid: acciones a la derecha */
+.dx-datagrid-rowsview .dx-command-edit,
+.dx-datagrid-headers .dx-command-edit {
+  text-align: right;
+}
+
+/* 4) DataGrid: “Adicionar” arriba a la derecha (header panel/toolbar) */
+.dx-datagrid-header-panel .dx-toolbar-after {
+  margin-left: auto;
+}
+
+/* 5) DataGrid: alineación por tipo de dato (fallbacks utilitarios) */
+.dx-datagrid-rowsview td[data-type="string"],
+.dx-datagrid-rowsview .text-start {
+  text-align: left;
+}
+.dx-datagrid-rowsview td[data-type="number"],
+.dx-datagrid-rowsview .text-end-number,
+.dx-datagrid-headers td[data-type="number"] {
+  text-align: right;
+}
+
+/* 6) Popup: título con color de marca */
+.dx-popup-title {
+  color: var(--bs-primary, #0d6efd);
+}
+
+/* 7) Checkbox marcado al color de marca */
+.dx-checkbox-checked .dx-checkbox-icon {
+  border-color: var(--bs-primary, #0d6efd);
+  background: color-mix(in srgb, var(--bs-primary, #0d6efd) 20%, transparent);
+}
+
+/* 8) Steps (si se usan en formularios/procesos) */
+.steps .step {
+  color: var(--colibri-gray-200, #bac8d3);
+}
+.steps .step.is-complete,
+.steps .step.is-current {
+  color: var(--bs-primary, #0d6efd);
+}

@@ -1,0 +1,23 @@
+/* src/styles/tokens/_colibri.colors.scss */
+:root {
+  --colibri-primary: #1ca5b8; /* color general */
+  --colibri-danger: #d73d32; /* rojo de sistema */
+  --colibri-gray-200: #bac8d3; /* step “sin diligenciar” */
+  --colibri-gray-300: #c4d0d9; /* labels */
+  --colibri-warning: #f29f05; /* alertas */
+  --colibri-info: #55b3d9; /* informativos */
+  --colibri-success: #57a641; /* confirmación ok */
+
+  /* derivados útiles */
+  --colibri-primary-rgb: 28, 165, 184;
+  --dg-row-alt-bg: color-mix(in srgb, var(--colibri-primary) 10%, white);
+}
+
+/* puente a Bootstrap si lo usas como theme system */
+:root {
+  --bs-primary: var(--colibri-primary);
+  --bs-danger: var(--colibri-danger);
+  --bs-warning: var(--colibri-warning);
+  --bs-info: var(--colibri-info);
+  --bs-success: var(--colibri-success);
+}
