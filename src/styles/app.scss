@@ -1,10 +1,11 @@
 /* =============================================================================
-   app.scss — Único entrypoint de estilos (TemplateAngular20)
+   app.scss — Único entrypoint de estilos unificado (TemplateAngular20)
    -----------------------------------------------------------------------------
    - Carga tokens (colores + tipografía)
    - Define layout/base/bridge de tema
+   - Sistema de elementos fijos con flags y offsets unificados
    - Ajustes suaves para DevExtreme y utilidades
-   - Sin !important
+   - Sin !important (excepto donde sea absolutamente necesario)
    ============================================================================= */
 
 /* ===== IMPORTS ===== */
@@ -14,38 +15,59 @@
 
 /* ===== CSS CUSTOM PROPERTIES ===== */
 :root {
-  /* Layout Shell */
-  --navbar-h: 45px; /* altura navbar unificada */
-  --bc-h: 36px; /* breadcrumbs */
-  --hdr-h: 40px; /* page header */
+  /* Layout Shell - Alturas unificadas */
+  --navbar-h: 56px; /* altura navbar unificada (era 45px y 56px) */
+  --nav-h: var(--navbar-h); /* alias para consistencia */
+  --bc-h: 50px; /* breadcrumbs (era 36px) */
+  --hdr-h: 50px; /* page header */
+  --ph-h: var(--hdr-h); /* alias para page header */
   --footer-h: 32px; /* footer */
   --sidebar-w: 224px; /* sidebar width */
   --sidebar-w-collapsed: 72px;
 
-  /* Offsets dinámicos (se activan con flags en body) */
+  /* Offsets dinámicos unificados */
   --off-nav: 0px;
   --off-bc: 0px;
   --off-hdr: 0px;
+  --offset-top: 0px; /* offset principal unificado */
+  --ph-top: var(--offset-top); /* top para page header */
 
   /* Design tokens */
-  --card-radius: 0.75rem;
+  --card-radius: 1rem; /* unificado en 1rem */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
   --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.08);
 
   /* Sidebar colors */
-  --sb-bg: #0f172a;
-  --sb-color: #e2e8f0;
+  --sb-bg: var(--bs-body-bg);
+  --sb-color: var(--bs-body-color);
+  --sb-fg: var(--bs-body-color);
+  --sb-border: var(--bs-border-color);
+  --sb-rail: var(--bs-border-color);
 
-  /* Z-index scale */
+  /* Estado/acciones sidebar */
+  --sb-accent: var(--app-primary, var(--colibri-primary, #1ca5b8));
+  --sb-hover-bg: color-mix(in srgb, var(--sb-accent), transparent 92%);
+  --sb-active-bg: color-mix(in srgb, var(--sb-accent), transparent 85%);
+  --sb-active-fg: var(--bs-body-color);
+
+  /* Z-index scale unificado */
   --z-1: 1;
   --z-10: 10;
   --z-50: 50;
   --z-100: 100;
   --z-1000: 1000;
-  --z-sidebar: 1000;
-  --z-header: 1010;
+  --z-sidebar: 1040;
+  --z-sidebar-panel: 1060;
+  --z-header: 1015;
+  --z-headbar: var(--z-header);
   --z-breadcrumbs: 1020;
   --z-navbar: 1030;
+
+  /* Colores de tema */
+  --colibri-primary: #1ca5b8;
+  --colibri-info: #2dc3e8;
+  --bs-primary: var(--colibri-primary);
+  --bs-info: var(--colibri-info);
 }
 
 /* ===== RESET Y BASE ===== */
@@ -65,18 +87,43 @@ img {
   height: auto;
 }
 
-/* ===== SISTEMA DE FLAGS PARA ELEMENTOS FIJOS ===== */
-/* Los offsets se activan cuando el flag correspondiente está en <body> */
-body.navbar-fixed {
+/* ===== SISTEMA DE FLAGS UNIFICADO PARA ELEMENTOS FIJOS ===== */
+/* Offset base por defecto (navbar NO fija) */
+body {
+  --offset-top: 0px;
+  --off-nav: 0px;
+  --off-bc: 0px;
+  --off-hdr: 0px;
+}
+
+/* Navbar fija */
+body.navbar-fixed,
+body.nav-fixed,
+body:has(.navbar.fixed-top) {
   --off-nav: var(--navbar-h);
+  --offset-top: var(--navbar-h);
 }
 
-body.breadcrumbs-fixed {
+/* Breadcrumbs fijas */
+body.breadcrumbs-fixed,
+body.fixed-breadcrumbs {
   --off-bc: var(--bc-h);
+  --ph-top: calc(var(--offset-top) + var(--bc-h));
 }
 
-body.page-header-fixed {
+/* Page header fijo */
+body.page-header-fixed,
+body.fixed-pageheader {
   --off-hdr: var(--hdr-h);
+}
+
+/* Combinaciones de flags */
+body.fixed-nav.fixed-breadcrumbs {
+  --offset-top: calc(var(--nav-h) + var(--bc-h));
+}
+
+body.fixed-nav.fixed-breadcrumbs.fixed-pageheader {
+  --offset-top: calc(var(--nav-h) + var(--bc-h) + var(--ph-h));
 }
 
 /* ===== LAYOUT PRINCIPAL (APP SHELL) ===== */
@@ -88,9 +135,14 @@ body.page-header-fixed {
 
 /* Navbar */
 .app-navbar,
-.page-navbar {
+.page-navbar,
+.navbar {
   height: var(--navbar-h);
   box-shadow: var(--shadow-sm);
+}
+
+.navbar.fixed-top {
+  z-index: var(--z-navbar);
 }
 
 /* Breadcrumbs */
@@ -102,7 +154,8 @@ body.page-header-fixed {
 }
 
 /* Page Header */
-.page-header {
+.page-header,
+.app-header {
   height: var(--hdr-h);
 }
 
@@ -138,12 +191,16 @@ body.page-header-fixed {
   }
 }
 
-/* ===== ELEMENTOS FIJOS ===== */
-/* Soporte para flags en <body> o clases directas en el elemento */
+body.sidebar-collapsed .sidebar {
+  width: var(--sidebar-w-collapsed);
+}
 
+/* ===== ELEMENTOS FIJOS UNIFICADOS ===== */
 /* Navbar fija */
 body.navbar-fixed .page-navbar,
-.page-navbar.navbar-fixed {
+body.nav-fixed .navbar,
+.page-navbar.navbar-fixed,
+.navbar.fixed-top {
   position: fixed;
   top: 0;
   left: 0;
@@ -153,33 +210,45 @@ body.navbar-fixed .page-navbar,
 
 /* Breadcrumbs fijas */
 body.breadcrumbs-fixed .page-breadcrumbs,
+body.fixed-breadcrumbs app-breadcrumbs,
 .page-breadcrumbs.breadcrumbs-fixed {
-  position: fixed;
-  top: var(--off-nav);
-  left: 0;
-  right: 0;
+  position: sticky;
+  top: var(--offset-top);
   z-index: var(--z-breadcrumbs);
+  background: var(--bs-body-bg);
+  border-bottom: 1px solid var(--bs-border-color-translucent);
 }
 
 /* Header fijo */
 body.page-header-fixed .page-header,
+body.fixed-pageheader app-headbar,
+body.fixed-pageheader app-page-header,
+body.fixed-pageheader app-header-page,
 .page-header.page-header-fixed {
-  position: fixed;
-  top: calc(var(--off-nav) + var(--off-bc));
-  left: 0;
-  right: 0;
+  position: sticky;
+  top: var(--ph-top);
   z-index: var(--z-header);
+  background: var(--app-header-bg, var(--app-primary));
+  color: var(--app-header-color, #fff);
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--app-header-bg, var(--app-primary)), #000 15%);
 }
 
 /* Sidebar fijo */
 body.sidebar-fixed .page-sidebar,
+body.sidebar-fixed app-sidebar.sidebar,
 .page-sidebar.sidebar-fixed {
-  position: fixed;
+  position: sticky;
   top: calc(var(--off-nav) + var(--off-bc) + var(--off-hdr));
   bottom: 0;
   left: 0;
   width: var(--sidebar-w);
   z-index: var(--z-sidebar);
+}
+
+/* Ajustes de contenido cuando hay elementos fijos */
+body.fixed-pageheader section.content {
+  margin-top: var(--ph-h);
 }
 
 /* ===== COMPONENTES UI ===== */
@@ -195,8 +264,63 @@ body.sidebar-fixed .page-sidebar,
   box-shadow: var(--shadow-md);
 }
 
+/* Modal messages */
+.modal-message .modal-header,
+.modal-message .modal-body,
+.modal-message .modal-footer {
+  text-align: center;
+}
+
+.modal-message.modal-success .modal-header {
+  border-bottom: 3px solid #53a93f;
+}
+
+.modal-message.modal-warning .modal-header {
+  border-bottom: 3px solid #f4b400;
+}
+
+.modal-message.modal-danger .modal-header {
+  border-bottom: 3px solid #d73d32;
+}
+
+.modal-message.modal-info .modal-header {
+  border-bottom: 3px solid #2dc3e8;
+}
+
+/* Modal z-index fixes */
+.modal-backdrop {
+  z-index: 1050 !important;
+}
+
+.modal {
+  z-index: 1060 !important;
+}
+
+/* Modal shadow fixes */
+.modal-dialog.shadow,
+.modal-dialog.shadow-sm,
+.modal-dialog.shadow-lg {
+  box-shadow: none !important;
+}
+
+.modal-dialog.shadow .modal-content {
+  box-shadow: var(--bs-box-shadow) !important;
+}
+
+.modal-dialog.shadow-sm .modal-content {
+  box-shadow: var(
+    --bs-box-shadow-sm,
+    0 0.125rem 0.25rem rgba(0, 0, 0, 0.075)
+  ) !important;
+}
+
+.modal-dialog.shadow-lg .modal-content {
+  box-shadow: var(--bs-box-shadow-lg) !important;
+}
+
 /* ===== BRIDGE BS3 → BS5 (LEGACY) ===== */
 .btn-default {
+  @extend .btn-secondary !optional;
   @supports (color: var(--bs-body-color)) {
     color: var(--bs-body-color);
     background-color: var(--bs-secondary-bg, #e9ecef);
@@ -205,22 +329,45 @@ body.sidebar-fixed .page-sidebar,
 }
 
 .panel {
+  @extend .card !optional;
   border-radius: var(--card-radius);
   box-shadow: var(--shadow-sm);
+}
 
-  &-heading {
-    font-weight: 600;
-  }
+.panel-heading {
+  @extend .card-header !optional;
+  font-weight: 600;
+}
 
-  &-body {
-    padding: 1rem;
-  }
+.panel-body {
+  @extend .card-body !optional;
+  padding: 1rem;
+}
+
+.panel-footer {
+  @extend .card-footer !optional;
+}
+
+.navbar-default {
+  @extend .navbar !optional;
 }
 
 /* Tabs con color de skin */
 .nav-tabs .nav-link.active {
   color: var(--bs-primary);
   border-color: var(--bs-primary);
+}
+
+/* ===== SIDEBAR COMPONENTS ===== */
+.page-sidebar,
+app-sidebar {
+  background: var(--bs-body-bg);
+}
+
+.menu-icon {
+  width: 1.25rem;
+  display: inline-flex;
+  justify-content: center;
 }
 
 /* ===== DEVEXTREME AJUSTES ===== */
@@ -248,9 +395,11 @@ body.sidebar-fixed .page-sidebar,
 .w-xxs {
   width: 8rem;
 }
+
 .w-xs {
   width: 12rem;
 }
+
 .w-sm {
   width: 16rem;
 }
@@ -262,6 +411,56 @@ body.sidebar-fixed .page-sidebar,
   justify-content: center;
   padding: 2rem;
   color: var(--bs-secondary-color, #6c757d);
+}
+
+/* ===== FIXES PARA OVERLAYS Y STICKY ===== */
+/* Utilidades para que sticky funcione bien */
+.layout,
+.main,
+.content {
+  overflow: visible;
+  transform: none;
+}
+
+/* Evitar que las barras "corten" overlays */
+.navbar,
+app-breadcrumbs,
+app-headbar,
+app-page-header,
+app-header-page {
+  overflow: visible;
+}
+
+/* Asegurar que los dropdowns queden por encima de todo lo fijo */
+.navbar .dropdown-menu,
+app-breadcrumbs .dropdown-menu,
+app-headbar .dropdown-menu,
+app-page-header .dropdown-menu,
+app-header-page .dropdown-menu {
+  z-index: calc(var(--z-navbar) + 10);
+}
+
+/* Cuando hay navbar fija y usas anclas internas, compensa el scroll */
+:target {
+  scroll-margin-top: calc(var(--offset-top) + 16px);
+}
+
+/* Sticky elements general */
+.sticky,
+app-breadcrumbs,
+app-headbar,
+app-navbar {
+  top: var(--offset-top);
+}
+
+/* ===== BOTONES ===== */
+.btn {
+  border-radius: 0.625rem;
+}
+
+/* ===== TABLAS ===== */
+.table thead th {
+  vertical-align: bottom;
 }
 
 /* ===== MEDIA QUERIES ===== */
