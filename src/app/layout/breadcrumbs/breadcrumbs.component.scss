@@ -4,7 +4,7 @@
 
 /* Contenedor (ya usas clases de BS en el HTML, pero dejo tokens por si lo estilizas aquí) */
 .app-bc {
-  height: 50px;
+  height: var(--bc-h);
   align-items: center;
   /* Superficie y borde toman el tema actual */
   background: var(--surface-1, var(--bs-tertiary-bg, #f8f9fa));

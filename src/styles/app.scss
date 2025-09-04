@@ -16,14 +16,14 @@
 /* ===== CSS CUSTOM PROPERTIES ===== */
 :root {
   /* Layout Shell - Alturas unificadas */
-  --navbar-h: 56px; /* altura navbar unificada (era 45px y 56px) */
+  --navbar-h: 45px; /* altura navbar unificada (era 45px y 56px) */
   --nav-h: var(--navbar-h); /* alias para consistencia */
-  --bc-h: 50px; /* breadcrumbs (era 36px) */
-  --hdr-h: 50px; /* page header */
+  --bc-h: 40px; /* breadcrumbs (era 36px) */
+  --hdr-h: 40px; /* page header */
   --ph-h: var(--hdr-h); /* alias para page header */
   --footer-h: 32px; /* footer */
   --sidebar-w: 224px; /* sidebar width */
-  --sidebar-w-collapsed: 72px;
+  --sidebar-w-collapsed: 42px;
 
   /* Offsets dinámicos unificados */
   --off-nav: 0px;

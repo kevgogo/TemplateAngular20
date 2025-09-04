@@ -1,9 +1,9 @@
 /* shell.component.scss */
-$navbar-h: 56px;
-$headbar-h: 50px;
-$breadcrumbs-h: 50px;
-$sidebar-w: 224px;
-$sidebar-w-collapsed: 72px;
+$navbar-h: var(--navbar-h);
+$sidebar-w: var(--sidebar-w);
+$sidebar-w-collapsed: var(--sidebar-w-collapsed);
+$breadcrumbs-h: var(--bc-h);
+$headbar-h: var(--hdr-h);
 
 :host {
   display: block;

@@ -1,5 +1,5 @@
 .hb {
-  height: 50px; // consistente con $headbar-h de tu shell
+  height: var(--hdr-h); // consistente con $headbar-h de tu shell
 }
 .hb-title {
   line-height: 1;

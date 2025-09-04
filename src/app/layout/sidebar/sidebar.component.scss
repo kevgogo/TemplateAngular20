@@ -3,8 +3,8 @@
    ===================================== */
 
 /* ======== Variables SASS ======== */
-$w-expanded: 224px;
-$w-collapsed: 72px;
+$w-expanded: var(--sidebar-w);
+$w-collapsed: var(--sidebar-w-collapsed);
 
 /* ======== Tokens CSS del Sidebar ======== */
 aside.sidebar {

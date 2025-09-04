@@ -1,5 +1,8 @@
 nav {
   background: var(--app-primary);
+  height: var(--navbar-h);
+  min-height: var(--navbar-h);
+  line-height: var(--navbar-h);
 
   div:first-child {
     min-height: 38px;
@@ -27,7 +30,9 @@ nav {
   border-radius: 0.4rem;
   background: var(--swatch-bg, #ccc);
   box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.08);
-  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease;
 }
 
 /* Botón de ícono cuadrado y centrado */
