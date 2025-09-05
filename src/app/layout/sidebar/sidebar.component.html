@@ -104,8 +104,8 @@
                   class="fa ms-auto"
                   [ngClass]="
                     isOpen(nodeId(null, $index))
-                      ? 'fa-chevron-down'
-                      : 'fa-chevron-right'
+                      ? 'bi-chevron-down'
+                      : 'bi-chevron-right'
                   "
                 ></i>
               }
@@ -211,8 +211,8 @@
                 class="fa ms-auto"
                 [ngClass]="
                   isOpen(nodeId(parentId, $index))
-                    ? 'fa-chevron-down'
-                    : 'fa-chevron-right'
+                    ? 'bi-chevron-down'
+                    : 'bi-chevron-right'
                 "
               ></i>
             }
@@ -257,7 +257,7 @@
             (click)="$event.preventDefault(); panelBack()"
             aria-label="Atrás"
           >
-            <i class="fa fa-chevron-left"></i>
+            <i class="bi bi-chevron-left"></i>
           </a>
         } @else if (!searchMode) {
           <i class="fa fa-list-ul me-2 opacity-75"></i>
@@ -324,7 +324,7 @@
                       "
                     ></span>
                     @if (hasChildren(r.node)) {
-                      <i class="fa fa-chevron-right ms-auto opacity-75"></i>
+                      <i class="bi bi-chevron-right ms-auto opacity-75"></i>
                     }
                   </a>
                 </li>
@@ -382,7 +382,7 @@
                     <span class="text-truncate" [attr.title]="n.label">{{
                       n.label
                     }}</span>
-                    <i class="fa fa-chevron-right ms-auto opacity-75"></i>
+                    <i class="bi bi-chevron-right ms-auto opacity-75"></i>
                   </a>
                 } @else {
                   <a

@@ -26,7 +26,7 @@ import { filter } from 'rxjs/operators';
 export class HeadbarComponent implements OnInit, OnDestroy {
   // Título por defecto desde token (puedes sobrescribirlo con [title])
   private appName = inject(APP_NAME_TOKEN, { optional: true });
-  @Input() title = this.appName ?? 'Plantilla Angular 20';
+  @Input() title = this.appName ?? '';
 
   // Control del sidebar (lo maneja el Shell)
   @Input() sidebarHidden = false;

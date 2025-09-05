@@ -39,7 +39,6 @@ nav {
 .sidebar-collapse {
   display: flex;
   align-items: center;
-  margin-left: 1rem; /* Espaciado adicional como en Transporte */
 }
 
 .collapse-icon {
@@ -382,4 +381,9 @@ nav {
   left: 0;
   right: 0;
   z-index: 1030;
+}
+
+.navbar .bi {
+  line-height: 1;
+  vertical-align: middle;
 }

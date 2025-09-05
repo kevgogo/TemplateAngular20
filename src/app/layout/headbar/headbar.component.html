@@ -2,8 +2,8 @@
 <div class="hb d-flex align-items-center px-3 gap-3">
   <!-- Izquierda: texto/título -->
 
-  @if(!hideTitle){
-  <h5 class="hb-title mb-0 fw-semibold text-truncate">{{ title }}</h5>
+  @if (!hideTitle) {
+    <h5 class="hb-title mb-0 fw-semibold text-truncate">{{ title }}</h5>
   }
 
   <!-- Derecha: acciones -->
@@ -22,8 +22,8 @@
       "
     >
       <i
-        class="fa fs-4"
-        [ngClass]="isFullscreen ? 'fa-expand' : 'fa-compress'"
+        class="bi fs-4"
+        [ngClass]="isFullscreen ? 'bi-fullscreen-exit' : 'bi-fullscreen'"
       ></i>
     </button>
 
@@ -35,7 +35,7 @@
       aria-label="Refrescar"
       title="Refrescar"
     >
-      <i class="fa fa-refresh fs-4"></i>
+      <i class="bi bi-arrow-clockwise fs-4"></i>
     </button>
 
     <!-- Ocultar/Mostrar sidebar -->
@@ -48,8 +48,8 @@
       [title]="sidebarHidden ? 'Mostrar sidebar' : 'Ocultar sidebar'"
     >
       <i
-        class="fa fs-4"
-        [ngClass]="sidebarHidden ? 'fa-chevron-right' : 'fa-chevron-left'"
+        class="bi fs-4"
+        [ngClass]="sidebarHidden ? 'bi-arrow-bar-right' : 'bi-arrow-bar-left'"
       >
       </i>
     </button>
